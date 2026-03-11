@@ -7,7 +7,7 @@ import type { ParsedConfig } from "@/lib/panw-parser/types"
 import {
   fetchConfigurations,
   fetchConfiguration,
-  type ApiConfigSummary,
+  type ApiConfiguration,
 } from "@/lib/api-client"
 import { deriveConfigName } from "@/lib/panw-parser"
 
@@ -49,24 +49,22 @@ export function useConfig() {
   return context
 }
 
-// Convert an API summary + full config into our frontend Configuration shape
+// Convert an API summary + full detail into our frontend Configuration shape
 function apiToConfiguration(
-  summary: ApiConfigSummary,
-  parsed: ParsedConfig
+  detail: ApiConfiguration
 ): Configuration {
-  const d = summary.device
   return {
-    id:              summary.id,
-    name:            d.hostname ?? deriveConfigName(parsed, summary.file_name),
-    deviceType:      d.device_type,
-    hostname:        d.hostname ?? undefined,
-    platformModel:   d.platform_model ?? undefined,
-    softwareVersion: d.pan_os_version ?? undefined,
-    serialNumber:    d.serial_number ?? undefined,
-    importedAt:      new Date(summary.backed_up_at),
-    fileName:        summary.file_name,
-    fileSizeBytes:   summary.file_size_bytes,
-    parsedConfig:    parsed,
+    id:              detail.id,
+    name:            detail.device_hostname ?? deriveConfigName(detail.parsed, detail.file_name),
+    deviceType:      detail.device_type,
+    hostname:        detail.device_hostname ?? undefined,
+    platformModel:   undefined,
+    softwareVersion: detail.pan_os_version ?? undefined,
+    serialNumber:    detail.device_serial ?? undefined,
+    importedAt:      new Date(detail.backed_up_at),
+    fileName:        detail.file_name,
+    fileSizeBytes:   Number(detail.file_size_bytes),
+    parsedConfig:    detail.parsed,
   }
 }
 
@@ -87,7 +85,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
       const full = await Promise.all(
         summaries.map(async (s) => {
           const detail = await fetchConfiguration(s.id)
-          return apiToConfiguration(s, detail.parsed)
+          return apiToConfiguration(detail)
         })
       )
 

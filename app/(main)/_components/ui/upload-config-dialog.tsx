@@ -422,15 +422,15 @@ export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogPro
 
       addConfig({
         id:              detail.id,
-        name:            detail.device?.hostname ?? deriveConfigName(parsed, fileName),
+        name:            detail.device_hostname ?? deriveConfigName(parsed, fileName),
         deviceType:      result.deviceType,
         hostname:        result.hostname ?? undefined,
-        platformModel:   detail.device?.platform_model ?? undefined,
-        softwareVersion: detail.device?.pan_os_version ?? undefined,
-        serialNumber:    detail.device?.serial_number ?? undefined,
+        platformModel:   undefined,
+        softwareVersion: detail.pan_os_version ?? undefined,
+        serialNumber:    detail.device_serial ?? undefined,
         importedAt:      new Date(detail.backed_up_at),
         fileName:        detail.file_name,
-        fileSizeBytes:   detail.file_size_bytes,
+        fileSizeBytes:   Number(detail.file_size_bytes),
         parsedConfig:    detail.parsed,
       })
 

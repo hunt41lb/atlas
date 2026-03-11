@@ -13,40 +13,35 @@ function headers(extra?: Record<string, string>): HeadersInit {
   }
 }
 
-// ─── Response shapes (mirror what the backend returns) ────────────────────────
+// ─── Response shapes (mirror what the backend actually returns) ───────────────
 
-export interface ApiDevice {
-  id:             string
-  hostname:       string | null
-  serial_number:  string | null
-  ip_address:     string | null
-  device_type:    "firewall" | "panorama"
-  platform_model: string | null
-  pan_os_version: string | null
-  created_at:     string
-  updated_at:     string
-}
-
-export interface ApiConfiguration {
-  id:              string
-  device_id:       string
-  file_name:       string
-  file_size_bytes: number
-  pan_os_version:  string | null
-  backed_up_at:    string
-  created_at:      string
-  parsed:          ParsedConfig
-  device:          ApiDevice
-}
-
+// Shape returned by GET /api/configurations (list) — flat joined fields
 export interface ApiConfigSummary {
   id:              string
   device_id:       string
   file_name:       string
-  file_size_bytes: number
+  file_size_bytes: string | number
   pan_os_version:  string | null
   backed_up_at:    string
-  device:          ApiDevice
+  created_at:      string
+  device_hostname: string | null
+  device_type:     "firewall" | "panorama"
+  device_serial:   string | null
+}
+
+// Shape returned by GET /api/configurations/:id
+export interface ApiConfiguration {
+  id:              string
+  device_id:       string
+  file_name:       string
+  file_size_bytes: string | number
+  pan_os_version:  string | null
+  backed_up_at:    string
+  created_at:      string
+  parsed:          ParsedConfig
+  device_hostname: string | null
+  device_type:     "firewall" | "panorama"
+  device_serial:   string | null
 }
 
 export interface UploadResult {
@@ -78,7 +73,9 @@ export async function fetchConfiguration(id: string): Promise<ApiConfiguration> 
     cache: "no-store",
   })
   if (!res.ok) throw new Error(`Failed to fetch configuration ${id}: ${res.status}`)
-  return res.json()
+  const data = await res.json()
+  // Backend wraps in { configuration: {...} }
+  return data.configuration ?? data
 }
 
 /** Upload a raw XML file and return the ingest result */
