@@ -108,6 +108,10 @@ export interface PanwInterface {
   subInterfaces: PanwSubInterface[]
   comment: string | null
   managementProfile: string | null
+  /** For ethernet members of an AE: the aggregate interface name e.g. "ae1" */
+  aggregateGroup: string | null
+  /** True when the interface is configured as a DHCP client */
+  dhcpClient: boolean
   /** Panorama: which template this came from */
   templateName: string | null
 }
@@ -208,7 +212,6 @@ export interface PanwTemplate {
   interfaces: PanwInterface[]
   virtualRouters: PanwVirtualRouter[]
   zones: PanwZone[]
-  // Network counts from template
   vlans: number
   virtualWires: number
   ipsecTunnels: number
@@ -222,7 +225,6 @@ export interface PanwTemplate {
 export interface PanwDeviceGroup {
   name: string
   description: string | null
-  // Deeply parsed objects
   addresses: PanwAddress[]
   addressGroups: PanwAddressGroup[]
   services: PanwService[]
@@ -232,7 +234,6 @@ export interface PanwDeviceGroup {
   postSecurityRules: PanwSecurityRule[]
   preNatRules: PanwNatRule[]
   postNatRules: PanwNatRule[]
-  // Additional policy counts
   qosRules: number
   pbfRules: number
   decryptionRules: number
@@ -241,7 +242,6 @@ export interface PanwDeviceGroup {
   authenticationRules: number
   dosRules: number
   sdwanPolicyRules: number
-  // Additional object counts
   externalDynamicLists: number
   schedules: number
   regions: number
@@ -269,7 +269,6 @@ export interface ParsedFirewallConfig {
   serialNumber: string | null
   ipAddress: string | null
   platformModel: string | null
-  // Objects (deeply parsed)
   tags: PanwTag[]
   addresses: PanwAddress[]
   addressGroups: PanwAddressGroup[]
@@ -278,14 +277,11 @@ export interface ParsedFirewallConfig {
   applicationGroups: PanwApplicationGroup[]
   applicationFilters: PanwApplicationFilter[]
   profileGroups: PanwProfileGroup[]
-  // Network (deeply parsed)
   interfaces: PanwInterface[]
   zones: PanwZone[]
   virtualRouters: PanwVirtualRouter[]
-  // Policies (deeply parsed)
   securityRules: PanwSecurityRule[]
   natRules: PanwNatRule[]
-  // Additional policy counts
   qosRules: number
   pbfRules: number
   decryptionRules: number
@@ -294,7 +290,6 @@ export interface ParsedFirewallConfig {
   authenticationRules: number
   dosRules: number
   sdwanPolicyRules: number
-  // Additional object counts
   externalDynamicLists: number
   schedules: number
   regions: number
@@ -302,7 +297,6 @@ export interface ParsedFirewallConfig {
   logForwardingProfiles: number
   authenticationProfiles: number
   decryptionProfiles: number
-  // Additional network counts
   vlans: number
   virtualWires: number
   ipsecTunnels: number
@@ -319,7 +313,6 @@ export interface ParsedPanoramaConfig {
   serialNumber: string | null
   ipAddress: string | null
   platformModel: string | null
-  // Shared objects (deeply parsed)
   sharedTags: PanwTag[]
   sharedAddresses: PanwAddress[]
   sharedAddressGroups: PanwAddressGroup[]
@@ -330,7 +323,6 @@ export interface ParsedPanoramaConfig {
   sharedProfileGroups: PanwProfileGroup[]
   sharedPreSecurityRules: PanwSecurityRule[]
   sharedPostSecurityRules: PanwSecurityRule[]
-  // Shared object counts
   sharedExternalDynamicLists: number
   sharedSchedules: number
   sharedRegions: number
@@ -338,9 +330,7 @@ export interface ParsedPanoramaConfig {
   sharedLogForwardingProfiles: number
   sharedAuthenticationProfiles: number
   sharedDecryptionProfiles: number
-  // Device groups (include per-DG counts)
   deviceGroups: PanwDeviceGroup[]
-  // Templates (include per-template network counts)
   templates: PanwTemplate[]
   templateStacks: PanwTemplateStack[]
 }

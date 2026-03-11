@@ -268,6 +268,8 @@ function extractInterfacesOfType(
       subInterfaces,
       comment: str(entry["comment"]),
       managementProfile: str(entry["interface-management-profile"]),
+      aggregateGroup: str(entry["aggregate-group"]),
+      dhcpClient: !!(modeEl && (modeEl["dhcp-client"] !== undefined)),
       templateName,
     }
   })
