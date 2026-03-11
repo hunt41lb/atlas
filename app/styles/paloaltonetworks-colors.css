@@ -1,0 +1,47 @@
+/* @/app/styles/paloaltonetworks-colors.css */
+/* Palo Alto Networks Tag Colors */
+/* Mapped from PANW configuration color keys to CSS custom properties */
+
+:root {
+  --panw-color1:  oklch(0.5674 0.1854 23.02);   /* Red */
+  --panw-color2:  oklch(0.6755 0.0583 170.92);  /* Green */
+  --panw-color3:  oklch(0.6825 0.067 226.24);   /* Blue */
+  --panw-color4:  oklch(0.8689 0.176 102.32);   /* Yellow */
+  --panw-color5:  oklch(0.6481 0.1271 66.27);   /* Copper */
+  --panw-color6:  oklch(0.7282 0.1707 55.24);   /* Orange */
+  --panw-color7:  oklch(0.4421 0.0989 357.81);  /* Purple */
+  --panw-color8:  oklch(0.5298 0.0304 234.48);  /* Gray */
+  --panw-color9:  oklch(0.854 0.0656 120.11);   /* Light Green */
+  --panw-color10: oklch(0.8231 0.0745 208.88);  /* Cyan */
+  --panw-color11: oklch(0.9484 0.0011 197.14);  /* Light Gray */
+  --panw-color12: oklch(0.6916 0.0478 236.31);  /* Blue Gray */
+  --panw-color13: oklch(0.7732 0.1632 120.69);  /* Lime */
+  --panw-color14: oklch(0.35 0.01 0);           /* Black */
+  --panw-color15: oklch(0.8506 0.1669 85.4);    /* Gold */
+  --panw-color16: oklch(0.6336 0.0314 91.75);   /* Brown */
+  --panw-color17: oklch(0.695 0.15 117.03);     /* Olive */
+  --panw-color19: oklch(0.5333 0.1942 14.54);   /* Maroon */
+  --panw-color20: oklch(0.6992 0.1995 41.81);   /* Red-Orange */
+  --panw-color21: oklch(0.8114 0.1514 69.9);    /* Yellow-Orange */
+  --panw-color22: oklch(0.6679 0.1023 153.55);  /* Forest Green */
+  --panw-color23: oklch(0.8285 0.1022 205.66);  /* Turquoise Blue */
+  --panw-color24: oklch(0.6518 0.1149 242.99);  /* Azure Blue */
+  --panw-color25: oklch(0.6499 0.1181 234.27);  /* Cerulean Blue */
+  --panw-color26: oklch(0.4001 0.1315 254.94);  /* Midnight Blue */
+  --panw-color27: oklch(0.5791 0.1853 265.77);  /* Medium Blue */
+  --panw-color28: oklch(0.6714 0.0828 280.75);  /* Cobalt Blue */
+  --panw-color29: oklch(0.5866 0.1348 285.5);   /* Violet Blue */
+  --panw-color30: oklch(0.5162 0.1476 286.64);  /* Blue Violet */
+  --panw-color31: oklch(0.535 0.1727 312.79);   /* Medium Violet */
+  --panw-color32: oklch(0.6849 0.1673 337.57);  /* Medium Rose */
+  --panw-color33: oklch(0.7167 0.1013 318.96);  /* Lavender */
+  --panw-color34: oklch(0.7776 0.1084 335.14);  /* Orchid */
+  --panw-color35: oklch(0.8231 0.085 339.49);   /* Thistle */
+  --panw-color36: oklch(0.8785 0.0784 58.38);   /* Peach */
+  --panw-color37: oklch(0.7785 0.1335 9.59);    /* Salmon */
+  --panw-color38: oklch(0.6863 0.2122 352.76);  /* Magenta */
+  --panw-color39: oklch(0.5519 0.189 348.09);   /* Red Violet */
+  --panw-color40: oklch(0.557 0.1869 25.39);    /* Mahogany */
+  --panw-color41: oklch(0.5815 0.1006 47.29);   /* Burnt Sienna */
+  --panw-color42: oklch(0.5815 0.1006 47.29);   /* Chestnut */
+}
