@@ -3,6 +3,8 @@
 "use client"
 
 import { ChevronRight, type LucideIcon } from "lucide-react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 import {
   Collapsible,
@@ -35,42 +37,54 @@ export function SidebarViews({
     }[]
   }[]
 }) {
+  const pathname = usePathname()
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Views</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible key={item.title} defaultOpen={item.isActive}>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip={item.title} render={<a href={item.url} />}>
-                <item.icon />
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-              {item.items?.length ? (
-                <>
-                  <SidebarMenuAction
-                    className="aria-expanded:rotate-90"
-                    render={<CollapsibleTrigger />}
-                  >
-                    <ChevronRight />
-                    <span className="sr-only">Toggle</span>
-                  </SidebarMenuAction>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.items?.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton href={subItem.url}>
+        {items.map((item) => {
+          const isGroupActive = pathname.startsWith(item.url)
+          return (
+            <Collapsible key={item.title} defaultOpen={item.isActive || isGroupActive}>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  isActive={isGroupActive}
+                  render={<Link href={item.url} />}
+                >
+                  <item.icon />
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+                {item.items?.length ? (
+                  <>
+                    <SidebarMenuAction
+                      className="aria-expanded:rotate-90"
+                      render={<CollapsibleTrigger />}
+                    >
+                      <ChevronRight />
+                      <span className="sr-only">Toggle</span>
+                    </SidebarMenuAction>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.items?.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton
+                              isActive={pathname === subItem.url}
+                              render={<Link href={subItem.url} />}
+                            >
                               <span>{subItem.title}</span>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </>
-              ) : null}
-            </SidebarMenuItem>
-          </Collapsible>
-        ))}
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </>
+                ) : null}
+              </SidebarMenuItem>
+            </Collapsible>
+          )
+        })}
       </SidebarMenu>
     </SidebarGroup>
   )

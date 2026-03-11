@@ -24,7 +24,6 @@ export interface Configuration {
   importedAt: Date
   fileName: string
   fileSizeBytes?: number
-  /** Full typed parse result — available to all views */
   parsedConfig: ParsedConfig
 }
 
@@ -40,19 +39,15 @@ interface ConfigContextProps {
 }
 
 const ConfigContext = React.createContext<ConfigContextProps | null>(null)
+const STORAGE_KEY = "atlas:activeConfigId"
 
 export function useConfig() {
   const context = React.useContext(ConfigContext)
-  if (!context) {
-    throw new Error("useConfig must be used within a ConfigProvider.")
-  }
+  if (!context) throw new Error("useConfig must be used within a ConfigProvider.")
   return context
 }
 
-// Convert an API summary + full detail into our frontend Configuration shape
-function apiToConfiguration(
-  detail: ApiConfiguration
-): Configuration {
+function apiToConfiguration(detail: ApiConfiguration): Configuration {
   return {
     id:              detail.id,
     name:            detail.device_hostname ?? deriveConfigName(detail.parsed, detail.file_name),
@@ -69,33 +64,45 @@ function apiToConfiguration(
 }
 
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
-  const [configs,       setConfigs]       = React.useState<Configuration[]>([])
-  const [activeConfig,  setActiveConfig]  = React.useState<Configuration | null>(null)
-  const [loading,       setLoading]       = React.useState(true)
-  const [error,         setError]         = React.useState<string | null>(null)
+  const [configs,      setConfigs]      = React.useState<Configuration[]>([])
+  const [activeConfig, setActiveConfig] = React.useState<Configuration | null>(null)
+  const [loading,      setLoading]      = React.useState(true)
+  const [error,        setError]        = React.useState<string | null>(null)
 
-  // ── Load all configs from the API on mount ──────────────────────────────────
+  const handleSetActiveConfig = React.useCallback((config: Configuration | null) => {
+    setActiveConfig(config)
+    if (typeof window !== "undefined") {
+      if (config) {
+        localStorage.setItem(STORAGE_KEY, config.id)
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
+    }
+  }, [])
+
   const refreshConfigs = React.useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
       const summaries = await fetchConfigurations()
-
-      // Fetch full parsed data for each config in parallel
       const full = await Promise.all(
         summaries.map(async (s) => {
           const detail = await fetchConfiguration(s.id)
           return apiToConfiguration(detail)
         })
       )
-
       setConfigs(full)
-
-      // Restore active config if it still exists, otherwise pick the first
       setActiveConfig((prev) => {
         if (prev) {
           const still = full.find((c) => c.id === prev.id)
           if (still) return still
+        }
+        const savedId = typeof window !== "undefined"
+          ? localStorage.getItem(STORAGE_KEY)
+          : null
+        if (savedId) {
+          const saved = full.find((c) => c.id === savedId)
+          if (saved) return saved
         }
         return full[0] ?? null
       })
@@ -112,19 +119,22 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     refreshConfigs()
   }, [refreshConfigs])
 
-  // ── In-memory helpers (used after upload) ───────────────────────────────────
   const addConfig = React.useCallback((config: Configuration) => {
     setConfigs((prev) => {
       const exists = prev.find((c) => c.id === config.id)
       if (exists) return prev
       return [...prev, config]
     })
-    setActiveConfig(config)
-  }, [])
+    handleSetActiveConfig(config)
+  }, [handleSetActiveConfig])
 
   const removeConfig = React.useCallback((id: string) => {
     setConfigs((prev) => prev.filter((c) => c.id !== id))
     setActiveConfig((prev) => (prev?.id === id ? null : prev))
+    if (typeof window !== "undefined") {
+      const savedId = localStorage.getItem(STORAGE_KEY)
+      if (savedId === id) localStorage.removeItem(STORAGE_KEY)
+    }
   }, [])
 
   const contextValue = React.useMemo<ConfigContextProps>(
@@ -133,12 +143,12 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
       configs,
       loading,
       error,
-      setActiveConfig,
+      setActiveConfig: handleSetActiveConfig,
       addConfig,
       removeConfig,
       refreshConfigs,
     }),
-    [activeConfig, configs, loading, error, setActiveConfig, addConfig, removeConfig, refreshConfigs]
+    [activeConfig, configs, loading, error, handleSetActiveConfig, addConfig, removeConfig, refreshConfigs]
   )
 
   return (
