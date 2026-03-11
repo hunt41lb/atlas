@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { parseConfigFile, deriveConfigName } from "@/lib/panw-parser"
+import { uploadConfiguration, fetchConfiguration } from "@/lib/api-client"
 import type { ParsedConfig } from "@/lib/panw-parser/types"
 import {
   Dialog,
@@ -30,9 +31,10 @@ import { cn } from "@/lib/utils"
 
 type UploadState =
   | { stage: "idle" }
-  | { stage: "parsing"; fileName: string }
-  | { stage: "confirm"; fileName: string; fileSize: number; parsed: ParsedConfig }
-  | { stage: "error"; fileName: string; message: string }
+  | { stage: "parsing";  fileName: string }
+  | { stage: "confirm";  fileName: string; fileSize: number; parsed: ParsedConfig; file: File }
+  | { stage: "uploading"; fileName: string }
+  | { stage: "error";    fileName: string; message: string }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -104,7 +106,6 @@ function getSummarySections(parsed: ParsedConfig): StatSection[] {
 
   // ── Panorama ──
   const dgs = parsed.deviceGroups
-
   const totalSecRules = (
     parsed.sharedPreSecurityRules.length + parsed.sharedPostSecurityRules.length +
     dgs.reduce((a, d) => a + d.preSecurityRules.length + d.postSecurityRules.length, 0)
@@ -208,40 +209,22 @@ function DropZone({
           e.target.value = ""
         }}
       />
-
-      {/* Icon cluster */}
-      <div className="relative flex items-center justify-center">
-        <div className={cn(
-          "flex size-12 items-center justify-center rounded-xl transition-colors duration-150",
-          isDragging ? "bg-primary/15" : "bg-muted"
-        )}>
-          <Upload className={cn(
-            "size-5 transition-colors duration-150",
-            isDragging ? "text-primary" : "text-muted-foreground"
-          )} />
-        </div>
+      <div className="flex size-12 items-center justify-center rounded-full bg-muted">
+        <Upload className="size-5 text-muted-foreground" />
       </div>
-
       <div className="text-center">
-        <p className="text-sm font-medium">
-          {isDragging ? "Release to upload" : "Drop your config file here"}
-        </p>
+        <p className="text-sm font-medium">Drop your config file here</p>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          or <span className="text-primary underline underline-offset-2">browse files</span>
+          or click to browse
         </p>
       </div>
-
-      {/* Format hints */}
-      <div className="flex items-center gap-3 pt-1">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <FileCode2 className="size-3.5 shrink-0" />
-          <span>running-config.xml</span>
-        </div>
-        <div className="h-3 w-px bg-border" />
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <MonitorCheck className="size-3.5 shrink-0" />
-          <span>Panorama exports</span>
-        </div>
+      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1">
+          <FileCode2 className="size-3" /> running-config.xml
+        </span>
+        <span className="flex items-center gap-1">
+          <Server className="size-3" /> Panorama exports supported
+        </span>
       </div>
     </div>
   )
@@ -249,30 +232,25 @@ function DropZone({
 
 function ParsingState({ fileName }: { fileName: string }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-8">
-      {/* Animated ring */}
-      <div className="relative flex size-14 items-center justify-center">
-        <svg
-          className="absolute inset-0 size-14 -rotate-90 animate-spin"
-          style={{ animationDuration: "1.4s" }}
-          viewBox="0 0 56 56"
-        >
-          <circle
-            cx="28" cy="28" r="23"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeDasharray="36 108"
-            className="text-primary"
-          />
-        </svg>
-        <FileCode2 className="size-5 text-muted-foreground" />
-      </div>
-
+    <div className="flex flex-col items-center gap-3 py-8">
+      <div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       <div className="text-center">
-        <p className="text-sm font-medium">Parsing configuration…</p>
-        <p className="mt-0.5 max-w-[22ch] truncate text-xs text-muted-foreground">
+        <p className="text-sm font-medium">Parsing configuration</p>
+        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-[260px]">
+          {fileName}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function UploadingState({ fileName }: { fileName: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-8">
+      <div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      <div className="text-center">
+        <p className="text-sm font-medium">Saving to Atlas</p>
+        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-[260px]">
           {fileName}
         </p>
       </div>
@@ -290,98 +268,84 @@ function ErrorState({
   onRetry: () => void
 }) {
   return (
-    <div className="flex flex-col items-center gap-4 py-6">
-      <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10">
+    <div className="flex flex-col items-center gap-3 py-6">
+      <div className="flex size-10 items-center justify-center rounded-full bg-destructive/10">
         <AlertCircle className="size-5 text-destructive" />
       </div>
       <div className="text-center">
-        <p className="text-sm font-medium">Failed to parse file</p>
-        <p className="mt-0.5 max-w-[28ch] truncate text-xs text-muted-foreground">
+        <p className="text-sm font-medium">Failed to import</p>
+        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-[260px]">
           {fileName}
         </p>
         <p className="mt-2 text-xs text-destructive">{message}</p>
       </div>
-      <Button variant="outline" size="sm" onClick={onRetry} className="gap-2">
+      <Button variant="outline" size="sm" onClick={onRetry} className="gap-1.5">
         <RotateCcw className="size-3.5" />
-        Try another file
+        Try again
       </Button>
     </div>
   )
 }
 
-function ConfirmState({ parsed, fileName, fileSize }: {
+function ConfirmState({
+  parsed,
+  fileName,
+  fileSize,
+}: {
   parsed: ParsedConfig
   fileName: string
   fileSize: number
 }) {
-  const isFirewall = parsed.deviceType === "firewall"
   const sections = getSummarySections(parsed)
-  const displayName = deriveConfigName(parsed, fileName)
+  const isFirewall = parsed.deviceType === "firewall"
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Device identity card */}
-      <div className="rounded-lg border bg-muted/30 p-3">
-        <div className="flex items-start gap-3">
-          <div className={cn(
-            "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md",
-            isFirewall
-              ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-              : "bg-violet-500/10 text-violet-600 dark:text-violet-400"
-          )}>
-            {isFirewall ? <Server className="size-4" /> : <MonitorCheck className="size-4" />}
+    <div className="space-y-3">
+      {/* Device summary */}
+      <div className="rounded-lg border bg-muted/30 px-3.5 py-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-background border">
+            {isFirewall
+              ? <MonitorCheck className="size-4 text-muted-foreground" />
+              : <Server className="size-4 text-muted-foreground" />
+            }
           </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="truncate text-sm font-medium">{displayName}</span>
-              <span className={cn(
-                "shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
-                isFirewall
-                  ? "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                  : "bg-violet-500/10 text-violet-600 dark:text-violet-400"
-              )}>
-                {isFirewall ? "Firewall" : "Panorama"}
-              </span>
-            </div>
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-              <span className="text-xs text-muted-foreground">PAN-OS {parsed.panOsVersion}</span>
-              {parsed.ipAddress && (
-                <span className="text-xs text-muted-foreground">{parsed.ipAddress}</span>
-              )}
-              <span className="text-xs text-muted-foreground">{formatBytes(fileSize)}</span>
-            </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium leading-tight">
+              {parsed.hostname ?? fileName}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {isFirewall ? "Firewall" : "Panorama"} · PAN-OS {parsed.panOsVersion ?? "unknown"} · {formatBytes(fileSize)}
+            </p>
           </div>
-
-          <CheckCircle2 className="size-4 shrink-0 text-green-500 dark:text-green-400 mt-0.5" />
         </div>
       </div>
 
-      {/* Three-section summary */}
-      <div className="flex flex-col gap-3 max-h-64 overflow-y-auto pr-0.5">
+      {/* Stats */}
+      <div className="space-y-2 max-h-[280px] overflow-y-auto pr-0.5">
         {sections.map((section) => (
           <div key={section.label}>
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              {section.label}
-            </p>
-            {section.stats.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">None found</p>
-            ) : (
-              <div className="grid grid-cols-3 gap-1.5">
-                {section.stats.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="rounded border bg-muted/20 px-2.5 py-1.5"
-                  >
-                    <p className="text-[10px] text-muted-foreground leading-tight truncate">
-                      {stat.label}
-                    </p>
-                    <p className="mt-0.5 text-sm font-semibold tabular-nums">
-                      {stat.value.toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
+            {section.stats.length > 0 && (
+              <>
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  {section.label}
+                </p>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {section.stats.map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="rounded border bg-muted/20 px-2.5 py-1.5"
+                    >
+                      <p className="text-[10px] text-muted-foreground leading-tight truncate">
+                        {stat.label}
+                      </p>
+                      <p className="mt-0.5 text-sm font-semibold tabular-nums">
+                        {stat.value.toLocaleString()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         ))}
@@ -398,7 +362,7 @@ interface UploadConfigDialogProps {
 }
 
 export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogProps) {
-  const { addConfig } = useConfig()
+  const { addConfig, refreshConfigs } = useConfig()
   const [state, setState] = React.useState<UploadState>({ stage: "idle" })
   const [isDragging, setIsDragging] = React.useState(false)
 
@@ -432,6 +396,7 @@ export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogPro
         fileName: file.name,
         fileSize: file.size,
         parsed: result.config,
+        file,
       })
     } catch (err) {
       setState({
@@ -442,68 +407,72 @@ export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogPro
     }
   }
 
-  function generateId(): string {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-      return crypto.randomUUID()
-    }
-    // Fallback for non-secure contexts (e.g. HTTP dev server)
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0
-      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16)
-    })
-  }
-
-  function handleConfirm() {
+  async function handleConfirm() {
     if (state.stage !== "confirm") return
+    const { file, fileName, parsed } = state
 
-    const { parsed, fileName, fileSize } = state
+    setState({ stage: "uploading", fileName })
 
-    addConfig({
-      id: generateId(),
-      name: deriveConfigName(parsed, fileName),
-      deviceType: parsed.deviceType,
-      hostname: parsed.hostname ?? undefined,
-      platformModel: parsed.platformModel ?? undefined,
-      softwareVersion: parsed.panOsVersion,
-      serialNumber: parsed.serialNumber ?? undefined,
-      importedAt: new Date(),
-      fileName,
-      fileSizeBytes: fileSize,
-      // Attach the full parsed data for views to consume
-      parsedConfig: parsed,
-    } as Parameters<typeof addConfig>[0])
+    try {
+      // Upload to backend — it stores in DB and returns the new config ID
+      const result = await uploadConfiguration(file)
 
-    onOpenChange(false)
+      // Fetch the full stored config so we have the DB-assigned ID
+      const detail = await fetchConfiguration(result.configId)
+
+      addConfig({
+        id:              detail.id,
+        name:            detail.device?.hostname ?? deriveConfigName(parsed, fileName),
+        deviceType:      result.deviceType,
+        hostname:        result.hostname ?? undefined,
+        platformModel:   detail.device?.platform_model ?? undefined,
+        softwareVersion: detail.device?.pan_os_version ?? undefined,
+        serialNumber:    detail.device?.serial_number ?? undefined,
+        importedAt:      new Date(detail.backed_up_at),
+        fileName:        detail.file_name,
+        fileSizeBytes:   detail.file_size_bytes,
+        parsedConfig:    detail.parsed,
+      })
+
+      // Refresh the sidebar list so any auto-SCP'd configs appear too
+      await refreshConfigs()
+
+      onOpenChange(false)
+    } catch (err) {
+      setState({
+        stage: "error",
+        fileName,
+        message: err instanceof Error ? err.message : "Failed to save configuration.",
+      })
+    }
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }
+  const handleDragOver  = (e: React.DragEvent) => { e.preventDefault(); setIsDragging(true) }
   const handleDragLeave = () => setIsDragging(false)
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop      = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
     const file = e.dataTransfer.files[0]
     if (file) processFile(file)
   }
 
+  const isBusy = state.stage === "parsing" || state.stage === "uploading"
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        showCloseButton={state.stage !== "parsing"}
-        className={cn(
-          "sm:max-w-md gap-0 p-0 overflow-hidden",
-        )}
+        showCloseButton={!isBusy}
+        className={cn("sm:max-w-md gap-0 p-0 overflow-hidden")}
       >
         {/* Header */}
         <DialogHeader className="px-5 pt-5 pb-4">
           <DialogTitle>Import Configuration</DialogTitle>
           <DialogDescription>
-            {state.stage === "idle" && "Upload a Palo Alto Networks firewall or Panorama running-config.xml file."}
-            {state.stage === "parsing" && "Reading and validating your configuration file."}
-            {state.stage === "confirm" && "Review the parsed configuration before adding it to Atlas."}
-            {state.stage === "error" && "Something went wrong. Check the file and try again."}
+            {state.stage === "idle"      && "Upload a Palo Alto Networks firewall or Panorama running-config.xml file."}
+            {state.stage === "parsing"   && "Reading and validating your configuration file."}
+            {state.stage === "uploading" && "Saving your configuration to Atlas."}
+            {state.stage === "confirm"   && "Review the parsed configuration before adding it to Atlas."}
+            {state.stage === "error"     && "Something went wrong. Check the file and try again."}
           </DialogDescription>
         </DialogHeader>
 
@@ -518,10 +487,9 @@ export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogPro
               onDrop={handleDrop}
             />
           )}
-          {state.stage === "parsing" && (
-            <ParsingState fileName={state.fileName} />
-          )}
-          {state.stage === "error" && (
+          {state.stage === "parsing"   && <ParsingState  fileName={state.fileName} />}
+          {state.stage === "uploading" && <UploadingState fileName={state.fileName} />}
+          {state.stage === "error"     && (
             <ErrorState
               fileName={state.fileName}
               message={state.message}
@@ -537,7 +505,7 @@ export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogPro
           )}
         </div>
 
-        {/* Footer — only shown in idle and confirm states */}
+        {/* Footer */}
         {(state.stage === "idle" || state.stage === "confirm") && (
           <DialogFooter className="mt-4">
             {state.stage === "confirm" && (
@@ -558,11 +526,7 @@ export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogPro
               </Button>
             )}
             {state.stage === "idle" && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onOpenChange(false)}
-              >
+              <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
             )}
