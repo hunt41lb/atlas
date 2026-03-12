@@ -5,7 +5,8 @@ import {
   buildTagColorMap, extractTags, extractAddresses, extractAddressGroups,
   extractServices, extractServiceGroups, extractApplicationGroups,
   extractApplicationFilters, extractProfileGroups, extractZones,
-  extractInterfaces, extractVirtualRouters, extractSecurityRules, extractNatRules,
+  extractInterfaces, extractVirtualRouters, extractLogicalRouters,
+  extractSecurityRules, extractNatRules,
 } from "./extractors"
 import { str, entries, entryName, dig, toArray, members } from "./xml-helpers"
 import type {
@@ -37,7 +38,6 @@ const xmlParser = new XMLParser({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Count entries at a path. Safe — returns 0 if path doesn't exist. */
 function countEntries(root: unknown, ...path: string[]): number {
   const el = path.reduce<unknown>((acc, key) => {
     if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[key]
@@ -46,7 +46,6 @@ function countEntries(root: unknown, ...path: string[]): number {
   return entries(el).length
 }
 
-/** Sum a counter across all rulebase types (pre + post) for Panorama DGs */
 function countRulebaseEntries(
   dgEntry: Record<string, unknown>,
   ruleName: string
@@ -82,7 +81,7 @@ function extractSystemInfo(config: Record<string, unknown>) {
   }
 }
 
-// ─── Network counts (shared between firewall and template extraction) ─────────
+// ─── Network counts ───────────────────────────────────────────────────────────
 
 function extractNetworkCounts(networkEl: unknown) {
   return {
@@ -95,7 +94,7 @@ function extractNetworkCounts(networkEl: unknown) {
   }
 }
 
-// ─── Policy counts (shared between firewall vsys and DG extractions) ─────────
+// ─── Policy counts ────────────────────────────────────────────────────────────
 
 function extractPolicyCounts(rulebaseEl: unknown) {
   const rb = rulebaseEl as Record<string, unknown> | undefined
@@ -111,10 +110,9 @@ function extractPolicyCounts(rulebaseEl: unknown) {
   }
 }
 
-// ─── Object counts (shared between firewall vsys and DG/shared extractions) ──
+// ─── Object counts ────────────────────────────────────────────────────────────
 
 function extractObjectCounts(scopeEl: Record<string, unknown>) {
-  // Security profile subtypes — sum all into one count
   const profilesEl = scopeEl["profiles"] as Record<string, unknown> | undefined
   const securityProfiles = [
     "virus", "spyware", "vulnerability", "url-filtering",
@@ -122,13 +120,13 @@ function extractObjectCounts(scopeEl: Record<string, unknown>) {
   ].reduce((sum, key) => sum + countEntries(profilesEl, key), 0)
 
   return {
-    externalDynamicLists:  countEntries(scopeEl, "external-list"),
-    schedules:             countEntries(scopeEl, "schedule"),
-    regions:               countEntries(scopeEl, "region"),
+    externalDynamicLists:   countEntries(scopeEl, "external-list"),
+    schedules:              countEntries(scopeEl, "schedule"),
+    regions:                countEntries(scopeEl, "region"),
     securityProfiles,
-    logForwardingProfiles: countEntries(scopeEl, "log-settings", "profiles"),
-    authenticationProfiles:countEntries(scopeEl, "authentication-profile"),
-    decryptionProfiles:    countEntries(profilesEl, "decryption"),
+    logForwardingProfiles:  countEntries(scopeEl, "log-settings", "profiles"),
+    authenticationProfiles: countEntries(scopeEl, "authentication-profile"),
+    decryptionProfiles:     countEntries(profilesEl, "decryption"),
   }
 }
 
@@ -152,13 +150,11 @@ function parseFirewall(
 
   const sharedEl = config["shared"] as Record<string, unknown> | undefined
 
-  // Tags
   const vsysTags = extractTags(vsysEntry["tag"])
   const sharedTags = extractTags(sharedEl?.["tag"])
   const allTags = [...vsysTags, ...sharedTags]
   const tagColorMap = buildTagColorMap(allTags)
 
-  // Objects
   const addresses       = extractAddresses(vsysEntry["address"], tagColorMap)
   const addressGroups   = extractAddressGroups(vsysEntry["address-group"], tagColorMap)
   const services        = extractServices(vsysEntry["service"], tagColorMap)
@@ -167,13 +163,12 @@ function parseFirewall(
   const applicationFilters = extractApplicationFilters(vsysEntry["application-filter"], tagColorMap)
   const profileGroups   = extractProfileGroups(vsysEntry["profile-group"])
 
-  // Network
-  const interfaces     = extractInterfaces(networkEl, null)
-  const virtualRouters = extractVirtualRouters(networkEl, null)
-  const zones          = extractZones(vsysEntry["zone"], tagColorMap)
-  const networkCounts  = extractNetworkCounts(networkEl)
+  const interfaces      = extractInterfaces(networkEl, null)
+  const virtualRouters  = extractVirtualRouters(networkEl, null)
+  const logicalRouters  = extractLogicalRouters(networkEl, null)
+  const zones           = extractZones(vsysEntry["zone"], tagColorMap)
+  const networkCounts   = extractNetworkCounts(networkEl)
 
-  // Policies
   const rulebaseEl    = vsysEntry["rulebase"]
   const securityRules = extractSecurityRules(
     dig(vsysEntry, "rulebase", "security", "rules"), "vsys1", "local", tagColorMap
@@ -182,8 +177,6 @@ function parseFirewall(
     dig(vsysEntry, "rulebase", "nat", "rules"), "vsys1", "local", tagColorMap
   )
   const policyCounts = extractPolicyCounts(rulebaseEl)
-
-  // Object counts
   const objectCounts = extractObjectCounts(vsysEntry)
 
   return {
@@ -194,7 +187,6 @@ function parseFirewall(
     serialNumber: sys.serialNumber,
     ipAddress: sys.ipAddress,
     platformModel: sys.platformModel,
-    // Objects
     tags: allTags,
     addresses,
     addressGroups,
@@ -203,17 +195,14 @@ function parseFirewall(
     applicationGroups,
     applicationFilters,
     profileGroups,
-    // Network
     interfaces,
     zones,
     virtualRouters,
-    // Policies
+    logicalRouters,
     securityRules,
     natRules,
     ...policyCounts,
-    // Object counts
     ...objectCounts,
-    // Network counts
     ...networkCounts,
   }
 }
@@ -229,11 +218,9 @@ function parsePanorama(
 
   const sharedEl = (config["shared"] ?? {}) as Record<string, unknown>
 
-  // Shared tags first
   const sharedTags = extractTags(sharedEl["tag"])
   const tagColorMap = buildTagColorMap(sharedTags)
 
-  // Shared objects
   const sharedAddresses        = extractAddresses(sharedEl["address"], tagColorMap)
   const sharedAddressGroups    = extractAddressGroups(sharedEl["address-group"], tagColorMap)
   const sharedServices         = extractServices(sharedEl["service"], tagColorMap)
@@ -243,7 +230,6 @@ function parsePanorama(
   const sharedProfileGroups    = extractProfileGroups(sharedEl["profile-group"])
   const sharedObjectCounts     = extractObjectCounts(sharedEl)
 
-  // Shared rulebases
   const sharedPreSecurityRules = extractSecurityRules(
     dig(sharedEl, "pre-rulebase", "security", "rules"), "shared", "pre", tagColorMap
   )
@@ -251,12 +237,10 @@ function parsePanorama(
     dig(sharedEl, "post-rulebase", "security", "rules"), "shared", "post", tagColorMap
   )
 
-  // Panorama stores device-group, template, template-stack inside devices/entry
   const panoramaDeviceEntry = (
     toArray(dig(config, "devices", "entry") as unknown)[0] ?? {}
   ) as Record<string, unknown>
 
-  // Device groups
   const dgRootEl = panoramaDeviceEntry["device-group"] as Record<string, unknown> | undefined
   const deviceGroups: PanwDeviceGroup[] = entries(dgRootEl).map((dgEntry) => {
     const dgName = entryName(dgEntry)
@@ -283,7 +267,6 @@ function parsePanorama(
       postNatRules: extractNatRules(
         dig(dgEntry, "post-rulebase", "nat", "rules"), dgName, "post", dgTagMap
       ),
-      // Additional policy counts (pre + post)
       qosRules:              countRulebaseEntries(dgEntry, "qos"),
       pbfRules:              countRulebaseEntries(dgEntry, "pbf"),
       decryptionRules:       countRulebaseEntries(dgEntry, "decryption"),
@@ -292,12 +275,10 @@ function parsePanorama(
       authenticationRules:   countRulebaseEntries(dgEntry, "authentication"),
       dosRules:              countRulebaseEntries(dgEntry, "dos"),
       sdwanPolicyRules:      countRulebaseEntries(dgEntry, "sdwan"),
-      // Object counts
       ...extractObjectCounts(dgEntry),
     }
   })
 
-  // Templates
   const tmplRootEl = panoramaDeviceEntry["template"] as Record<string, unknown> | undefined
   const templates: PanwTemplate[] = entries(tmplRootEl).map((tmplEntry) => {
     const tmplName = entryName(tmplEntry)
@@ -317,12 +298,12 @@ function parsePanorama(
       description: str(tmplEntry["description"]),
       interfaces:     extractInterfaces(networkEl, tmplName),
       virtualRouters: extractVirtualRouters(networkEl, tmplName),
+      logicalRouters: extractLogicalRouters(networkEl, tmplName),
       zones:          extractZones(vsysEntry["zone"], tagColorMap),
       ...extractNetworkCounts(networkEl),
     }
   })
 
-  // Template stacks
   const tmplStackRootEl = panoramaDeviceEntry["template-stack"] as Record<string, unknown> | undefined
   const templateStacks = entries(tmplStackRootEl).map((stackEntry) => ({
     name: entryName(stackEntry),

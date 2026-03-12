@@ -260,6 +260,11 @@ function extractInterfacesOfType(
     // Sub-interfaces
     const subInterfaces = modeEl ? extractSubInterfaces(dig(modeEl, "units")) : []
 
+    const aggregateGroup = str(entry["aggregate-group"]) ?? null
+    const dhcpClient = !!(
+      dig(entry["layer3"] as Record<string, unknown> | null, "dhcp-client")
+    )
+
     return {
       name: entryName(entry),
       type,
@@ -268,8 +273,8 @@ function extractInterfacesOfType(
       subInterfaces,
       comment: str(entry["comment"]),
       managementProfile: str(entry["interface-management-profile"]),
-      aggregateGroup: str(entry["aggregate-group"]),
-      dhcpClient: !!(modeEl && (modeEl["dhcp-client"] !== undefined)),
+      aggregateGroup,
+      dhcpClient,
       templateName,
     }
   })
@@ -289,7 +294,7 @@ export function extractInterfaces(
     ...extractInterfacesOfType(ifaceEl["loopback"], "loopback", templateName),
     ...extractInterfacesOfType(ifaceEl["vlan"], "vlan", templateName),
     ...extractInterfacesOfType(ifaceEl["tunnel"], "tunnel", templateName),
-    ...extractInterfacesOfType(ifaceEl["ae"], "ae", templateName),
+    ...extractInterfacesOfType(ifaceEl["aggregate-ethernet"], "ae", templateName),
   ]
 }
 
@@ -326,6 +331,52 @@ export function extractVirtualRouters(
       staticRoutes,
       templateName,
     }
+  })
+}
+
+// ─── Logical Routers (PAN-OS 11+) ────────────────────────────────────────────
+
+export function extractLogicalRouters(
+  networkEl: unknown,
+  templateName: string | null
+): PanwVirtualRouter[] {
+  if (!networkEl || typeof networkEl !== "object") return []
+  const net = networkEl as Record<string, unknown>
+  const lrEl = net["logical-router"]
+  if (!lrEl) return []
+
+  return entries(lrEl).flatMap((lrEntry) => {
+    const lrName = entryName(lrEntry)
+    // Each LR has one or more VRFs; we flatten them all (usually just "default")
+    return entries(dig(lrEntry, "vrf")).map((vrfEntry) => {
+      const vrfName = entryName(vrfEntry)
+      const displayName = vrfName === "default" ? lrName : `${lrName}/${vrfName}`
+
+      const ifaces = membersAt(vrfEntry, "interface")
+      const routeEntries = entries(dig(vrfEntry, "routing-table", "ip", "static-route"))
+      const staticRoutes: PanwStaticRoute[] = routeEntries.map((r) => {
+        const nexthopEl = r["nexthop"] as Record<string, unknown> | undefined
+        const nexthop = nexthopEl
+          ? str(nexthopEl["ip-address"])
+            ?? str(nexthopEl["next-vr"])
+            ?? str(nexthopEl["next-lr"])
+          : null
+        return {
+          name: entryName(r),
+          destination: str(r["destination"]) ?? "",
+          nexthop,
+          interface: str(r["interface"]),
+          metric: r["metric"] !== undefined ? Number(r["metric"]) : null,
+        }
+      })
+
+      return {
+        name: displayName,
+        interfaces: ifaces,
+        staticRoutes,
+        templateName,
+      }
+    })
   })
 }
 

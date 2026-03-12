@@ -34,21 +34,24 @@ export interface ResolvedNetworkData {
   interfaces: PanwInterface[]
   zones: PanwZone[]
   virtualRouters: PanwVirtualRouter[]
+  logicalRouters: PanwVirtualRouter[]
 }
 
 export function resolveNetworkData(config: ParsedConfig, scope: string | null): ResolvedNetworkData {
   if (config.deviceType === "firewall") {
     return {
-      interfaces: config.interfaces,
-      zones: config.zones,
-      virtualRouters: config.virtualRouters,
+      interfaces: config.interfaces ?? [],
+      zones: config.zones ?? [],
+      virtualRouters: config.virtualRouters ?? [],
+      logicalRouters: config.logicalRouters ?? [],
     }
   }
   const templates = resolveTemplates(config, scope)
   return {
-    interfaces: templates.flatMap((t) => t.interfaces),
-    zones: templates.flatMap((t) => t.zones),
-    virtualRouters: templates.flatMap((t) => t.virtualRouters),
+    interfaces: templates.flatMap((t) => t.interfaces ?? []),
+    zones: templates.flatMap((t) => t.zones ?? []),
+    virtualRouters: templates.flatMap((t) => t.virtualRouters ?? []),
+    logicalRouters: templates.flatMap((t) => t.logicalRouters ?? []),
   }
 }
 
@@ -81,7 +84,6 @@ export function resolveObjectsData(config: ParsedConfig, scope: string | null): 
 
   const dgs = resolveDeviceGroups(config, scope)
 
-  // Shared objects always included; DG objects added on top
   return {
     tags: [
       ...config.sharedTags,

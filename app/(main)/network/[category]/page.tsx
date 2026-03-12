@@ -11,76 +11,10 @@ import { EmptyState } from "@/app/(main)/_components/ui/empty-state"
 import {
   CategoryShell, ComingSoonView,
   DataTable, DataThead, DataTh, DataTbody, DataTr, DataTd, TableEmpty,
-  MonoValue, TypeBadge, MembersList,
+  MonoValue, MembersList,
 } from "@/app/(main)/_components/ui/category-shell"
-import type { PanwInterface, PanwZone, PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
-
-// ─── Interfaces view ──────────────────────────────────────────────────────────
-
-function InterfacesView() {
-  const { activeConfig } = useConfig()
-  const { selectedScope } = useScope()
-  const [search, setSearch] = React.useState("")
-
-  const data = React.useMemo(() => {
-    if (!activeConfig) return []
-    return resolveNetworkData(activeConfig.parsedConfig, selectedScope).interfaces
-  }, [activeConfig, selectedScope])
-
-  const filtered = React.useMemo(() => {
-    if (!search) return data
-    const q = search.toLowerCase()
-    return data.filter((i) =>
-      i.name.toLowerCase().includes(q) ||
-      i.type.toLowerCase().includes(q) ||
-      i.mode.toLowerCase().includes(q) ||
-      i.ipAddresses.some((ip) => ip.includes(q)) ||
-      i.comment?.toLowerCase().includes(q)
-    )
-  }, [data, search])
-
-  return (
-    <CategoryShell title="Interfaces" count={filtered.length} search={search} onSearch={setSearch}>
-      <DataTable>
-        <DataThead>
-          <DataTh className="w-40">Name</DataTh>
-          <DataTh className="w-20">Type</DataTh>
-          <DataTh className="w-24">Mode</DataTh>
-          <DataTh>IP Addresses</DataTh>
-          <DataTh className="w-20 text-right">Sub-ifs</DataTh>
-          {activeConfig?.parsedConfig.deviceType === "panorama" && <DataTh>Template</DataTh>}
-          <DataTh>Comment</DataTh>
-        </DataThead>
-        <DataTbody>
-          {filtered.length === 0
-            ? <TableEmpty query={search} />
-            : filtered.map((iface: PanwInterface) => (
-              <DataTr key={`${iface.templateName ?? "fw"}-${iface.name}`}>
-                <DataTd><span className="font-medium">{iface.name}</span></DataTd>
-                <DataTd><TypeBadge label={iface.type} /></DataTd>
-                <DataTd><TypeBadge label={iface.mode} /></DataTd>
-                <DataTd>
-                  {iface.ipAddresses.length > 0
-                    ? <MembersList members={iface.ipAddresses} max={2} />
-                    : null
-                  }
-                </DataTd>
-                <DataTd className="text-right tabular-nums text-xs text-muted-foreground">
-                  {iface.subInterfaces.length || null}
-                </DataTd>
-                {activeConfig?.parsedConfig.deviceType === "panorama" && (
-                  <DataTd><span className="text-xs text-muted-foreground">{iface.templateName}</span></DataTd>
-                )}
-                <DataTd>
-                  {iface.comment && <span className="text-xs text-muted-foreground">{iface.comment}</span>}
-                </DataTd>
-              </DataTr>
-            ))}
-        </DataTbody>
-      </DataTable>
-    </CategoryShell>
-  )
-}
+import { InterfacesView } from "@/app/(main)/network/_components/interfaces-view"
+import type { PanwZone, PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
 
 // ─── Zones view ───────────────────────────────────────────────────────────────
 
@@ -185,7 +119,6 @@ function RoutingView() {
     )
   }, [data, search])
 
-  // Flatten to rows: one row per static route, grouped by VR
   type RouteRow = { vr: PanwVirtualRouter; route: PanwStaticRoute | null; idx: number }
   const rows = React.useMemo((): RouteRow[] =>
     filtered.flatMap((vr: PanwVirtualRouter): RouteRow[] =>

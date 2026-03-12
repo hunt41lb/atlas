@@ -116,10 +116,11 @@ export function MainSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
 
   // Map stored configs to the shape SidebarConfigurations expects
   const sidebarConfigurations = configs.map((c) => ({
-    name: c.name,
-    url:  "#",
-    icon: c.deviceType === "panorama" ? Server : Frame,
-    onClick: () => setActiveConfig(c),
+    id:       c.id,
+    name:     c.name,
+    url:      "#",
+    icon:     c.deviceType === "panorama" ? Server : Frame,
+    onClick:  () => setActiveConfig(c),
     isActive: activeConfig?.id === c.id,
   }))
 

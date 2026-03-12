@@ -1,5 +1,4 @@
 // @/lib/api-client.ts
-// Typed client for the Atlas backend API
 
 import type { ParsedConfig } from "@/lib/panw-parser/types"
 
@@ -76,6 +75,34 @@ export async function fetchConfiguration(id: string): Promise<ApiConfiguration> 
   const data = await res.json()
   // Backend wraps in { configuration: {...} }
   return data.configuration ?? data
+}
+
+/** Archive a configuration — backend will purge it after retentionDays */
+export async function archiveConfiguration(
+  id: string,
+  retentionDays: number,
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/configurations/${id}/archive`, {
+    method:  "PATCH",
+    headers: headers({ "Content-Type": "application/json" }),
+    body:    JSON.stringify({ retention_days: retentionDays }),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `Archive failed: ${res.status}`)
+  }
+}
+
+/** Permanently delete a configuration and its device record */
+export async function deleteConfiguration(id: string): Promise<void> {
+  const res = await fetch(`${API_URL}/api/configurations/${id}`, {
+    method:  "DELETE",
+    headers: headers(),
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error ?? `Delete failed: ${res.status}`)
+  }
 }
 
 /** Upload a raw XML file and return the ingest result */
