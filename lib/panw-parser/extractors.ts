@@ -184,17 +184,21 @@ export function extractProfileGroups(pgEl: unknown): PanwProfileGroup[] {
 // ─── Zones ────────────────────────────────────────────────────────────────────
 
 function detectZoneType(entry: Record<string, unknown>): ZoneType {
-  if (entry["layer3"]) return "layer3"
-  if (entry["layer2"]) return "layer2"
-  if (entry["virtual-wire"]) return "virtual-wire"
-  if (entry["tap"]) return "tap"
-  if (entry["tunnel"]) return "tunnel"
-  if (entry["external"]) return "external"
+  const net = entry["network"] as Record<string, unknown> | undefined
+  if (!net) return "unknown"
+  if (net["layer3"] !== undefined) return "layer3"
+  if (net["layer2"] !== undefined) return "layer2"
+  if (net["virtual-wire"] !== undefined) return "virtual-wire"
+  if (net["tap"] !== undefined) return "tap"
+  if (net["tunnel"] !== undefined) return "tunnel"
+  if (net["external"] !== undefined) return "external"
   return "unknown"
 }
 
 function zoneInterfaces(entry: Record<string, unknown>, type: ZoneType): string[] {
-  const typeEl = entry[type]
+  const net = entry["network"] as Record<string, unknown> | undefined
+  if (!net) return []
+  const typeEl = net[type]
   if (!typeEl) return []
   return membersAt(typeEl, "member").length > 0
     ? membersAt(typeEl, "member")
@@ -464,3 +468,4 @@ export function extractNatRules(
     }
   })
 }
+

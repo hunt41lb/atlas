@@ -262,6 +262,7 @@ export interface PanwTemplateStack {
   name: string
   templates: string[]
   deviceSerials: string[]
+  zoneOverrides: PanwZone[]
 }
 
 // ─── Top-level Parsed Config ─────────────────────────────────────────────────
@@ -361,3 +362,4 @@ export interface ParseError {
 export type ParseResult =
   | { success: true; config: ParsedConfig }
   | { success: false; error: ParseError }
+

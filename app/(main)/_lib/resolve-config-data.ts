@@ -47,9 +47,22 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     }
   }
   const templates = resolveTemplates(config, scope)
+
+  let zones = templates.flatMap((t) => t.zones ?? [])
+
+  // When viewing a template stack, merge zone overrides (interface assignments)
+  // from the stack's <config> block into the template-defined zones
+  if (scope?.startsWith("stack:")) {
+    const stackName = scope.slice(6)
+    const stack = config.templateStacks.find((s) => s.name === stackName)
+    if (stack?.zoneOverrides?.length) {
+      zones = mergeZoneOverrides(zones, stack.zoneOverrides)
+    }
+  }
+
   return {
     interfaces: templates.flatMap((t) => t.interfaces ?? []),
-    zones: templates.flatMap((t) => t.zones ?? []),
+    zones,
     virtualRouters: templates.flatMap((t) => t.virtualRouters ?? []),
     logicalRouters: templates.flatMap((t) => t.logicalRouters ?? []),
   }
@@ -136,4 +149,36 @@ export function resolvePoliciesData(config: ParsedConfig, scope: string | null):
     ],
     natRules: dgs.flatMap((dg) => [...dg.preNatRules, ...dg.postNatRules]),
   }
+}
+
+// ─── Merge Templates & Template Stacks ─────────────────────────────────────
+
+function mergeZoneOverrides(templateZones: PanwZone[], overrides: PanwZone[]): PanwZone[] {
+  const overrideMap = new Map(overrides.map((z) => [z.name, z]))
+  const merged: PanwZone[] = []
+  const seen = new Set<string>()
+
+  for (const zone of templateZones) {
+    seen.add(zone.name)
+    const override = overrideMap.get(zone.name)
+    if (override) {
+      // Keep template metadata (tags, color), take override interfaces and type
+      merged.push({
+        ...zone,
+        interfaces: override.interfaces,
+        type: override.type !== "unknown" ? override.type : zone.type,
+      })
+    } else {
+      merged.push(zone)
+    }
+  }
+
+  // Add any override zones not present in templates
+  for (const override of overrides) {
+    if (!seen.has(override.name)) {
+      merged.push(override)
+    }
+  }
+
+  return merged
 }

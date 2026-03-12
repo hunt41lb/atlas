@@ -305,11 +305,25 @@ function parsePanorama(
   })
 
   const tmplStackRootEl = panoramaDeviceEntry["template-stack"] as Record<string, unknown> | undefined
-  const templateStacks = entries(tmplStackRootEl).map((stackEntry) => ({
-    name: entryName(stackEntry),
-    templates: members(stackEntry["templates"]),
-    deviceSerials: entries(stackEntry["devices"]).map((d) => entryName(d)),
-  }))
+  const templateStacks = entries(tmplStackRootEl).map((stackEntry) => {
+    // Template stacks can have a <config> block with zone override assignments
+    const stackDeviceEntry = (
+      toArray(dig(stackEntry, "config", "devices", "entry") as unknown)[0] ?? {}
+    ) as Record<string, unknown>
+    const stackVsysEntry = (
+      toArray(dig(stackDeviceEntry, "vsys", "entry") as unknown)[0] ?? {}
+    ) as Record<string, unknown>
+
+    // Parse zone overrides — these contain the interface assignments
+    const zoneOverrides = extractZones(stackVsysEntry["zone"], tagColorMap)
+
+    return {
+      name: entryName(stackEntry),
+      templates: members(stackEntry["templates"]),
+      deviceSerials: entries(stackEntry["devices"]).map((d) => entryName(d)),
+      zoneOverrides,
+    }
+  })
 
   return {
     deviceType: "panorama",
@@ -383,3 +397,4 @@ export function deriveConfigName(
   if (config.hostname) return config.hostname
   return fileName.replace(/\.(xml|cfg|conf)$/i, "").replace(/^\d{2}-\d{2}-\d{4}-/, "")
 }
+
