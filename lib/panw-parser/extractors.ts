@@ -228,10 +228,16 @@ function extractSubInterfaces(unitsEl: unknown): PanwSubInterface[] {
   return entries(unitsEl).map((entry) => {
     const ipEntries = entries(dig(entry, "ip"))
     const ipAddresses = ipEntries.map((ip) => entryName(ip)).filter(Boolean)
+
+    // IPv6 addresses
+    const ipv6Entries = entries(dig(entry, "ipv6", "address"))
+    const ipv6Addresses = ipv6Entries.map((ip) => entryName(ip)).filter(Boolean)
+
     return {
       name: entryName(entry),
       tag: entry["tag"] !== undefined ? Number(entry["tag"]) : null,
       ipAddresses,
+      ipv6Addresses,    // ← ADD
       comment: str(entry["comment"]),
       managementProfile: str(entry["interface-management-profile"]),
     }
@@ -264,10 +270,11 @@ function extractInterfacesOfType(
     // Sub-interfaces
     const subInterfaces = modeEl ? extractSubInterfaces(dig(modeEl, "units")) : []
 
+    // Aggregate Groups
     const aggregateGroup = str(entry["aggregate-group"]) ?? null
-    const dhcpClient = !!(
-      dig(entry["layer3"] as Record<string, unknown> | null, "dhcp-client")
-    )
+
+    const dhcpClient =
+      dig(entry["layer3"] as Record<string, unknown> | null, "dhcp-client") !== undefined
 
     return {
       name: entryName(entry),
@@ -384,6 +391,23 @@ export function extractLogicalRouters(
   })
 }
 
+// ───  DHCP Relay ──────────────────────────────────────────────────────────────
+
+export function extractDhcpRelayInterfaces(networkEl: unknown): string[] {
+  if (!networkEl || typeof networkEl !== "object") return []
+  const net = networkEl as Record<string, unknown>
+  const dhcpIfaceEntries = entries(dig(net, "dhcp", "interface"))
+  return dhcpIfaceEntries
+    .filter((entry) => {
+      // Check if relay is configured (IPv4 or IPv6 enabled)
+      const ipEnabled = str(dig(entry, "relay", "ip", "enabled"))
+      const ipv6Enabled = str(dig(entry, "relay", "ipv6", "enabled"))
+      return ipEnabled === "yes" || ipv6Enabled === "yes"
+    })
+    .map((entry) => entryName(entry))
+    .filter(Boolean)
+}
+
 // ─── Security Rules ───────────────────────────────────────────────────────────
 
 export function extractSecurityRules(
@@ -468,4 +492,3 @@ export function extractNatRules(
     }
   })
 }
-

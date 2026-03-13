@@ -14,6 +14,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table"
 import { ChevronDown, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react"
+import Image from "next/image"
 
 import {
   Table,
@@ -55,6 +56,7 @@ function buildIfaceToZone(zones: PanwZone[]): Map<string, string> {
 // ─── Cell helpers ─────────────────────────────────────────────────────────────
 
 function InterfaceTypeBadge({ iface }: { iface: PanwInterface }) {
+  // Aggregate group members: "Aggregate (ae1)"
   if (iface.aggregateGroup) {
     return (
       <TypeBadge
@@ -63,33 +65,30 @@ function InterfaceTypeBadge({ iface }: { iface: PanwInterface }) {
       />
     )
   }
-  if (iface.type === "ae") {
-    return (
-      <TypeBadge
-        label="Layer3"
-        className="bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20"
-      />
-    )
-  }
-  return <TypeBadge label={iface.type} />
-}
 
-function ModeBadge({ mode }: { mode: string }) {
-  if (mode === "none") return <span className="text-muted-foreground text-xs">—</span>
-  const colors: Record<string, string> = {
-    layer3: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
-    layer2: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
-    tap:    "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
-    ha:     "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+  // Use the mode as the display label (matches Palo Alto GUI behavior)
+  // e.g. "Layer3", "Layer2", "HA", "Virtual Wire", etc.
+  if (iface.mode !== "none") {
+    const modeLabels: Record<string, string> = {
+      layer3: "Layer3",
+      layer2: "Layer2",
+      "virtual-wire": "Virtual Wire",
+      tap: "Tap",
+      ha: "HA",
+      "decrypt-mirror": "Decrypt Mirror",
+    }
+    const label = modeLabels[iface.mode] ?? iface.mode
+    const colors: Record<string, string> = {
+      layer3: "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
+      layer2: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
+      tap:    "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
+      ha:     "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
+    }
+    return <TypeBadge label={label} className={colors[iface.mode]} />
   }
-  return (
-    <span className={cn(
-      "inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-medium",
-      colors[mode] ?? "bg-muted/40 text-muted-foreground border-border"
-    )}>
-      {mode}
-    </span>
-  )
+
+  // Fallback for interfaces with no mode (shouldn't normally happen)
+  return <TypeBadge label={iface.type} />
 }
 
 function IpCell({ iface }: { iface: PanwInterface }) {
@@ -156,12 +155,14 @@ function SubInterfaceRows({
   templateName,
   ifaceToZone,
   ifaceToRouter,
+  dhcpRelaySet,
 }: {
   subs: PanwSubInterface[]
   isPanorama: boolean
   templateName: string | null
   ifaceToZone: Map<string, string>
   ifaceToRouter: Map<string, string>
+  dhcpRelaySet: Set<string>
 }) {
   return (
     <>
@@ -178,10 +179,8 @@ function SubInterfaceRows({
           </TableCell>
           {/* Interface Type */}
           <TableCell>
-            <TypeBadge label="sub-if" className="text-[10px]" />
+            <TypeBadge label="Sub Interface" className="text-[10px]" />
           </TableCell>
-          {/* Mode */}
-          <TableCell><ModeBadge mode="layer3" /></TableCell>
           {/* Mgmt Profile */}
           <TableCell>
             {sub.managementProfile
@@ -190,10 +189,13 @@ function SubInterfaceRows({
           </TableCell>
           {/* IP Address */}
           <TableCell>
-            {sub.ipAddresses.length > 0
+            {sub.ipAddresses.length > 0 || (sub.ipv6Addresses ?? []).length > 0
               ? <div className="flex flex-col gap-0.5">
                   {sub.ipAddresses.map((ip) => (
                     <MonoValue key={ip} className="text-xs">{ip}</MonoValue>
+                  ))}
+                  {(sub.ipv6Addresses ?? []).map((ip) => (
+                    <MonoValue key={ip} className="text-xs text-blue-500 dark:text-blue-400">{ip}</MonoValue>
                   ))}
                 </div>
               : <span className="text-muted-foreground text-xs">—</span>}
@@ -212,6 +214,12 @@ function SubInterfaceRows({
           <TableCell><RouterCell name={ifaceToRouter.get(sub.name)} /></TableCell>
           {/* Security Zone */}
           <TableCell><ZoneCell name={ifaceToZone.get(sub.name)} /></TableCell>
+          {/* Features */}
+          <TableCell>
+            {dhcpRelaySet.has(sub.name)
+              ? <Image src="/icons/dhcp-relay.png" alt="DHCP Relay" title="DHCP Relay" width={20} height={20} className="opacity-80" />
+              : null}
+          </TableCell>
           {/* Template */}
           {isPanorama && (
             <TableCell>
@@ -237,7 +245,8 @@ const columnHelper = createColumnHelper<PanwInterface>()
 function buildColumns(
   isPanorama: boolean,
   ifaceToRouter: Map<string, string>,
-  ifaceToZone: Map<string, string>
+  ifaceToZone: Map<string, string>,
+  dhcpRelaySet: Set<string>,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     { id: "expand", enableSorting: false, size: 32, cell: () => null },
@@ -253,16 +262,10 @@ function buildColumns(
       enableSorting: true,
       accessorFn: (row) => row.aggregateGroup
         ? `Aggregate (${row.aggregateGroup})`
-        : row.type === "ae" ? "Layer3" : row.type,
+        : row.mode !== "none"
+          ? ({ layer3: "Layer3", layer2: "Layer2", "virtual-wire": "Virtual Wire", tap: "Tap", ha: "HA", "decrypt-mirror": "Decrypt Mirror" }[row.mode] ?? row.mode)
+          : row.type,
       cell: ({ row }) => <InterfaceTypeBadge iface={row.original} />,
-    },
-
-    {
-      id: "mode",
-      header: "Mode",
-      enableSorting: true,
-      accessorFn: (row) => row.mode,
-      cell: ({ row }) => <ModeBadge mode={row.original.mode} />,
     },
 
     columnHelper.accessor("managementProfile", {
@@ -281,7 +284,7 @@ function buildColumns(
 
     {
       id: "subIfCount",
-      header: "Sub-ifs",
+      header: "Sub Interfaces",
       enableSorting: true,
       accessorFn: (row) => row.subInterfaces.length,
       cell: ({ row }) => {
@@ -325,6 +328,24 @@ function buildColumns(
       cell: ({ row }) => <ZoneCell name={ifaceToZone.get(row.original.name)} />,
     },
 
+    {
+      id: "features",
+      header: "Features",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const iface = row.original
+        // Check if any sub-interface has DHCP relay
+        const subHasRelay = iface.subInterfaces.some((s) => dhcpRelaySet.has(s.name))
+        const selfHasRelay = dhcpRelaySet.has(iface.name)
+        if (!selfHasRelay && !subHasRelay) return <span className="text-muted-foreground text-xs">—</span>
+        return (
+          <div className="flex items-center gap-1">
+            <Image src="/icons/dhcp-relay.png" alt="DHCP Relay" title="DHCP Relay" width={20} height={20} className="opacity-80" />
+          </div>
+        )
+      },
+    },
+
     ...(isPanorama ? [{
       id: "template",
       header: "Template",
@@ -358,14 +379,15 @@ export function InterfacesView() {
 
   const isPanorama = activeConfig?.parsedConfig.deviceType === "panorama"
 
-  const { interfaces, zones, virtualRouters, logicalRouters } = React.useMemo(() => {
-    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [] }
+  const { interfaces, zones, virtualRouters, logicalRouters, dhcpRelayInterfaces } = React.useMemo(() => {
+    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [], dhcpRelayInterfaces: [] }
     const data = resolveNetworkData(activeConfig.parsedConfig, selectedScope)
     return {
       interfaces:     data.interfaces     ?? [],
       zones:          data.zones          ?? [],
       virtualRouters: data.virtualRouters ?? [],
       logicalRouters: data.logicalRouters ?? [],
+      dhcpRelayInterfaces: data.dhcpRelayInterfaces ?? [],
     }
   }, [activeConfig, selectedScope])
 
@@ -392,9 +414,14 @@ export function InterfacesView() {
     }
   }, [interfaces])
 
+  const dhcpRelaySet = React.useMemo(
+    () => new Set(dhcpRelayInterfaces),
+    [dhcpRelayInterfaces]
+  )
+
   const columns = React.useMemo(
-    () => buildColumns(isPanorama, ifaceToRouter, ifaceToZone),
-    [isPanorama, ifaceToRouter, ifaceToZone]
+    () => buildColumns(isPanorama, ifaceToRouter, ifaceToZone, dhcpRelaySet),
+    [isPanorama, ifaceToRouter, ifaceToZone, dhcpRelaySet]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -434,7 +461,7 @@ export function InterfacesView() {
               {hg.headers.map((header) => (
                 <TableHead
                   key={header.id}
-                  className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9"
+                  className="text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9"
                   style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                 >
                   {header.isPlaceholder ? null : header.column.getCanSort() ? (
@@ -507,6 +534,7 @@ export function InterfacesView() {
                       templateName={iface.templateName}
                       ifaceToZone={ifaceToZone}
                       ifaceToRouter={ifaceToRouter}
+                      dhcpRelaySet={dhcpRelaySet}
                     />
                   )}
                 </React.Fragment>

@@ -6,7 +6,7 @@ import {
   extractServices, extractServiceGroups, extractApplicationGroups,
   extractApplicationFilters, extractProfileGroups, extractZones,
   extractInterfaces, extractVirtualRouters, extractLogicalRouters,
-  extractSecurityRules, extractNatRules,
+  extractSecurityRules, extractNatRules, extractDhcpRelayInterfaces,
 } from "./extractors"
 import { str, entries, entryName, dig, toArray, members } from "./xml-helpers"
 import type {
@@ -300,6 +300,7 @@ function parsePanorama(
       virtualRouters: extractVirtualRouters(networkEl, tmplName),
       logicalRouters: extractLogicalRouters(networkEl, tmplName),
       zones:          extractZones(vsysEntry["zone"], tagColorMap),
+      dhcpRelayInterfaces: extractDhcpRelayInterfaces(networkEl),
       ...extractNetworkCounts(networkEl),
     }
   })
@@ -397,4 +398,3 @@ export function deriveConfigName(
   if (config.hostname) return config.hostname
   return fileName.replace(/\.(xml|cfg|conf)$/i, "").replace(/^\d{2}-\d{2}-\d{4}-/, "")
 }
-

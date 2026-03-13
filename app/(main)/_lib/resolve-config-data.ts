@@ -35,6 +35,7 @@ export interface ResolvedNetworkData {
   zones: PanwZone[]
   virtualRouters: PanwVirtualRouter[]
   logicalRouters: PanwVirtualRouter[]
+  dhcpRelayInterfaces: string[]
 }
 
 export function resolveNetworkData(config: ParsedConfig, scope: string | null): ResolvedNetworkData {
@@ -44,6 +45,7 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       zones: config.zones ?? [],
       virtualRouters: config.virtualRouters ?? [],
       logicalRouters: config.logicalRouters ?? [],
+      dhcpRelayInterfaces: [],
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -65,6 +67,7 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     zones,
     virtualRouters: templates.flatMap((t) => t.virtualRouters ?? []),
     logicalRouters: templates.flatMap((t) => t.logicalRouters ?? []),
+    dhcpRelayInterfaces: templates.flatMap((t) => t.dhcpRelayInterfaces ?? []),
   }
 }
 

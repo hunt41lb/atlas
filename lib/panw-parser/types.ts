@@ -5,6 +5,7 @@
 /** e.g. "color1" → "var(--panw-color1)", undefined → "var(--muted-foreground)" */
 export type PanwColorKey = `color${number}`
 export type ResolvedColor = `var(--panw-color${number})` | "var(--muted-foreground)"
+export type InterfaceMode = "layer3" | "layer2" | "virtual-wire" | "tap" | "ha" | "decrypt-mirror" | "none"
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
 
@@ -90,12 +91,12 @@ export interface PanwZone {
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 
 export type InterfaceType = "ethernet" | "loopback" | "vlan" | "tunnel" | "ae"
-export type InterfaceMode = "layer3" | "layer2" | "virtual-wire" | "tap" | "ha" | "decrypt-mirror" | "none"
 
 export interface PanwSubInterface {
   name: string
   tag: number | null
   ipAddresses: string[]
+  ipv6Addresses: string[]
   comment: string | null
   managementProfile: string | null
 }
@@ -213,6 +214,7 @@ export interface PanwTemplate {
   virtualRouters: PanwVirtualRouter[]
   logicalRouters: PanwVirtualRouter[]
   zones: PanwZone[]
+  dhcpRelayInterfaces: string[]
   // Network counts from template
   vlans: number
   virtualWires: number
@@ -362,4 +364,3 @@ export interface ParseError {
 export type ParseResult =
   | { success: true; config: ParsedConfig }
   | { success: false; error: ParseError }
-
