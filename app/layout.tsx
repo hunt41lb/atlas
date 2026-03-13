@@ -1,11 +1,11 @@
 // @/app/layout.tsx
 
 import type { Metadata } from "next";
-import { Raleway } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 
-const fontSans = Raleway({subsets:['latin'],variable:'--font-sans'});
+const fontSans = Montserrat({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Atlas",

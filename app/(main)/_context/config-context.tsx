@@ -47,10 +47,22 @@ export function useConfig() {
   return context
 }
 
+/**
+ * If the filename matches our watcher format (mm-dd-yyyy DeviceName.xml),
+ * return the stem as the display name e.g. "03-13-2026 Panorama02".
+ * Returns null for any other filename so existing fallbacks still apply.
+ */
+function datedFileStem(fileName: string): string | null {
+  const m = fileName.match(/^(\d{2}-\d{2}-\d{4} .+)\.xml$/i)
+  return m ? m[1] : null
+}
+
 function apiToConfiguration(detail: ApiConfiguration): Configuration {
   return {
     id:              detail.id,
-    name:            detail.device_hostname ?? deriveConfigName(detail.parsed, detail.file_name),
+    name:            datedFileStem(detail.file_name)
+                       ?? detail.device_hostname
+                       ?? deriveConfigName(detail.parsed, detail.file_name),
     deviceType:      detail.device_type,
     hostname:        detail.device_hostname ?? undefined,
     platformModel:   undefined,
