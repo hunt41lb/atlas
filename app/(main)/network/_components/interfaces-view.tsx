@@ -22,18 +22,29 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { InterfaceTable } from "./interface-table"
+import { PoeTable } from "./poe-table"
+import {
+  MODE_LABELS,
+  InterfaceTypeBadge,
+  ModeBadge,
+  TagCell,
+  RouterCell,
+  ZoneCell,
+  FeaturesList,
+  SubInterfaceRows,
+} from "./interface-helpers"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { SortHeader } from "@/components/ui/sort-header"
-import { Badge } from "@/components/ui/badge"
+import { ColumnVisibilityToggle } from "@/components/ui/column-visibility"
 import { useExpandableRows, ExpandToggle } from "@/components/ui/expandable-row"
 import { IpAddressCell, type VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { CategoryShell, ComingSoonView, MonoValue, MembersList } from "@/app/(main)/_components/ui/category-shell"
-import { INTERFACE_MODE_COLORS } from "@/lib/colors"
 import { cn } from "@/lib/utils"
-import type { PanwInterface, PanwSubInterface, PanwVirtualRouter, PanwZone, ParsedPanoramaConfig } from "@/lib/panw-parser/types"
+import type { PanwInterface, PanwVirtualRouter, PanwZone, ParsedPanoramaConfig } from "@/lib/panw-parser/types"
 
 // ─── Tab definitions ─────────────────────────────────────────────────────────
 
@@ -71,152 +82,6 @@ function buildIfaceToZone(zones: PanwZone[]): Map<string, string> {
   return map
 }
 
-// ─── Shared cell helpers ─────────────────────────────────────────────────────
-
-const MODE_LABELS: Record<string, string> = {
-  layer3: "Layer3",
-  layer2: "Layer2",
-  "virtual-wire": "Virtual Wire",
-  tap: "Tap",
-  ha: "HA",
-  "decrypt-mirror": "Decrypt Mirror",
-}
-
-function InterfaceTypeBadge({ iface }: { iface: PanwInterface }) {
-  if (iface.aggregateGroup) {
-    return (
-      <Badge variant={INTERFACE_MODE_COLORS["aggregate"]} size="sm">
-        Aggregate ({iface.aggregateGroup})
-      </Badge>
-    )
-  }
-  if (iface.mode !== "none") {
-    return (
-      <Badge variant={INTERFACE_MODE_COLORS[iface.mode]} size="sm">
-        {MODE_LABELS[iface.mode] ?? iface.mode}
-      </Badge>
-    )
-  }
-  return <Badge variant="muted" size="sm">{iface.type}</Badge>
-}
-
-function ModeBadge({ iface }: { iface: PanwInterface }) {
-  if (iface.mode !== "none") {
-    return (
-      <Badge variant={INTERFACE_MODE_COLORS[iface.mode]} size="sm">
-        {MODE_LABELS[iface.mode] ?? iface.mode}
-      </Badge>
-    )
-  }
-  return <Badge variant="muted" size="sm">{iface.type}</Badge>
-}
-
-function TagCell() {
-  return <span className="text-xs text-muted-foreground">Untagged</span>
-}
-
-function RouterCell({ name }: { name: string | undefined }) {
-  if (!name) return <span className="text-muted-foreground text-xs">—</span>
-  return <span className="text-xs font-medium">{name}</span>
-}
-
-function ZoneCell({ name }: { name: string | undefined }) {
-  if (!name) return <span className="text-muted-foreground text-xs">none</span>
-  return <span className="text-xs font-medium">{name}</span>
-}
-
-function FeaturesList({ features }: { features: string[] }) {
-  if (features.length === 0) return <span className="text-muted-foreground text-xs">—</span>
-  const sorted = [...features].sort((a, b) => a.localeCompare(b))
-  return (
-    <div className="flex flex-col gap-0.5">
-      {sorted.map((f) => (
-        <span key={f} className="text-xs text-muted-foreground">{f}</span>
-      ))}
-    </div>
-  )
-}
-
-// ─── Sub-interface rows (shared between Ethernet & AE tabs) ──────────────────
-
-function SubInterfaceRows({
-  subs,
-  isPanorama,
-  templateName,
-  ifaceToZone,
-  ifaceToRouter,
-  dhcpRelaySet,
-  showMemberPorts = false,
-  variableMap,
-}: {
-  subs: PanwSubInterface[]
-  isPanorama: boolean
-  templateName: string | null
-  ifaceToZone: Map<string, string>
-  ifaceToRouter: Map<string, string>
-  dhcpRelaySet: Set<string>
-  showMemberPorts?: boolean
-  variableMap?: VariableMap
-}) {
-  return (
-    <>
-      {subs.map((sub) => (
-        <TableRow key={sub.name} className="bg-muted/20 hover:bg-muted/40 border-border/50">
-          <TableCell className="w-8" />
-          <TableCell className="pl-2">
-            <span className="text-muted-foreground mr-1 text-xs">↳</span>
-            <span className="font-medium text-sm">{sub.name}</span>
-          </TableCell>
-          <TableCell>
-            <Badge variant="muted" size="sm">Sub Interface</Badge>
-          </TableCell>
-          {/* Member Ports placeholder (AE tab only) */}
-          {showMemberPorts && <TableCell />}
-          <TableCell>
-            {sub.managementProfile
-              ? <span className="text-xs">{sub.managementProfile}</span>
-              : <span className="text-muted-foreground text-xs">—</span>}
-          </TableCell>
-          <TableCell>
-            <IpAddressCell ipv4={sub.ipAddresses} ipv6={sub.ipv6Addresses ?? []} dhcpClient={sub.dhcpClient} variableMap={variableMap} />
-          </TableCell>
-          {/* Sub Interfaces count — n/a */}
-          <TableCell />
-          {/* Aggregate Group placeholder (Ethernet tab only) */}
-          {!showMemberPorts && <TableCell />}
-          <TableCell>
-            {sub.tag !== null
-              ? <span className="text-xs font-mono">{sub.tag}</span>
-              : <span className="text-muted-foreground text-xs">Untagged</span>}
-          </TableCell>
-          <TableCell><RouterCell name={ifaceToRouter.get(sub.name)} /></TableCell>
-          <TableCell><ZoneCell name={ifaceToZone.get(sub.name)} /></TableCell>
-          <TableCell>
-            <FeaturesList features={[
-              ...(sub.bonjourEnabled ? ["Bonjour"] : []),
-              ...(sub.dhcpClient ? ["DHCP Client"] : []),
-              ...(dhcpRelaySet.has(sub.name) ? ["DHCP Relay"] : []),
-              ...(sub.ndpProxy ? ["NDP Proxy"] : []),
-              ...(sub.adjustTcpMss ? ["TCP MSS"] : []),
-              ...(sub.sdwanEnabled ? ["SD-WAN"] : []),
-            ]} />
-          </TableCell>
-          {isPanorama && (
-            <TableCell>
-              {templateName && <span className="text-xs text-muted-foreground">{templateName}</span>}
-            </TableCell>
-          )}
-          <TableCell>
-            {sub.comment
-              ? <span className="text-xs text-muted-foreground">{sub.comment}</span>
-              : <span className="text-muted-foreground text-xs">—</span>}
-          </TableCell>
-        </TableRow>
-      ))}
-    </>
-  )
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // ─── Ethernet Tab ─────────────────────────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -227,14 +92,16 @@ function buildEthernetColumns(
   isPanorama: boolean,
   ifaceToRouter: Map<string, string>,
   ifaceToZone: Map<string, string>,
+  zoneColorMap: Map<string, string>,
   dhcpRelaySet: Set<string>,
   variableMap?: VariableMap,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
-    { id: "expand", enableSorting: false, size: 32, cell: () => null },
+    { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
 
     ethernetColumnHelper.accessor("name", {
       header: "Name",
+      enableHiding: false,
       cell: (info) => <span className="font-medium">{info.getValue()}</span>,
     }) as ColumnDef<PanwInterface, unknown>,
 
@@ -314,7 +181,10 @@ function buildEthernetColumns(
       header: "Security Zone",
       enableSorting: true,
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
-      cell: ({ row }) => <ZoneCell name={ifaceToZone.get(row.original.name)} />,
+      cell: ({ row }) => {
+        const zoneName = ifaceToZone.get(row.original.name)
+        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} />
+      },
     },
 
     {
@@ -325,15 +195,14 @@ function buildEthernetColumns(
         const iface = row.original
         const features: string[] = []
 
-        if (iface.dhcpClient) features.push("DHCP Client")
-
-        const selfHasRelay = dhcpRelaySet.has(iface.name)
-        const subHasRelay = iface.subInterfaces.some((s) => dhcpRelaySet.has(s.name))
-        if (selfHasRelay || subHasRelay) features.push("DHCP Relay")
+        if (dhcpRelaySet.has(iface.name)) features.push("DHCP Relay")
 
         if (iface.lldpEnabled) features.push("LLDP")
         if (iface.ndpProxy) features.push("NDP Proxy")
         if (iface.sdwanEnabled) features.push("SD-WAN")
+        if (iface.adjustTcpMss) features.push("TCP MSS")
+        if (iface.netflowProfile) features.push("Netflow")
+        if (iface.poeEnabled) features.push("PoE")
 
         return <FeaturesList features={features} />
       },
@@ -363,6 +232,7 @@ function EthernetTab({
   isPanorama,
   ifaceToRouter,
   ifaceToZone,
+  zoneColorMap,
   dhcpRelaySet,
   variableMap,
 }: {
@@ -370,6 +240,7 @@ function EthernetTab({
   isPanorama: boolean
   ifaceToRouter: Map<string, string>
   ifaceToZone: Map<string, string>
+  zoneColorMap: Map<string, string>
   dhcpRelaySet: Set<string>
   variableMap?: VariableMap
 }) {
@@ -388,8 +259,8 @@ function EthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildEthernetColumns(isPanorama, ifaceToRouter, ifaceToZone, dhcpRelaySet, variableMap),
-    [isPanorama, ifaceToRouter, ifaceToZone, dhcpRelaySet, variableMap]
+    () => buildEthernetColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap),
+    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -408,7 +279,13 @@ function EthernetTab({
   const rows = table.getRowModel().rows
 
   return (
-    <CategoryShell title="Ethernet" count={rows.length} search={search} onSearch={setSearch}>
+    <CategoryShell
+      title="Ethernet"
+      count={rows.length}
+      search={search}
+      onSearch={setSearch}
+      actions={<ColumnVisibilityToggle table={table} />}
+    >
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
@@ -464,7 +341,9 @@ function EthernetTab({
                       ifaceToZone={ifaceToZone}
                       ifaceToRouter={ifaceToRouter}
                       dhcpRelaySet={dhcpRelaySet}
+                      visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
                       variableMap={variableMap}
+                      zoneColorMap={zoneColorMap}
                     />
                   )}
                 </React.Fragment>
@@ -487,15 +366,17 @@ function buildAeColumns(
   isPanorama: boolean,
   ifaceToRouter: Map<string, string>,
   ifaceToZone: Map<string, string>,
+  zoneColorMap: Map<string, string>,
   dhcpRelaySet: Set<string>,
   memberMap: Map<string, string[]>,
   variableMap?: VariableMap,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
-    { id: "expand", enableSorting: false, size: 32, cell: () => null },
+    { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
 
     aeColumnHelper.accessor("name", {
       header: "Name",
+      enableHiding: false,
       cell: (info) => <span className="font-medium">{info.getValue()}</span>,
     }) as ColumnDef<PanwInterface, unknown>,
 
@@ -571,7 +452,10 @@ function buildAeColumns(
       header: "Security Zone",
       enableSorting: true,
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
-      cell: ({ row }) => <ZoneCell name={ifaceToZone.get(row.original.name)} />,
+      cell: ({ row }) => {
+        const zoneName = ifaceToZone.get(row.original.name)
+        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} />
+      },
     },
 
     {
@@ -582,16 +466,15 @@ function buildAeColumns(
         const iface = row.original
         const features: string[] = []
 
-        if (iface.dhcpClient) features.push("DHCP Client")
-
-        const selfHasRelay = dhcpRelaySet.has(iface.name)
-        const subHasRelay = iface.subInterfaces.some((s) => dhcpRelaySet.has(s.name))
-        if (selfHasRelay || subHasRelay) features.push("DHCP Relay")
+        if (dhcpRelaySet.has(iface.name)) features.push("DHCP Relay")
 
         if (iface.lacpEnabled) features.push("LACP")
         if (iface.lldpEnabled) features.push("LLDP")
         if (iface.ndpProxy) features.push("NDP Proxy")
         if (iface.sdwanEnabled) features.push("SD-WAN")
+        if (iface.adjustTcpMss) features.push("TCP MSS")
+        if (iface.netflowProfile) features.push("Netflow")
+        if (iface.poeEnabled) features.push("PoE")
 
         return <FeaturesList features={features} />
       },
@@ -621,6 +504,7 @@ function AggregateEthernetTab({
   isPanorama,
   ifaceToRouter,
   ifaceToZone,
+  zoneColorMap,
   dhcpRelaySet,
   variableMap,
 }: {
@@ -628,6 +512,7 @@ function AggregateEthernetTab({
   isPanorama: boolean
   ifaceToRouter: Map<string, string>
   ifaceToZone: Map<string, string>
+  zoneColorMap: Map<string, string>
   dhcpRelaySet: Set<string>
   variableMap?: VariableMap
 }) {
@@ -662,8 +547,8 @@ function AggregateEthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildAeColumns(isPanorama, ifaceToRouter, ifaceToZone, dhcpRelaySet, memberMap, variableMap),
-    [isPanorama, ifaceToRouter, ifaceToZone, dhcpRelaySet, memberMap, variableMap]
+    () => buildAeColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, memberMap, variableMap),
+    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, memberMap, variableMap]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -682,7 +567,13 @@ function AggregateEthernetTab({
   const rows = table.getRowModel().rows
 
   return (
-    <CategoryShell title="Aggregate Ethernet" count={rows.length} search={search} onSearch={setSearch}>
+    <CategoryShell
+      title="Aggregate Ethernet"
+      count={rows.length}
+      search={search}
+      onSearch={setSearch}
+      actions={<ColumnVisibilityToggle table={table} />}
+    >
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
@@ -739,7 +630,9 @@ function AggregateEthernetTab({
                       ifaceToRouter={ifaceToRouter}
                       dhcpRelaySet={dhcpRelaySet}
                       showMemberPorts
+                      visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
                       variableMap={variableMap}
+                      zoneColorMap={zoneColorMap}
                     />
                   )}
                 </React.Fragment>
@@ -786,6 +679,16 @@ export function InterfacesView() {
     [zones]
   )
 
+  const zoneColorMap = React.useMemo(() => {
+    const map = new Map<string, string>()
+    for (const zone of zones) {
+      if (zone.color !== "var(--muted-foreground)") {
+        map.set(zone.name, zone.color)
+      }
+    }
+    return map
+  }, [zones])
+
   const dhcpRelaySet = React.useMemo(
     () => new Set(dhcpRelayInterfaces),
     [dhcpRelayInterfaces]
@@ -805,7 +708,7 @@ export function InterfacesView() {
     return map
   }, [activeConfig])
 
-  const sharedProps = { interfaces, isPanorama, ifaceToRouter, ifaceToZone, dhcpRelaySet, variableMap }
+  const sharedProps = { interfaces, isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap }
 
   return (
     <Tabs defaultValue="ethernet" className="flex h-full flex-col min-h-0">
@@ -828,15 +731,15 @@ export function InterfacesView() {
       </TabsContent>
 
       <TabsContent value="vlan" className="flex-1 min-h-0">
-        <ComingSoonView title="VLAN Interfaces" />
+        <InterfaceTable type="vlan" title="VLAN Interfaces" {...sharedProps} />
       </TabsContent>
 
       <TabsContent value="loopback" className="flex-1 min-h-0">
-        <ComingSoonView title="Loopback Interfaces" />
+        <InterfaceTable type="loopback" title="Loopback Interfaces" {...sharedProps} />
       </TabsContent>
 
       <TabsContent value="tunnel" className="flex-1 min-h-0">
-        <ComingSoonView title="Tunnel Interfaces" />
+        <InterfaceTable type="tunnel" title="Tunnel Interfaces" {...sharedProps} />
       </TabsContent>
 
       <TabsContent value="sd-wan" className="flex-1 min-h-0">
@@ -844,7 +747,7 @@ export function InterfacesView() {
       </TabsContent>
 
       <TabsContent value="poe" className="flex-1 min-h-0">
-        <ComingSoonView title="PoE Interfaces" />
+        <PoeTable interfaces={interfaces} isPanorama={isPanorama} />
       </TabsContent>
 
       <TabsContent value="cellular" className="flex-1 min-h-0">
@@ -857,3 +760,4 @@ export function InterfacesView() {
     </Tabs>
   )
 }
+

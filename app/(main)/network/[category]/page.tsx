@@ -14,84 +14,8 @@ import {
   MonoValue, MembersList,
 } from "@/app/(main)/_components/ui/category-shell"
 import { InterfacesView } from "@/app/(main)/network/_components/interfaces-view"
-import type { PanwZone, PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
-
-// ─── Zones view ───────────────────────────────────────────────────────────────
-
-const zoneTypeColors: Record<string, string> = {
-  layer3:       "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  layer2:       "bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20",
-  "virtual-wire": "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20",
-  tap:          "bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20",
-  tunnel:       "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-  external:     "bg-muted text-muted-foreground border-border",
-  unknown:      "bg-muted text-muted-foreground border-border",
-}
-
-function ZonesView() {
-  const { activeConfig } = useConfig()
-  const { selectedScope } = useScope()
-  const [search, setSearch] = React.useState("")
-
-  const data = React.useMemo(() => {
-    if (!activeConfig) return []
-    return resolveNetworkData(activeConfig.parsedConfig, selectedScope).zones
-  }, [activeConfig, selectedScope])
-
-  const filtered = React.useMemo(() => {
-    if (!search) return data
-    const q = search.toLowerCase()
-    return data.filter((z) =>
-      z.name.toLowerCase().includes(q) ||
-      z.type.toLowerCase().includes(q) ||
-      z.interfaces.some((i) => i.toLowerCase().includes(q))
-    )
-  }, [data, search])
-
-  return (
-    <CategoryShell title="Zones" count={filtered.length} search={search} onSearch={setSearch}>
-      <DataTable>
-        <DataThead>
-          <DataTh>Name</DataTh>
-          <DataTh className="w-32">Type</DataTh>
-          <DataTh>Interfaces</DataTh>
-        </DataThead>
-        <DataTbody>
-          {filtered.length === 0
-            ? <TableEmpty query={search} />
-            : filtered.map((zone: PanwZone) => (
-              <DataTr key={zone.name}>
-                <DataTd>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="size-2 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: zone.color !== "var(--muted-foreground)"
-                          ? zone.color
-                          : undefined
-                      }}
-                    />
-                    <span className="font-medium">{zone.name}</span>
-                  </div>
-                </DataTd>
-                <DataTd>
-                  <span className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${zoneTypeColors[zone.type] ?? zoneTypeColors.unknown}`}>
-                    {zone.type}
-                  </span>
-                </DataTd>
-                <DataTd>
-                  {zone.interfaces.length > 0
-                    ? <MembersList members={zone.interfaces} max={4} />
-                    : null
-                  }
-                </DataTd>
-              </DataTr>
-            ))}
-        </DataTbody>
-      </DataTable>
-    </CategoryShell>
-  )
-}
+import { ZonesTable } from "@/app/(main)/network/_components/zones-table"
+import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
 
@@ -180,7 +104,7 @@ function RoutingView() {
 
 const NETWORK_VIEWS: Record<string, { title: string; component?: React.ComponentType; countKey?: string }> = {
   "interfaces":       { title: "Interfaces",          component: InterfacesView },
-  "zones":            { title: "Zones",               component: ZonesView },
+  "zones":            { title: "Zones",               component: ZonesTable },
   "routing":          { title: "Routing",              component: RoutingView },
   "vlans":            { title: "VLANs" },
   "virtual-wires":    { title: "Virtual Wires" },

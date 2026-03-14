@@ -212,12 +212,28 @@ export function extractZones(
   return entries(zoneEl).map((entry) => {
     const tagNames = membersAt(entry, "tag")
     const type = detectZoneType(entry)
+    const networkEl = entry["network"] as Record<string, unknown> | undefined
+
+    const tagColor = resolveFirstTagColor(tagNames, tagColorMap)
+    const color = tagColor !== "var(--muted-foreground)"
+      ? tagColor
+      : resolveFirstTagColor([entryName(entry)], tagColorMap)
+
     return {
       name: entryName(entry),
       type,
       interfaces: zoneInterfaces(entry, type),
       tags: tagNames,
-      color: resolveFirstTagColor(tagNames, tagColorMap),
+      color,
+      zoneProtectionProfile: str(dig(networkEl, "zone-protection-profile")) ?? null,
+      logSetting: str(dig(networkEl, "log-setting")) ?? null,
+      netInspection: str(dig(networkEl, "net-inspection")) === "yes",
+      enableUserIdentification: str(entry["enable-user-identification"]) === "yes",
+      enableDeviceIdentification: str(entry["enable-device-identification"]) === "yes",
+      userAclInclude: members(dig(entry, "user-acl", "include-list")),
+      userAclExclude: members(dig(entry, "user-acl", "exclude-list")),
+      deviceAclInclude: members(dig(entry, "device-acl", "include-list")),
+      deviceAclExclude: members(dig(entry, "device-acl", "exclude-list")),
     }
   })
 }
@@ -275,16 +291,22 @@ function extractInterfacesOfType(
     const mode = detectInterfaceMode(entry)
     const modeEl = mode !== "none" ? (entry[mode] as Record<string, unknown>) : null
 
+    // For tunnel/loopback/vlan, there is no mode wrapper — IP, IPv6, units,
+    // and feature elements sit directly on the entry.  For ethernet/ae they
+    // live inside the mode element (e.g. <layer3>).  We use `propEl` as the
+    // element to read these shared properties from.
+    const propEl: Record<string, unknown> = modeEl ?? entry
+
     // Direct IP addresses on the interface
-    const directIpEntries = entries(dig(modeEl, "ip"))
+    const directIpEntries = entries(dig(propEl, "ip"))
     const directIps = directIpEntries.map((ip) => entryName(ip)).filter(Boolean)
 
     // IPv6 addresses on the parent interface
-    const ipv6Entries = entries(dig(modeEl, "ipv6", "address"))
+    const ipv6Entries = entries(dig(propEl, "ipv6", "address"))
     const ipv6Addresses = ipv6Entries.map((ip) => entryName(ip)).filter(Boolean)
 
-    // Sub-interfaces
-    const subInterfaces = modeEl ? extractSubInterfaces(dig(modeEl, "units")) : []
+    // Sub-interfaces (units)
+    const subInterfaces = extractSubInterfaces(dig(propEl, "units"))
 
     // Aggregate Groups
     const aggregateGroup = str(entry["aggregate-group"]) ?? null
@@ -297,16 +319,36 @@ function extractInterfacesOfType(
     const lldpEnabled = str(dig(modeEl, "lldp", "enable")) === "yes"
     const lldpProfile = str(dig(modeEl, "lldp", "profile"))
 
-    // NDP Proxy
-    const ndpProxy = str(dig(modeEl, "ndp-proxy", "enabled")) === "yes"
+    // NDP Proxy — can be on modeEl (ethernet) or directly on entry (vlan/loopback)
+    const ndpProxy = str(dig(propEl, "ndp-proxy", "enabled")) === "yes"
 
     // SD-WAN Link Settings
-    const sdwanEnabled = str(dig(modeEl, "sdwan-link-settings", "enable")) === "yes"
+    const sdwanEnabled = str(dig(propEl, "sdwan-link-settings", "enable")) === "yes"
 
     // LACP (aggregate-ethernet interfaces only)
     const lacpEnabled = str(dig(modeEl, "lacp", "enable")) === "yes"
     const lacpMode = str(dig(modeEl, "lacp", "mode"))
     const lacpTransmissionRate = str(dig(modeEl, "lacp", "transmission-rate"))
+
+    // ── New fields ───────────────────────────────────────────────────────
+    // MTU — direct on entry for tunnel/loopback/vlan, inside modeEl for ethernet
+    const mtuRaw = str(propEl["mtu"]) ?? str(entry["mtu"])
+    const mtu = mtuRaw ? Number(mtuRaw) : null
+
+    // Netflow Profile — same pattern
+    const netflowProfile = str(propEl["netflow-profile"]) ?? str(entry["netflow-profile"]) ?? null
+
+    // Adjust TCP MSS — lives on propEl for all types
+    const adjustTcpMss = str(dig(propEl, "adjust-tcp-mss", "enable")) === "yes"
+
+    // DDNS Config — present on vlan interfaces
+    const ddnsEnabled = dig(propEl, "ddns-config") !== undefined
+
+    // PoE — lives directly on the ethernet entry (not inside mode)
+    const poeConfigured = dig(entry, "poe") !== undefined
+    const poeEnabled = str(dig(entry, "poe", "poe-enabled")) === "yes"
+    const poeRsvd = str(dig(entry, "poe", "poe-rsvd-pwr"))
+    const poeReservedPower = poeRsvd ? Number(poeRsvd) : null
 
     return {
       name: entryName(entry),
@@ -327,6 +369,13 @@ function extractInterfacesOfType(
       lacpEnabled,
       lacpMode,
       lacpTransmissionRate,
+      mtu,
+      netflowProfile,
+      adjustTcpMss,
+      ddnsEnabled,
+      poeConfigured,
+      poeEnabled,
+      poeReservedPower,
     }
   })
 }
@@ -342,10 +391,11 @@ export function extractInterfaces(
 
   return [
     ...extractInterfacesOfType(ifaceEl["ethernet"], "ethernet", templateName),
-    ...extractInterfacesOfType(ifaceEl["loopback"], "loopback", templateName),
-    ...extractInterfacesOfType(ifaceEl["vlan"], "vlan", templateName),
-    ...extractInterfacesOfType(ifaceEl["tunnel"], "tunnel", templateName),
     ...extractInterfacesOfType(ifaceEl["aggregate-ethernet"], "ae", templateName),
+    // Loopback, VLAN, and Tunnel entries are nested inside <units>
+    ...extractInterfacesOfType(dig(ifaceEl["loopback"], "units"), "loopback", templateName),
+    ...extractInterfacesOfType(dig(ifaceEl["vlan"], "units"), "vlan", templateName),
+    ...extractInterfacesOfType(dig(ifaceEl["tunnel"], "units"), "tunnel", templateName),
   ]
 }
 

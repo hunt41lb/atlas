@@ -77,7 +77,7 @@ export const INTERFACE_MODE_COLORS: Record<string, ColorVariant> = {
   layer3:           "green",
   layer2:           "violet",
   "virtual-wire":   "violet",
-  tap:              "cyan",
+  tap:              "orange",
   ha:               "orange",
   "decrypt-mirror": "amber",
   aggregate:        "amber",
@@ -85,8 +85,8 @@ export const INTERFACE_MODE_COLORS: Record<string, ColorVariant> = {
 
 /** Zone types (layer3, layer2, virtual-wire, tap, tunnel, external) */
 export const ZONE_TYPE_COLORS: Record<string, ColorVariant> = {
-  layer3:         "blue",
-  layer2:         "cyan",
+  layer3:         "green",
+  layer2:         "violet",
   "virtual-wire": "violet",
   tap:            "orange",
   tunnel:         "amber",

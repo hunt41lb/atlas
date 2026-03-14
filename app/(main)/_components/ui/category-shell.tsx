@@ -203,10 +203,11 @@ interface CategoryShellProps {
   count: number
   search: string
   onSearch: (v: string) => void
+  actions?: React.ReactNode
   children: React.ReactNode
 }
 
-export function CategoryShell({ title, count, search, onSearch, children }: CategoryShellProps) {
+export function CategoryShell({ title, count, search, onSearch, actions, children }: CategoryShellProps) {
   return (
     <div className="flex h-full flex-col min-h-0">
       {/* Toolbar */}
@@ -220,6 +221,7 @@ export function CategoryShell({ title, count, search, onSearch, children }: Cate
             className="pl-8 h-7 text-sm"
           />
         </div>
+        {actions}
         <span className="text-xs text-muted-foreground tabular-nums shrink-0">
           {count.toLocaleString()} {count === 1 ? "entry" : "entries"}
         </span>
@@ -230,5 +232,26 @@ export function CategoryShell({ title, count, search, onSearch, children }: Cate
         {children}
       </div>
     </div>
+  )
+}
+
+// ─── Zone badge ──────────────────────────────────────────────────────────────
+
+export function ZoneBadge({ name, color }: { name?: string; color?: string }) {
+  if (!name) return <span className="text-muted-foreground text-xs">none</span>
+  const hasColor = color && color !== "var(--muted-foreground)"
+  return hasColor ? (
+    <span
+      className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium leading-none border"
+      style={{
+        backgroundColor: `color-mix(in oklch, ${color} 15%, transparent)`,
+        borderColor: `color-mix(in oklch, ${color} 40%, transparent)`,
+        color,
+      }}
+    >
+      {name}
+    </span>
+  ) : (
+    <span className="text-xs font-medium">{name}</span>
   )
 }

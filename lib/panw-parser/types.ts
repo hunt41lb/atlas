@@ -87,6 +87,15 @@ export interface PanwZone {
   interfaces: string[]
   tags: string[]
   color: ResolvedColor
+  zoneProtectionProfile: string | null
+  logSetting: string | null
+  netInspection: boolean
+  enableUserIdentification: boolean
+  enableDeviceIdentification: boolean
+  userAclInclude: string[]
+  userAclExclude: string[]
+  deviceAclInclude: string[]
+  deviceAclExclude: string[]
 }
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
@@ -130,6 +139,13 @@ export interface PanwInterface {
   lacpEnabled: boolean
   lacpMode: string | null
   lacpTransmissionRate: string | null
+  mtu: number | null
+  netflowProfile: string | null
+  adjustTcpMss: boolean
+  ddnsEnabled: boolean
+  poeConfigured: boolean
+  poeEnabled: boolean
+  poeReservedPower: number | null
 }
 
 // ─── Routing ─────────────────────────────────────────────────────────────────
@@ -391,3 +407,4 @@ export interface ParseError {
 export type ParseResult =
   | { success: true; config: ParsedConfig }
   | { success: false; error: ParseError }
+
