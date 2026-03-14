@@ -6,6 +6,7 @@
 export type PanwColorKey = `color${number}`
 export type ResolvedColor = `var(--panw-color${number})` | "var(--muted-foreground)"
 export type InterfaceMode = "layer3" | "layer2" | "virtual-wire" | "tap" | "ha" | "decrypt-mirror" | "none"
+export type TemplateVariableType = "ip-netmask" | "ip-range" | "fqdn" | "ip-wildcard"
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
 
@@ -99,6 +100,12 @@ export interface PanwSubInterface {
   ipv6Addresses: string[]
   comment: string | null
   managementProfile: string | null
+  // ── Feature flags ──────────────────────────────────────────────────────
+  bonjourEnabled: boolean
+  ndpProxy: boolean
+  adjustTcpMss: boolean
+  sdwanEnabled: boolean
+  dhcpClient: boolean
 }
 
 export interface PanwInterface {
@@ -106,15 +113,23 @@ export interface PanwInterface {
   type: InterfaceType
   mode: InterfaceMode
   ipAddresses: string[]
+  ipv6Addresses: string[]            // ← NEW: was missing on parent
   subInterfaces: PanwSubInterface[]
   comment: string | null
   managementProfile: string | null
-  /** For ethernet members of an AE bond: the aggregate interface name e.g. "ae1" */
   aggregateGroup: string | null
-  /** True when the interface is configured as a DHCP client */
-  dhcpClient: boolean
   /** Panorama: which template this came from */
   templateName: string | null
+  // ── Feature flags ──────────────────────────────────────────────────────
+  dhcpClient: boolean
+  lldpEnabled: boolean
+  lldpProfile: string | null
+  ndpProxy: boolean
+  sdwanEnabled: boolean
+  // ── LACP (AE interfaces only) ──────────────────────────────────────────
+  lacpEnabled: boolean
+  lacpMode: string | null
+  lacpTransmissionRate: string | null
 }
 
 // ─── Routing ─────────────────────────────────────────────────────────────────
@@ -215,6 +230,7 @@ export interface PanwTemplate {
   logicalRouters: PanwVirtualRouter[]
   zones: PanwZone[]
   dhcpRelayInterfaces: string[]
+  variables: PanwTemplateVariable[]
   // Network counts from template
   vlans: number
   virtualWires: number
@@ -222,6 +238,17 @@ export interface PanwTemplate {
   greTunnels: number
   dhcpInterfaces: number
   dnsProxies: number
+}
+
+export interface PanwTemplateVariable {
+  /** Variable name including $ prefix, e.g. "$DOMAIN_SERVICES_IPV4_SUBNET" */
+  name: string
+  /** The variable type (ip-netmask, fqdn, etc.) */
+  type: TemplateVariableType
+  /** The resolved value, e.g. "10.11.11.62/26" or "dc01.ndit.io" */
+  value: string
+  /** Human-readable description */
+  description: string | null
 }
 
 // ─── Device Group (Panorama) ─────────────────────────────────────────────────

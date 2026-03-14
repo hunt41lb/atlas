@@ -8,7 +8,7 @@ import type {
   PanwZone, PanwInterface, PanwSubInterface, PanwVirtualRouter, PanwStaticRoute,
   PanwSecurityRule, PanwNatRule, PanwColorKey, PolicyRulebase,
   PolicyAction, RuleType, ZoneType, InterfaceType, InterfaceMode,
-  SourceTranslationType,
+  SourceTranslationType, TemplateVariableType, PanwTemplateVariable,
 } from "./types"
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -233,13 +233,25 @@ function extractSubInterfaces(unitsEl: unknown): PanwSubInterface[] {
     const ipv6Entries = entries(dig(entry, "ipv6", "address"))
     const ipv6Addresses = ipv6Entries.map((ip) => entryName(ip)).filter(Boolean)
 
+    // Feature flags
+    const bonjourEnabled = str(dig(entry, "bonjour", "enable")) === "yes"
+    const ndpProxy = str(dig(entry, "ndp-proxy", "enabled")) === "yes"
+    const adjustTcpMss = str(dig(entry, "adjust-tcp-mss", "enable")) === "yes"
+    const sdwanEnabled = str(dig(entry, "sdwan-link-settings", "enable")) === "yes"
+    const dhcpClient = dig(entry, "dhcp-client") !== undefined
+
     return {
       name: entryName(entry),
       tag: entry["tag"] !== undefined ? Number(entry["tag"]) : null,
       ipAddresses,
-      ipv6Addresses,    // ← ADD
+      ipv6Addresses,
       comment: str(entry["comment"]),
       managementProfile: str(entry["interface-management-profile"]),
+      bonjourEnabled,
+      ndpProxy,
+      adjustTcpMss,
+      sdwanEnabled,
+      dhcpClient,
     }
   })
 }
@@ -267,26 +279,54 @@ function extractInterfacesOfType(
     const directIpEntries = entries(dig(modeEl, "ip"))
     const directIps = directIpEntries.map((ip) => entryName(ip)).filter(Boolean)
 
+    // IPv6 addresses on the parent interface
+    const ipv6Entries = entries(dig(modeEl, "ipv6", "address"))
+    const ipv6Addresses = ipv6Entries.map((ip) => entryName(ip)).filter(Boolean)
+
     // Sub-interfaces
     const subInterfaces = modeEl ? extractSubInterfaces(dig(modeEl, "units")) : []
 
     // Aggregate Groups
     const aggregateGroup = str(entry["aggregate-group"]) ?? null
 
+    // DHCP Client
     const dhcpClient =
       dig(entry["layer3"] as Record<string, unknown> | null, "dhcp-client") !== undefined
+
+    // LLDP — lives inside the mode element (e.g. <layer3><lldp>)
+    const lldpEnabled = str(dig(modeEl, "lldp", "enable")) === "yes"
+    const lldpProfile = str(dig(modeEl, "lldp", "profile"))
+
+    // NDP Proxy
+    const ndpProxy = str(dig(modeEl, "ndp-proxy", "enabled")) === "yes"
+
+    // SD-WAN Link Settings
+    const sdwanEnabled = str(dig(modeEl, "sdwan-link-settings", "enable")) === "yes"
+
+    // LACP (aggregate-ethernet interfaces only)
+    const lacpEnabled = str(dig(modeEl, "lacp", "enable")) === "yes"
+    const lacpMode = str(dig(modeEl, "lacp", "mode"))
+    const lacpTransmissionRate = str(dig(modeEl, "lacp", "transmission-rate"))
 
     return {
       name: entryName(entry),
       type,
       mode,
       ipAddresses: directIps,
+      ipv6Addresses,
       subInterfaces,
       comment: str(entry["comment"]),
       managementProfile: str(entry["interface-management-profile"]),
       aggregateGroup,
       dhcpClient,
       templateName,
+      lldpEnabled,
+      lldpProfile,
+      ndpProxy,
+      sdwanEnabled,
+      lacpEnabled,
+      lacpMode,
+      lacpTransmissionRate,
     }
   })
 }
@@ -491,4 +531,32 @@ export function extractNatRules(
       disabled: yesNo(entry["disabled"]),
     }
   })
+}
+
+export function extractTemplateVariables(variableEl: unknown): PanwTemplateVariable[] {
+   return entries(variableEl).map((entry) => {
+     const typeEl = entry["type"] as Record<string, unknown> | undefined
+
+     // Type contains a single key whose name is the variable type
+     // and whose value is the resolved value
+     let type: TemplateVariableType = "ip-netmask"
+     let value = ""
+
+     if (typeEl) {
+       for (const key of ["ip-netmask", "ip-range", "fqdn", "ip-wildcard"] as const) {
+         if (typeEl[key] !== undefined) {
+           type = key
+           value = str(typeEl[key]) ?? ""
+           break
+         }
+       }
+     }
+
+     return {
+       name: entryName(entry),
+       type,
+       value,
+       description: str(entry["description"]),
+     }
+   })
 }

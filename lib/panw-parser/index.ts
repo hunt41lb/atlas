@@ -7,6 +7,7 @@ import {
   extractApplicationFilters, extractProfileGroups, extractZones,
   extractInterfaces, extractVirtualRouters, extractLogicalRouters,
   extractSecurityRules, extractNatRules, extractDhcpRelayInterfaces,
+  extractTemplateVariables,
 } from "./extractors"
 import { str, entries, entryName, dig, toArray, members } from "./xml-helpers"
 import type {
@@ -296,6 +297,7 @@ function parsePanorama(
     return {
       name: tmplName,
       description: str(tmplEntry["description"]),
+      variables:      extractTemplateVariables(tmplEntry["variable"]),
       interfaces:     extractInterfaces(networkEl, tmplName),
       virtualRouters: extractVirtualRouters(networkEl, tmplName),
       logicalRouters: extractLogicalRouters(networkEl, tmplName),
