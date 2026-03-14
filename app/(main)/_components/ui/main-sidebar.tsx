@@ -13,6 +13,7 @@ import {
   Server,
 } from "lucide-react"
 
+import { BrandPanw } from "@/components/icons/brand-panw"
 import { AtlasLogo } from "@/components/icons/atlas-logo"
 import { SidebarViews } from "./sidebar/sidebar-views"
 import { SidebarConfigurations } from "./sidebar/sidebar-configurations"
@@ -119,7 +120,7 @@ export function MainSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
     id:       c.id,
     name:     c.name,
     url:      "#",
-    icon:     c.deviceType === "panorama" ? Server : Frame,
+    icon:     BrandPanw,
     onClick:  () => setActiveConfig(c),
     isActive: activeConfig?.id === c.id,
   }))

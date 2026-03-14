@@ -3,7 +3,7 @@
 "use client"
 
 import * as React from "react"
-import { ArchiveX, MoreHorizontal, Trash2, type LucideIcon } from "lucide-react"
+import { ArchiveX, MoreHorizontal, Trash2 } from "lucide-react"
 
 import {
   AlertDialog,
@@ -45,7 +45,7 @@ interface ConfigProject {
   id:        string
   name:      string
   url:       string
-  icon:      LucideIcon
+  icon:      React.ComponentType<React.SVGProps<SVGSVGElement>>
   onClick?:  () => void
   isActive?: boolean
 }
