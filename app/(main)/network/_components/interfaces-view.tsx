@@ -14,14 +14,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table"
 
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table"
+import { DataTable } from "@/components/ui/data-table"
 import { InterfaceTable } from "./interface-table"
 import { PoeTable } from "./poe-table"
 import {
@@ -35,16 +28,15 @@ import {
   SubInterfaceRows,
 } from "./interface-helpers"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { SortHeader } from "@/components/ui/sort-header"
-import { ColumnVisibilityToggle } from "@/components/ui/column-visibility"
 import { useExpandableRows, ExpandToggle } from "@/components/ui/expandable-row"
 import { IpAddressCell, type VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import { CategoryShell, ComingSoonView, MonoValue, MembersList } from "@/app/(main)/_components/ui/category-shell"
+import { ComingSoonView, MonoValue, MembersList } from "@/app/(main)/_components/ui/category-shell"
 import { cn } from "@/lib/utils"
 import type { PanwInterface, PanwVirtualRouter, PanwZone, ParsedPanoramaConfig } from "@/lib/panw-parser/types"
+import { TableCell, TableRow } from "@/components/ui/table"
 
 // ─── Tab definitions ─────────────────────────────────────────────────────────
 
@@ -276,83 +268,47 @@ function EthernetTab({
     globalFilterFn: "includesString",
   })
 
-  const rows = table.getRowModel().rows
-
   return (
-    <CategoryShell
+    <DataTable
+      table={table}
       title="Ethernet"
-      count={rows.length}
       search={search}
       onSearch={setSearch}
-      actions={<ColumnVisibilityToggle table={table} />}
-    >
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id} className="hover:bg-transparent border-b border-border">
-              {hg.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9"
-                  style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                >
-                  {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                    <SortHeader label={String(header.column.columnDef.header ?? "")} column={header.column} />
-                  ) : (
-                    flexRender(header.column.columnDef.header, header.getContext())
-                  )}
-                </TableHead>
+      renderRow={(row) => {
+        const iface = row.original
+        const rowKey = `${iface.templateName ?? "fw"}-${iface.name}`
+        const hasSubIfs = iface.subInterfaces.length > 0
+        const expanded = isExpanded(rowKey)
+
+        return (
+          <React.Fragment key={rowKey}>
+            <TableRow className={cn("transition-colors", hasSubIfs && expanded && "border-b-0")}>
+              <TableCell className="w-8 px-2">
+                <ExpandToggle expandable={hasSubIfs} expanded={expanded} onToggle={() => toggleRow(rowKey)} />
+              </TableCell>
+              {row.getVisibleCells().slice(1).map((cell) => (
+                <TableCell key={cell.id} className="px-3 py-2 align-middle">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
               ))}
             </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="py-16 text-center text-sm text-muted-foreground">
-                {search ? `No results matching "${search}"` : "No Ethernet interfaces found in this configuration."}
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row) => {
-              const iface = row.original
-              const rowKey = `${iface.templateName ?? "fw"}-${iface.name}`
-              const hasSubIfs = iface.subInterfaces.length > 0
-              const expanded = isExpanded(rowKey)
-
-              return (
-                <React.Fragment key={rowKey}>
-                  <TableRow className={cn("transition-colors", hasSubIfs && expanded && "border-b-0")}>
-                    <TableCell className="w-8 px-2">
-                      <ExpandToggle expandable={hasSubIfs} expanded={expanded} onToggle={() => toggleRow(rowKey)} />
-                    </TableCell>
-                    {row.getVisibleCells().slice(1).map((cell) => (
-                      <TableCell key={cell.id} className="px-3 py-2 align-middle">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  {hasSubIfs && expanded && (
-                    <SubInterfaceRows
-                      subs={iface.subInterfaces}
-                      isPanorama={isPanorama}
-                      templateName={iface.templateName}
-                      ifaceToZone={ifaceToZone}
-                      ifaceToRouter={ifaceToRouter}
-                      dhcpRelaySet={dhcpRelaySet}
-                      visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
-                      variableMap={variableMap}
-                      zoneColorMap={zoneColorMap}
-                    />
-                  )}
-                </React.Fragment>
-              )
-            })
-          )}
-        </TableBody>
-      </Table>
-    </CategoryShell>
+            {hasSubIfs && expanded && (
+              <SubInterfaceRows
+                subs={iface.subInterfaces}
+                isPanorama={isPanorama}
+                templateName={iface.templateName}
+                ifaceToZone={ifaceToZone}
+                ifaceToRouter={ifaceToRouter}
+                dhcpRelaySet={dhcpRelaySet}
+                visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
+                variableMap={variableMap}
+                zoneColorMap={zoneColorMap}
+              />
+            )}
+          </React.Fragment>
+        )
+      }}
+    />
   )
 }
 
@@ -564,84 +520,48 @@ function AggregateEthernetTab({
     globalFilterFn: "includesString",
   })
 
-  const rows = table.getRowModel().rows
-
   return (
-    <CategoryShell
+    <DataTable
+      table={table}
       title="Aggregate Ethernet"
-      count={rows.length}
       search={search}
       onSearch={setSearch}
-      actions={<ColumnVisibilityToggle table={table} />}
-    >
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id} className="hover:bg-transparent border-b border-border">
-              {hg.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9"
-                  style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                >
-                  {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                    <SortHeader label={String(header.column.columnDef.header ?? "")} column={header.column} />
-                  ) : (
-                    flexRender(header.column.columnDef.header, header.getContext())
-                  )}
-                </TableHead>
+      renderRow={(row) => {
+        const iface = row.original
+        const rowKey = `${iface.templateName ?? "fw"}-${iface.name}`
+        const hasSubIfs = iface.subInterfaces.length > 0
+        const expanded = isExpanded(rowKey)
+
+        return (
+          <React.Fragment key={rowKey}>
+            <TableRow className={cn("transition-colors", hasSubIfs && expanded && "border-b-0")}>
+              <TableCell className="w-8 px-2">
+                <ExpandToggle expandable={hasSubIfs} expanded={expanded} onToggle={() => toggleRow(rowKey)} />
+              </TableCell>
+              {row.getVisibleCells().slice(1).map((cell) => (
+                <TableCell key={cell.id} className="px-3 py-2 align-middle">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
               ))}
             </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="py-16 text-center text-sm text-muted-foreground">
-                {search ? `No results matching "${search}"` : "No Aggregate Ethernet interfaces found in this configuration."}
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row) => {
-              const iface = row.original
-              const rowKey = `${iface.templateName ?? "fw"}-${iface.name}`
-              const hasSubIfs = iface.subInterfaces.length > 0
-              const expanded = isExpanded(rowKey)
-
-              return (
-                <React.Fragment key={rowKey}>
-                  <TableRow className={cn("transition-colors", hasSubIfs && expanded && "border-b-0")}>
-                    <TableCell className="w-8 px-2">
-                      <ExpandToggle expandable={hasSubIfs} expanded={expanded} onToggle={() => toggleRow(rowKey)} />
-                    </TableCell>
-                    {row.getVisibleCells().slice(1).map((cell) => (
-                      <TableCell key={cell.id} className="px-3 py-2 align-middle">
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  {hasSubIfs && expanded && (
-                    <SubInterfaceRows
-                      subs={iface.subInterfaces}
-                      isPanorama={isPanorama}
-                      templateName={iface.templateName}
-                      ifaceToZone={ifaceToZone}
-                      ifaceToRouter={ifaceToRouter}
-                      dhcpRelaySet={dhcpRelaySet}
-                      showMemberPorts
-                      visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
-                      variableMap={variableMap}
-                      zoneColorMap={zoneColorMap}
-                    />
-                  )}
-                </React.Fragment>
-              )
-            })
-          )}
-        </TableBody>
-      </Table>
-    </CategoryShell>
+            {hasSubIfs && expanded && (
+              <SubInterfaceRows
+                subs={iface.subInterfaces}
+                isPanorama={isPanorama}
+                templateName={iface.templateName}
+                ifaceToZone={ifaceToZone}
+                ifaceToRouter={ifaceToRouter}
+                dhcpRelaySet={dhcpRelaySet}
+                showMemberPorts
+                visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
+                variableMap={variableMap}
+                zoneColorMap={zoneColorMap}
+              />
+            )}
+          </React.Fragment>
+        )
+      }}
+    />
   )
 }
 
@@ -760,4 +680,3 @@ export function InterfacesView() {
     </Tabs>
   )
 }
-

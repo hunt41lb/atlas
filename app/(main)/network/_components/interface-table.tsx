@@ -15,24 +15,13 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  flexRender,
   createColumnHelper,
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table"
 
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table"
-import { SortHeader } from "@/components/ui/sort-header"
-import { ColumnVisibilityToggle } from "@/components/ui/column-visibility"
+import { DataTable } from "@/components/ui/data-table"
 import { IpAddressCell, type VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
-import { CategoryShell } from "@/app/(main)/_components/ui/category-shell"
 import { RouterCell, ZoneCell, FeaturesList } from "./interface-helpers"
 import type { PanwInterface, InterfaceType } from "@/lib/panw-parser/types"
 
@@ -192,57 +181,12 @@ export function InterfaceTable({
     globalFilterFn: "includesString",
   })
 
-  const rows = table.getRowModel().rows
-
   return (
-    <CategoryShell
+    <DataTable
+      table={table}
       title={title}
-      count={rows.length}
       search={search}
       onSearch={setSearch}
-      actions={<ColumnVisibilityToggle table={table} />}
-    >
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id} className="hover:bg-transparent border-b border-border">
-              {hg.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9"
-                  style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                >
-                  {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                    <SortHeader label={String(header.column.columnDef.header ?? "")} column={header.column} />
-                  ) : (
-                    flexRender(header.column.columnDef.header, header.getContext())
-                  )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="py-16 text-center text-sm text-muted-foreground">
-                {search ? `No results matching "${search}"` : `No ${title.toLowerCase()} found in this configuration.`}
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row) => (
-              <TableRow key={row.original.name}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="px-3 py-2 align-middle">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </CategoryShell>
+    />
   )
 }

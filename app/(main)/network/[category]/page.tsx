@@ -14,8 +14,12 @@ import {
   MonoValue, MembersList,
 } from "@/app/(main)/_components/ui/category-shell"
 import { InterfacesView } from "@/app/(main)/network/_components/interfaces-view"
-import { ZonesTable } from "@/app/(main)/network/_components/zones-table"
 import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
+
+// Table Imports
+import { ZonesTable } from "@/app/(main)/network/_components/zones-table"
+import { VlansTable } from "../_components/vlans-table"
+import { VirtualWiresTable } from "../_components/virtual-wires-table"
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
 
@@ -103,20 +107,30 @@ function RoutingView() {
 // ─── Route map ────────────────────────────────────────────────────────────────
 
 const NETWORK_VIEWS: Record<string, { title: string; component?: React.ComponentType; countKey?: string }> = {
-  "interfaces":       { title: "Interfaces",          component: InterfacesView },
-  "zones":            { title: "Zones",               component: ZonesTable },
-  "routing":          { title: "Routing",              component: RoutingView },
-  "vlans":            { title: "VLANs" },
-  "virtual-wires":    { title: "Virtual Wires" },
-  "ipsec-tunnels":    { title: "IPSec Tunnels" },
-  "gre-tunnels":      { title: "GRE Tunnels" },
-  "dhcp":             { title: "DHCP" },
-  "dns-proxy":        { title: "DNS Proxy" },
-  "global-protect":   { title: "GlobalProtect" },
-  "qos":              { title: "QoS" },
-  "lldp":             { title: "LLDP" },
-  "network-profiles": { title: "Network Profiles" },
-  "sd-wan-interface": { title: "SD-WAN Interface Profile" },
+  "interfaces":                   { title: "Interfaces",          component: InterfacesView },
+  "zones":                        { title: "Zones",               component: ZonesTable },
+  "vlans":                        { title: "VLANs",               component: VlansTable },
+  "virtual-wires":                { title: "Virtual Wires",       component: VirtualWiresTable },
+  "routing":                      { title: "Routing",             component: RoutingView },
+  "virtual-routers":              { title: "Virtual Routers" },
+  "logical-routers":              { title: "Logical Routers" },
+  "routing-profiles":             { title: "Routing Profiles" },
+  "routing-profiles-bgp":         { title: "BGP" },
+  "routing-profiles-bfd":         { title: "BFD" },
+  "routing-profiles-ospf":        { title: "OSPF" },
+  "routing-profiles-ospfv3":      { title: "OSPFv3" },
+  "routing-profiles-ripv2":       { title: "RIPv2" },
+  "routing-profiles-filters":     { title: "Filters" },
+  "routing-profiles-multicast":   { title: "Multicast" },
+  "ipsec-tunnels":                { title: "IPSec Tunnels" },
+  "gre-tunnels":                  { title: "GRE Tunnels" },
+  "dhcp":                         { title: "DHCP" },
+  "dns-proxy":                    { title: "DNS Proxy" },
+  "global-protect":               { title: "GlobalProtect" },
+  "qos":                          { title: "QoS" },
+  "lldp":                         { title: "LLDP" },
+  "network-profiles":             { title: "Network Profiles" },
+  "sd-wan-interface":             { title: "SD-WAN Interface Profile" },
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

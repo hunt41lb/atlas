@@ -7,7 +7,7 @@ import {
   extractApplicationFilters, extractProfileGroups, extractZones,
   extractInterfaces, extractVirtualRouters, extractLogicalRouters,
   extractSecurityRules, extractNatRules, extractDhcpRelayInterfaces,
-  extractTemplateVariables,
+  extractTemplateVariables, extractVlans, extractVirtualWires,
 } from "./extractors"
 import { str, entries, entryName, dig, toArray, members } from "./xml-helpers"
 import type {
@@ -86,8 +86,6 @@ function extractSystemInfo(config: Record<string, unknown>) {
 
 function extractNetworkCounts(networkEl: unknown) {
   return {
-    vlans:          countEntries(networkEl, "vlan", "entry"),
-    virtualWires:   countEntries(networkEl, "virtual-wire", "entry"),
     ipsecTunnels:   countEntries(networkEl, "tunnel", "ipsec", "entry"),
     greTunnels:     countEntries(networkEl, "tunnel", "gre", "entry"),
     dhcpInterfaces: countEntries(networkEl, "dhcp", "interface", "entry"),
@@ -167,6 +165,8 @@ function parseFirewall(
   const interfaces      = extractInterfaces(networkEl, null)
   const virtualRouters  = extractVirtualRouters(networkEl, null)
   const logicalRouters  = extractLogicalRouters(networkEl, null)
+  const vlans           = extractVlans(networkEl, null)
+  const virtualWires    = extractVirtualWires(networkEl, null)
   const zones           = extractZones(vsysEntry["zone"], tagColorMap)
   const networkCounts   = extractNetworkCounts(networkEl)
 
@@ -200,6 +200,8 @@ function parseFirewall(
     zones,
     virtualRouters,
     logicalRouters,
+    vlans,
+    virtualWires,
     securityRules,
     natRules,
     ...policyCounts,
@@ -303,6 +305,8 @@ function parsePanorama(
       logicalRouters: extractLogicalRouters(networkEl, tmplName),
       zones:          extractZones(vsysEntry["zone"], tagColorMap),
       dhcpRelayInterfaces: extractDhcpRelayInterfaces(networkEl),
+      vlans:          extractVlans(networkEl, tmplName),
+      virtualWires:   extractVirtualWires(networkEl, tmplName),
       ...extractNetworkCounts(networkEl),
     }
   })
@@ -400,3 +404,4 @@ export function deriveConfigName(
   if (config.hostname) return config.hostname
   return fileName.replace(/\.(xml|cfg|conf)$/i, "").replace(/^\d{2}-\d{2}-\d{4}-/, "")
 }
+

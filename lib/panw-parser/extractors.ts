@@ -9,6 +9,8 @@ import type {
   PanwSecurityRule, PanwNatRule, PanwColorKey, PolicyRulebase,
   PolicyAction, RuleType, ZoneType, InterfaceType, InterfaceMode,
   SourceTranslationType, TemplateVariableType, PanwTemplateVariable,
+  PanwVlan, PanwVlanMac,
+  PanwVirtualWire,
 } from "./types"
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -230,6 +232,10 @@ export function extractZones(
       netInspection: str(dig(networkEl, "net-inspection")) === "yes",
       enableUserIdentification: str(entry["enable-user-identification"]) === "yes",
       enableDeviceIdentification: str(entry["enable-device-identification"]) === "yes",
+      prenatUserIdentification: str(dig(networkEl, "prenat-identification", "enable-prenat-user-identification")) === "yes",
+      prenatDeviceIdentification: str(dig(networkEl, "prenat-identification", "enable-prenat-device-identification")) === "yes",
+      prenatSourceLookup: str(dig(networkEl, "prenat-identification", "enable-prenat-source-policy-lookup")) === "yes",
+      prenatSourceIpDownstream: str(dig(networkEl, "prenat-identification", "enable-prenat-source-ip-downstream")) === "yes",
       userAclInclude: members(dig(entry, "user-acl", "include-list")),
       userAclExclude: members(dig(entry, "user-acl", "exclude-list")),
       deviceAclInclude: members(dig(entry, "device-acl", "include-list")),
@@ -397,6 +403,53 @@ export function extractInterfaces(
     ...extractInterfacesOfType(dig(ifaceEl["vlan"], "units"), "vlan", templateName),
     ...extractInterfacesOfType(dig(ifaceEl["tunnel"], "units"), "tunnel", templateName),
   ]
+}
+
+// ─── VLANs ────────────────────────────────────────────────────────────────────
+
+export function extractVlans(
+  networkEl: unknown,
+  templateName: string | null
+): PanwVlan[] {
+  if (!networkEl || typeof networkEl !== "object") return []
+  const net = networkEl as Record<string, unknown>
+  const vlanEl = net["vlan"]
+
+  return entries(vlanEl).map((entry) => {
+    const macEntries = entries(dig(entry, "mac"))
+    const staticMacs: PanwVlanMac[] = macEntries.map((m) => ({
+      mac: entryName(m),
+      interface: str(m["interface"]) ?? null,
+    }))
+
+    return {
+      name: entryName(entry),
+      virtualInterface: str(dig(entry, "virtual-interface", "interface")) ?? null,
+      memberInterfaces: members(dig(entry, "interface")),
+      staticMacs,
+      templateName,
+    }
+  })
+}
+
+// ─── Virtual Wires ────────────────────────────────────────────────────────────
+
+export function extractVirtualWires(
+  networkEl: unknown,
+  templateName: string | null
+): PanwVirtualWire[] {
+  if (!networkEl || typeof networkEl !== "object") return []
+  const net = networkEl as Record<string, unknown>
+  const vwEl = net["virtual-wire"]
+
+  return entries(vwEl).map((entry) => ({
+    name: entryName(entry),
+    interface1: str(entry["interface1"]) ?? null,
+    interface2: str(entry["interface2"]) ?? null,
+    tagAllowed: str(entry["tag-allowed"]) ?? null,
+    multicastFirewalling: str(dig(entry, "multicast-firewalling", "enable")) === "yes",
+    templateName,
+  }))
 }
 
 // ─── Virtual Routers ──────────────────────────────────────────────────────────

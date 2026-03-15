@@ -2,7 +2,7 @@
 
 import type {
   ParsedConfig, ParsedPanoramaConfig,
-  PanwInterface, PanwZone, PanwVirtualRouter,
+  PanwInterface, PanwZone, PanwVirtualRouter, PanwVlan, PanwVirtualWire,
   PanwAddress, PanwAddressGroup, PanwService, PanwServiceGroup,
   PanwApplicationGroup, PanwApplicationFilter, PanwProfileGroup, PanwTag,
   PanwSecurityRule, PanwNatRule,
@@ -36,6 +36,8 @@ export interface ResolvedNetworkData {
   virtualRouters: PanwVirtualRouter[]
   logicalRouters: PanwVirtualRouter[]
   dhcpRelayInterfaces: string[]
+  vlans: PanwVlan[]
+  virtualWires: PanwVirtualWire[]
 }
 
 export function resolveNetworkData(config: ParsedConfig, scope: string | null): ResolvedNetworkData {
@@ -46,6 +48,8 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       virtualRouters: config.virtualRouters ?? [],
       logicalRouters: config.logicalRouters ?? [],
       dhcpRelayInterfaces: [],
+      vlans: config.vlans ?? [],
+      virtualWires: config.virtualWires ?? [],
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -68,6 +72,8 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     virtualRouters: templates.flatMap((t) => t.virtualRouters ?? []),
     logicalRouters: templates.flatMap((t) => t.logicalRouters ?? []),
     dhcpRelayInterfaces: templates.flatMap((t) => t.dhcpRelayInterfaces ?? []),
+    vlans: templates.flatMap((t) => t.vlans ?? []),
+    virtualWires: templates.flatMap((t) => t.virtualWires ?? []),
   }
 }
 
@@ -185,3 +191,4 @@ function mergeZoneOverrides(templateZones: PanwZone[], overrides: PanwZone[]): P
 
   return merged
 }
+

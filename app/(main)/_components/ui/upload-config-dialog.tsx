@@ -93,8 +93,8 @@ function getSummarySections(parsed: ParsedConfig): StatSection[] {
           { label: "Interfaces",        value: parsed.interfaces.length },
           { label: "Zones",             value: parsed.zones.length },
           { label: "Virtual Routers",   value: parsed.virtualRouters.length },
-          { label: "VLANs",             value: parsed.vlans },
-          { label: "Virtual Wires",     value: parsed.virtualWires },
+          { label: "VLANs",             value: parsed.vlans.length },
+          { label: "Virtual Wires",     value: parsed.virtualWires.length },
           { label: "IPSec Tunnels",     value: parsed.ipsecTunnels },
           { label: "GRE Tunnels",       value: parsed.greTunnels },
           { label: "DHCP",              value: parsed.dhcpInterfaces },
@@ -157,8 +157,8 @@ function getSummarySections(parsed: ParsedConfig): StatSection[] {
         { label: "Interfaces",        value: parsed.templates.reduce((a, t) => a + t.interfaces.length, 0) },
         { label: "Zones",             value: parsed.templates.reduce((a, t) => a + t.zones.length, 0) },
         { label: "Virtual Routers",   value: parsed.templates.reduce((a, t) => a + t.virtualRouters.length, 0) },
-        { label: "VLANs",             value: parsed.templates.reduce((a, t) => a + t.vlans, 0) },
-        { label: "Virtual Wires",     value: parsed.templates.reduce((a, t) => a + t.virtualWires, 0) },
+        { label: "VLANs",             value: parsed.templates.reduce((a, t) => a + t.vlans.length, 0) },
+        { label: "Virtual Wires",     value: parsed.templates.reduce((a, t) => a + t.virtualWires.length, 0) },
         { label: "IPSec Tunnels",     value: parsed.templates.reduce((a, t) => a + t.ipsecTunnels, 0) },
         { label: "GRE Tunnels",       value: parsed.templates.reduce((a, t) => a + t.greTunnels, 0) },
         { label: "DHCP",              value: parsed.templates.reduce((a, t) => a + t.dhcpInterfaces, 0) },
@@ -236,7 +236,7 @@ function ParsingState({ fileName }: { fileName: string }) {
       <div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       <div className="text-center">
         <p className="text-sm font-medium">Parsing configuration</p>
-        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-[260px]">
+        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-65">
           {fileName}
         </p>
       </div>
@@ -250,7 +250,7 @@ function UploadingState({ fileName }: { fileName: string }) {
       <div className="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       <div className="text-center">
         <p className="text-sm font-medium">Saving to Atlas</p>
-        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-[260px]">
+        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-65">
           {fileName}
         </p>
       </div>
@@ -274,7 +274,7 @@ function ErrorState({
       </div>
       <div className="text-center">
         <p className="text-sm font-medium">Failed to import</p>
-        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-[260px]">
+        <p className="mt-0.5 text-xs text-muted-foreground truncate max-w-65">
           {fileName}
         </p>
         <p className="mt-2 text-xs text-destructive">{message}</p>
@@ -322,7 +322,7 @@ function ConfirmState({
       </div>
 
       {/* Stats */}
-      <div className="space-y-2 max-h-[280px] overflow-y-auto pr-0.5">
+      <div className="space-y-2 max-h-70 overflow-y-auto pr-0.5">
         {sections.map((section) => (
           <div key={section.label}>
             {section.stats.length > 0 && (
@@ -536,3 +536,4 @@ export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogPro
     </Dialog>
   )
 }
+

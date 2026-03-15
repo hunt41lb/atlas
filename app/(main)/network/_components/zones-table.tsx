@@ -12,24 +12,15 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
-  flexRender,
   createColumnHelper,
+  type VisibilityState,
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table"
 
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { SortHeader } from "@/components/ui/sort-header"
-import { ColumnVisibilityToggle } from "@/components/ui/column-visibility"
-import { CategoryShell, MembersList, ZoneBadge } from "@/app/(main)/_components/ui/category-shell"
+import { DataTable } from "@/components/ui/data-table"
+import { MembersList, ZoneBadge } from "@/app/(main)/_components/ui/category-shell"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
@@ -150,6 +141,46 @@ function buildColumns(): ColumnDef<PanwZone, unknown>[] {
       enableSorting: false,
       cell: ({ row }) => <MembersList members={row.original.deviceAclExclude} max={3} />,
     },
+
+    {
+      id: "prenatUserId",
+      header: "Pre-NAT User-ID",
+      enableSorting: true,
+      accessorFn: (row) => row.prenatUserIdentification ? "yes" : "no",
+      cell: ({ row }) => row.original.prenatUserIdentification
+        ? <Badge variant="blue" size="sm">Enabled</Badge>
+        : <span className="text-muted-foreground text-xs">—</span>,
+    },
+
+    {
+      id: "prenatDeviceId",
+      header: "Pre-NAT Device-ID",
+      enableSorting: true,
+      accessorFn: (row) => row.prenatDeviceIdentification ? "yes" : "no",
+      cell: ({ row }) => row.original.prenatDeviceIdentification
+        ? <Badge variant="blue" size="sm">Enabled</Badge>
+        : <span className="text-muted-foreground text-xs">—</span>,
+    },
+
+    {
+      id: "prenatSourceLookup",
+      header: "Pre-NAT Source Lookup",
+      enableSorting: true,
+      accessorFn: (row) => row.prenatSourceLookup ? "yes" : "no",
+      cell: ({ row }) => row.original.prenatSourceLookup
+        ? <Badge variant="blue" size="sm">Enabled</Badge>
+        : <span className="text-muted-foreground text-xs">—</span>,
+    },
+
+    {
+      id: "prenatDownstream",
+      header: "Pre-NAT Original ID Downstream",
+      enableSorting: true,
+      accessorFn: (row) => row.prenatSourceIpDownstream ? "yes" : "no",
+      cell: ({ row }) => row.original.prenatSourceIpDownstream
+        ? <Badge variant="blue" size="sm">Enabled</Badge>
+        : <span className="text-muted-foreground text-xs">—</span>,
+    },
   ]
 }
 
@@ -168,70 +199,35 @@ export function ZonesTable() {
 
   const columns = React.useMemo(() => buildColumns(), [])
 
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    userAclExclude: false,
+    deviceAclExclude: false,
+    prenatUserId: false,
+    prenatDeviceId: false,
+    prenatSourceLookup: false,
+    prenatDownstream: false,
+  })
+
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
-    state: { sorting, globalFilter: search },
+    state: { sorting, globalFilter: search, columnVisibility },
     onSortingChange: setSorting,
     onGlobalFilterChange: setSearch,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     globalFilterFn: "includesString",
   })
 
-  const rows = table.getRowModel().rows
-
   return (
-    <CategoryShell
+    <DataTable
+      table={table}
       title="Zones"
-      count={rows.length}
       search={search}
       onSearch={setSearch}
-      actions={<ColumnVisibilityToggle table={table} />}
-    >
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id} className="hover:bg-transparent border-b border-border">
-              {hg.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9"
-                  style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                >
-                  {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                    <SortHeader label={String(header.column.columnDef.header ?? "")} column={header.column} />
-                  ) : (
-                    flexRender(header.column.columnDef.header, header.getContext())
-                  )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="py-16 text-center text-sm text-muted-foreground">
-                {search ? `No results matching "${search}"` : "No zones found in this configuration."}
-              </TableCell>
-            </TableRow>
-          ) : (
-            rows.map((row) => (
-              <TableRow key={row.original.name}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="px-3 py-2 align-middle">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </CategoryShell>
+    />
   )
 }

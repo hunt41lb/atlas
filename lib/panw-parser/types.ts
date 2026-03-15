@@ -96,6 +96,10 @@ export interface PanwZone {
   userAclExclude: string[]
   deviceAclInclude: string[]
   deviceAclExclude: string[]
+  prenatUserIdentification: boolean
+  prenatDeviceIdentification: boolean
+  prenatSourceLookup: boolean
+  prenatSourceIpDownstream: boolean
 }
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
@@ -146,6 +150,34 @@ export interface PanwInterface {
   poeConfigured: boolean
   poeEnabled: boolean
   poeReservedPower: number | null
+}
+
+// ─── VLANs ───────────────────────────────────────────────────────────────────
+
+export interface PanwVlanMac {
+  mac: string
+  interface: string | null
+}
+
+export interface PanwVlan {
+  name: string
+  virtualInterface: string | null
+  memberInterfaces: string[]
+  staticMacs: PanwVlanMac[]
+  /** Panorama: which template this came from */
+  templateName: string | null
+}
+
+// ─── Virtual Wires ───────────────────────────────────────────────────────────
+
+export interface PanwVirtualWire {
+  name: string
+  interface1: string | null
+  interface2: string | null
+  tagAllowed: string | null
+  multicastFirewalling: boolean
+  /** Panorama: which template this came from */
+  templateName: string | null
 }
 
 // ─── Routing ─────────────────────────────────────────────────────────────────
@@ -248,8 +280,8 @@ export interface PanwTemplate {
   dhcpRelayInterfaces: string[]
   variables: PanwTemplateVariable[]
   // Network counts from template
-  vlans: number
-  virtualWires: number
+  vlans: PanwVlan[]
+  virtualWires: PanwVirtualWire[]
   ipsecTunnels: number
   greTunnels: number
   dhcpInterfaces: number
@@ -355,8 +387,8 @@ export interface ParsedFirewallConfig {
   authenticationProfiles: number
   decryptionProfiles: number
   // Additional network counts
-  vlans: number
-  virtualWires: number
+  vlans: PanwVlan[]
+  virtualWires: PanwVirtualWire[]
   ipsecTunnels: number
   greTunnels: number
   dhcpInterfaces: number

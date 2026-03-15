@@ -5,12 +5,10 @@
 import * as React from "react"
 import {
   Rows3,
-  Frame,
   LifeBuoy,
   Send,
   NotebookTabs,
   Network,
-  Server,
 } from "lucide-react"
 
 import { BrandPanw } from "@/components/icons/brand-panw"
@@ -47,13 +45,33 @@ const staticData = {
         { title: "Zones",            url: "/network/zones" },
         { title: "VLANs",            url: "/network/vlans" },
         { title: "Virtual Wires",    url: "/network/virtual-wires" },
-        { title: "Routing",          url: "/network/routing" },
+        { title: "Virtual Routers",  url: "/network/virtual-routers" },
+        {
+          title: "Routing",
+          url: "/network/routing",
+          items: [
+            { title: "Logical Routers",  url: "/network/logical-routers" },
+            {
+              title: "Routing Profiles",
+              url: "/network/routing-profiles",
+              items: [
+                { title: "BGP",        url: "/network/routing-profiles-bgp" },
+                { title: "BFD",        url: "/network/routing-profiles-bfd" },
+                { title: "OSPF",       url: "/network/routing-profiles-ospf" },
+                { title: "OSPFv3",     url: "/network/routing-profiles-ospfv3" },
+                { title: "RIPv2",      url: "/network/routing-profiles-ripv2" },
+                { title: "Filters",    url: "/network/routing-profiles-filters" },
+                { title: "Multicast",  url: "/network/routing-profiles-multicast" },
+              ],
+            },
+          ],
+        },
         { title: "IPSec Tunnels",    url: "/network/ipsec-tunnels" },
         { title: "GRE Tunnels",      url: "/network/gre-tunnels" },
         { title: "DHCP",             url: "/network/dhcp" },
         { title: "DNS Proxy",        url: "/network/dns-proxy" },
         { title: "GlobalProtect",    url: "/network/global-protect" },
-        { title: "QOS",              url: "/network/qos" },
+        { title: "QoS",              url: "/network/qos" },
         { title: "LLDP",             url: "/network/lldp" },
         { title: "Network Profiles", url: "/network/network-profiles" },
         { title: "SD-WAN Interface", url: "/network/sd-wan-interface" },
@@ -156,3 +174,4 @@ export function MainSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
     </Sidebar>
   )
 }
+
