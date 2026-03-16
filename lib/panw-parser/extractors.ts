@@ -9,8 +9,10 @@ import type {
   PanwSecurityRule, PanwNatRule, PanwColorKey, PolicyRulebase,
   PolicyAction, RuleType, ZoneType, InterfaceType, InterfaceMode,
   SourceTranslationType, TemplateVariableType, PanwTemplateVariable,
-  PanwVlan, PanwVlanMac,
-  PanwVirtualWire,
+  PanwVlan, PanwVlanMac, PanwVirtualWire, PanwRedistProfile,
+  PanwAdminDistances, PanwRipConfig, PanwRipInterface, PanwRipTimers,
+  PanwOspfConfig, PanwOspfArea, PanwOspfv3Config, PanwOspfv3Area, PanwBgpConfig,
+  PanwBgpPeerGroup, PanwMulticastConfig, PanwMulticastInterfaceGroup,
 } from "./types"
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -452,6 +454,315 @@ export function extractVirtualWires(
   }))
 }
 
+// ─── Admin Distances ──────────────────────────────────────────────────────────
+
+function extractAdminDistances(el: unknown): PanwAdminDistances | null {
+  if (!el || typeof el !== "object") return null
+  const d = el as Record<string, unknown>
+  return {
+    static: d["static"] !== undefined ? Number(d["static"]) : null,
+    staticIpv6: d["static-ipv6"] !== undefined ? Number(d["static-ipv6"]) : null,
+    ospfIntra: d["ospf-intra"] !== undefined ? Number(d["ospf-intra"]) : null,
+    ospfInter: d["ospf-inter"] !== undefined ? Number(d["ospf-inter"]) : null,
+    ospfExt: d["ospf-ext"] !== undefined ? Number(d["ospf-ext"]) : null,
+    ospfv3Intra: d["ospfv3-intra"] !== undefined ? Number(d["ospfv3-intra"]) : null,
+    ospfv3Inter: d["ospfv3-inter"] !== undefined ? Number(d["ospfv3-inter"]) : null,
+    ospfv3Ext: d["ospfv3-ext"] !== undefined ? Number(d["ospfv3-ext"]) : null,
+    bgpInternal: d["bgp-internal"] !== undefined ? Number(d["bgp-internal"]) : null,
+    bgpExternal: d["bgp-external"] !== undefined ? Number(d["bgp-external"]) : null,
+    bgpLocal: d["bgp-local"] !== undefined ? Number(d["bgp-local"]) : null,
+    rip: d["rip"] !== undefined ? Number(d["rip"]) : null,
+  }
+}
+
+// ─── Static Routes (shared between IPv4 and IPv6) ─────────────────────────────
+
+function extractStaticRoutes(routeEl: unknown): PanwStaticRoute[] {
+  return entries(routeEl).map((r) => {
+    const nexthopEl = r["nexthop"] as Record<string, unknown> | undefined
+
+    // Detect nexthop type and value
+    let nexthopType = "none"
+    let nexthop: string | null = null
+    if (nexthopEl) {
+      if (nexthopEl["ip-address"] !== undefined) {
+        nexthopType = "ip-address"
+        nexthop = str(nexthopEl["ip-address"])
+      } else if (nexthopEl["ipv6-address"] !== undefined) {
+        nexthopType = "ipv6-address"
+        nexthop = str(nexthopEl["ipv6-address"])
+      } else if (nexthopEl["next-vr"] !== undefined) {
+        nexthopType = "next-vr"
+        nexthop = str(nexthopEl["next-vr"])
+      } else if (nexthopEl["next-lr"] !== undefined) {
+        nexthopType = "next-lr"
+        nexthop = str(nexthopEl["next-lr"])
+      } else if (nexthopEl["fqdn"] !== undefined) {
+        nexthopType = "fqdn"
+        nexthop = str(nexthopEl["fqdn"])
+      } else if (nexthopEl["discard"] !== undefined) {
+        nexthopType = "discard"
+        nexthop = null
+      }
+    }
+
+    // Route table
+    const routeTableEl = r["route-table"] as Record<string, unknown> | undefined
+    let routeTable: string | null = null
+    if (routeTableEl) {
+      if (routeTableEl["unicast"] !== undefined) routeTable = "unicast"
+      else if (routeTableEl["multicast"] !== undefined) routeTable = "multicast"
+      else if (routeTableEl["both"] !== undefined) routeTable = "both"
+      else if (routeTableEl["no-install"] !== undefined) routeTable = "no-install"
+    }
+
+    return {
+      name: entryName(r),
+      destination: str(r["destination"]) ?? "",
+      nexthopType,
+      nexthop,
+      adminDistance: r["admin-dist"] !== undefined ? Number(r["admin-dist"]) : null,
+      interface: str(r["interface"]),
+      metric: r["metric"] !== undefined ? Number(r["metric"]) : null,
+      routeTable,
+      bfdProfile: str(dig(r, "bfd", "profile")) ?? null,
+      pathMonitorEnabled: str(dig(r, "path-monitor", "enable")) === "yes",
+    }
+  })
+}
+
+// ─── Redistribution Profiles ──────────────────────────────────────────────────
+
+function extractRedistProfiles(protocolEl: unknown): PanwRedistProfile[] {
+  if (!protocolEl || typeof protocolEl !== "object") return []
+  const proto = protocolEl as Record<string, unknown>
+  return entries(proto["redist-profile"]).map((entry) => {
+    const filterEl = entry["filter"] as Record<string, unknown> | undefined
+    const actionEl = entry["action"] as Record<string, unknown> | undefined
+    let action = "no-redist"
+    if (actionEl) {
+      if (actionEl["redist"] !== undefined) action = "redist"
+      else if (actionEl["no-redist"] !== undefined) action = "no-redist"
+    }
+    return {
+      name: entryName(entry),
+      priority: entry["priority"] !== undefined ? Number(entry["priority"]) : null,
+      action,
+      filterTypes: filterEl ? members(filterEl["type"]) : [],
+      filterInterfaces: filterEl ? members(filterEl["interface"]) : [],
+      filterDestinations: filterEl ? members(filterEl["destination"]) : [],
+      filterNexthops: filterEl ? members(filterEl["nexthop"]) : [],
+    }
+  })
+}
+
+// ─── RIP ──────────────────────────────────────────────────────────────────────
+
+function extractRipConfig(protocolEl: unknown): PanwRipConfig {
+  const ripEl = dig(protocolEl, "rip") as Record<string, unknown> | undefined
+  if (!ripEl) {
+    return {
+      enabled: false,
+      globalBfdProfile: null,
+      rejectDefaultRoute: false,
+      interfaces: [],
+      timers: null,
+    }
+  }
+
+  const interfaces: PanwRipInterface[] = entries(dig(ripEl, "interface")).map((entry) => ({
+    name: entryName(entry),
+    enabled: str(entry["enable"]) === "yes",
+    mode: str(entry["mode"]) ?? null,
+    bfdProfile: str(dig(entry, "bfd", "profile")) ?? null,
+    defaultRouteAdvertise: dig(entry, "default-route", "advertise") !== undefined,
+    defaultRouteMetric: dig(entry, "default-route", "advertise", "metric") !== undefined
+      ? Number(str(dig(entry, "default-route", "advertise", "metric")))
+      : null,
+    authProfile: str(entry["auth-profile"]) ?? null,
+  }))
+
+  const timersEl = ripEl["timers"] as Record<string, unknown> | undefined
+  const timers: PanwRipTimers | null = timersEl ? {
+    intervalSeconds: timersEl["interval-seconds"] !== undefined ? Number(timersEl["interval-seconds"]) : null,
+    updateIntervals: timersEl["update-intervals"] !== undefined ? Number(timersEl["update-intervals"]) : null,
+    expireIntervals: timersEl["expire-intervals"] !== undefined ? Number(timersEl["expire-intervals"]) : null,
+    deleteIntervals: timersEl["delete-intervals"] !== undefined ? Number(timersEl["delete-intervals"]) : null,
+  } : null
+
+  return {
+    enabled: str(ripEl["enable"]) === "yes",
+    globalBfdProfile: str(dig(ripEl, "global-bfd", "profile")) ?? null,
+    rejectDefaultRoute: str(dig(ripEl, "reject-default-route")) === "yes",
+    interfaces,
+    timers,
+  }
+}
+
+// ─── OSPF ─────────────────────────────────────────────────────────────────────
+
+function detectAreaType(entry: Record<string, unknown>): string {
+  const typeEl = entry["type"] as Record<string, unknown> | undefined
+  if (!typeEl) return "normal"
+  if (typeEl["normal"] !== undefined) return "normal"
+  if (typeEl["stub"] !== undefined) return "stub"
+  if (typeEl["nssa"] !== undefined) return "nssa"
+  return "normal"
+}
+
+function detectLinkType(entry: Record<string, unknown>): string | null {
+  const ltEl = entry["link-type"] as Record<string, unknown> | undefined
+  if (!ltEl) return null
+  if (ltEl["broadcast"] !== undefined) return "broadcast"
+  if (ltEl["p2p"] !== undefined) return "p2p"
+  if (ltEl["p2mp"] !== undefined) return "p2mp"
+  return null
+}
+
+function extractOspfConfig(protocolEl: unknown): PanwOspfConfig {
+  const ospfEl = dig(protocolEl, "ospf") as Record<string, unknown> | undefined
+  if (!ospfEl) {
+    return { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, areas: [] }
+  }
+
+  const areas: PanwOspfArea[] = entries(dig(ospfEl, "area")).map((areaEntry) => ({
+    id: entryName(areaEntry),
+    type: detectAreaType(areaEntry),
+    interfaces: entries(dig(areaEntry, "interface")).map((ifEntry) => ({
+      name: entryName(ifEntry),
+      enabled: str(ifEntry["enable"]) === "yes",
+      passive: str(ifEntry["passive"]) === "yes",
+      metric: ifEntry["metric"] !== undefined ? Number(ifEntry["metric"]) : null,
+      priority: ifEntry["priority"] !== undefined ? Number(ifEntry["priority"]) : null,
+      helloInterval: ifEntry["hello-interval"] !== undefined ? Number(ifEntry["hello-interval"]) : null,
+      deadCounts: ifEntry["dead-counts"] !== undefined ? Number(ifEntry["dead-counts"]) : null,
+      retransmitInterval: ifEntry["retransmit-interval"] !== undefined ? Number(ifEntry["retransmit-interval"]) : null,
+      transitDelay: ifEntry["transit-delay"] !== undefined ? Number(ifEntry["transit-delay"]) : null,
+      grDelay: ifEntry["gr-delay"] !== undefined ? Number(ifEntry["gr-delay"]) : null,
+      linkType: detectLinkType(ifEntry),
+      bfdProfile: str(dig(ifEntry, "bfd", "profile")) ?? null,
+    })),
+  }))
+
+  return {
+    enabled: str(ospfEl["enable"]) === "yes",
+    routerId: str(ospfEl["router-id"]) ?? null,
+    globalBfdProfile: str(dig(ospfEl, "global-bfd", "profile")) ?? null,
+    rejectDefaultRoute: str(dig(ospfEl, "reject-default-route")) === "yes",
+    areas,
+  }
+}
+
+// ─── OSPFv3 ───────────────────────────────────────────────────────────────────
+
+function extractOspfv3Config(protocolEl: unknown): PanwOspfv3Config {
+  const ospfv3El = dig(protocolEl, "ospfv3") as Record<string, unknown> | undefined
+  if (!ospfv3El) {
+    return { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, areas: [] }
+  }
+
+  const areas: PanwOspfv3Area[] = entries(dig(ospfv3El, "area")).map((areaEntry) => ({
+    id: entryName(areaEntry),
+    type: detectAreaType(areaEntry),
+    interfaces: entries(dig(areaEntry, "interface")).map((ifEntry) => ({
+      name: entryName(ifEntry),
+      enabled: str(ifEntry["enable"]) === "yes",
+      passive: str(ifEntry["passive"]) === "yes",
+      instanceId: ifEntry["instance-id"] !== undefined ? Number(ifEntry["instance-id"]) : null,
+      metric: ifEntry["metric"] !== undefined ? Number(ifEntry["metric"]) : null,
+      priority: ifEntry["priority"] !== undefined ? Number(ifEntry["priority"]) : null,
+      helloInterval: ifEntry["hello-interval"] !== undefined ? Number(ifEntry["hello-interval"]) : null,
+      deadCounts: ifEntry["dead-counts"] !== undefined ? Number(ifEntry["dead-counts"]) : null,
+      retransmitInterval: ifEntry["retransmit-interval"] !== undefined ? Number(ifEntry["retransmit-interval"]) : null,
+      transitDelay: ifEntry["transit-delay"] !== undefined ? Number(ifEntry["transit-delay"]) : null,
+      grDelay: ifEntry["gr-delay"] !== undefined ? Number(ifEntry["gr-delay"]) : null,
+      linkType: detectLinkType(ifEntry),
+      bfdProfile: str(dig(ifEntry, "bfd", "profile")) ?? null,
+    })),
+  }))
+
+  return {
+    enabled: str(ospfv3El["enable"]) === "yes",
+    routerId: str(ospfv3El["router-id"]) ?? null,
+    globalBfdProfile: str(dig(ospfv3El, "global-bfd", "profile")) ?? null,
+    rejectDefaultRoute: str(dig(ospfv3El, "reject-default-route")) === "yes",
+    areas,
+  }
+}
+
+// ─── BGP ──────────────────────────────────────────────────────────────────────
+
+function detectBgpPeerGroupType(entry: Record<string, unknown>): string | null {
+  const typeEl = entry["type"] as Record<string, unknown> | undefined
+  if (!typeEl) return null
+  if (typeEl["ebgp"] !== undefined) return "EBGP"
+  if (typeEl["ibgp"] !== undefined) return "IBGP"
+  if (typeEl["ebgp-confed"] !== undefined) return "EBGP Confed"
+  if (typeEl["ibgp-confed"] !== undefined) return "IBGP Confed"
+  return null
+}
+
+function extractBgpConfig(protocolEl: unknown): PanwBgpConfig {
+  const bgpEl = dig(protocolEl, "bgp") as Record<string, unknown> | undefined
+  if (!bgpEl) {
+    return {
+      enabled: false, routerId: null, localAs: null, installRoute: false,
+      gracefulRestartEnabled: false, rejectDefaultRoute: false, peerGroups: [],
+    }
+  }
+
+  const peerGroups: PanwBgpPeerGroup[] = entries(dig(bgpEl, "peer-group")).map((pgEntry) => ({
+    name: entryName(pgEntry),
+    enabled: str(pgEntry["enable"]) === "yes",
+    type: detectBgpPeerGroupType(pgEntry),
+    peers: entries(dig(pgEntry, "peer")).map((peerEntry) => ({
+      name: entryName(peerEntry),
+      enabled: str(peerEntry["enable"]) === "yes",
+      peerAs: str(peerEntry["peer-as"]) ?? null,
+      peerAddress: str(dig(peerEntry, "peer-address", "ip")) ?? null,
+      localInterface: str(dig(peerEntry, "local-address", "interface")) ?? null,
+      bfdProfile: str(dig(peerEntry, "bfd", "profile")) ?? null,
+      maxPrefixes: peerEntry["max-prefixes"] !== undefined ? Number(peerEntry["max-prefixes"]) : null,
+      addressFamily: str(peerEntry["address-family-identifier"]) ?? null,
+      reflectorClient: str(peerEntry["reflector-client"]) ?? null,
+      peeringType: str(peerEntry["peering-type"]) ?? null,
+    })),
+  }))
+
+  return {
+    enabled: str(bgpEl["enable"]) === "yes",
+    routerId: str(bgpEl["router-id"]) ?? null,
+    localAs: str(bgpEl["local-as"]) ?? null,
+    installRoute: str(bgpEl["install-route"]) === "yes",
+    gracefulRestartEnabled: str(dig(bgpEl, "routing-options", "graceful-restart", "enable")) === "yes",
+    rejectDefaultRoute: str(dig(bgpEl, "reject-default-route")) === "yes",
+    peerGroups,
+  }
+}
+
+// ─── Multicast ────────────────────────────────────────────────────────────────
+
+function extractMulticastConfig(vrEntry: Record<string, unknown>): PanwMulticastConfig {
+  const mcEl = vrEntry["multicast"] as Record<string, unknown> | undefined
+  if (!mcEl) {
+    return { enabled: false, interfaceGroups: [] }
+  }
+
+  const interfaceGroups: PanwMulticastInterfaceGroup[] = entries(dig(mcEl, "interface-group")).map((igEntry) => ({
+    name: entryName(igEntry),
+    description: str(igEntry["description"]) ?? null,
+    interfaces: members(dig(igEntry, "interface")),
+    pimEnabled: str(dig(igEntry, "pim", "enable")) === "yes",
+    igmpEnabled: str(dig(igEntry, "igmp", "enable")) === "yes",
+    igmpVersion: str(dig(igEntry, "igmp", "version")) ?? null,
+  }))
+
+  return {
+    enabled: str(mcEl["enable"]) === "yes",
+    interfaceGroups,
+  }
+}
+
 // ─── Virtual Routers ──────────────────────────────────────────────────────────
 
 export function extractVirtualRouters(
@@ -464,31 +775,56 @@ export function extractVirtualRouters(
 
   return entries(vrEl).map((entry) => {
     const ifaces = membersAt(entry, "interface")
-    const routeEntries = entries(dig(entry, "routing-table", "ip", "static-route"))
-    const staticRoutes: PanwStaticRoute[] = routeEntries.map((r) => {
-      const nexthopEl = r["nexthop"] as Record<string, unknown> | undefined
-      const nexthop = nexthopEl
-        ? str(nexthopEl["ip-address"]) ?? str(nexthopEl["next-vr"])
-        : null
-      return {
-        name: entryName(r),
-        destination: str(r["destination"]) ?? "",
-        nexthop,
-        interface: str(r["interface"]),
-        metric: r["metric"] !== undefined ? Number(r["metric"]) : null,
-      }
-    })
+    const protocolEl = entry["protocol"] as Record<string, unknown> | undefined
+    const routingTableEl = entry["routing-table"] as Record<string, unknown> | undefined
+
+    // Static routes (IPv4 + IPv6)
+    const staticRoutes = extractStaticRoutes(dig(routingTableEl, "ip", "static-route"))
+    const staticRoutesV6 = extractStaticRoutes(dig(routingTableEl, "ipv6", "static-route"))
+
+    // ECMP
+    const ecmpEl = entry["ecmp"] as Record<string, unknown> | undefined
+    const ecmpEnabled = str(dig(ecmpEl, "enable")) === "yes"
+    let ecmpAlgorithm: string | null = null
+    if (ecmpEl?.["algorithm"] && typeof ecmpEl["algorithm"] === "object") {
+      const algoKeys = Object.keys(ecmpEl["algorithm"] as Record<string, unknown>)
+      ecmpAlgorithm = algoKeys[0] ?? null
+    }
+
+    // Admin distances (on Logical Routers these are inside vrf > entry > admin-dists)
+    // On Virtual Routers they sit directly on the entry (if configured)
+    const adminDists = extractAdminDistances(entry["admin-dists"])
 
     return {
       name: entryName(entry),
       interfaces: ifaces,
       staticRoutes,
+      staticRoutesV6,
       templateName,
+      // ECMP
+      ecmpEnabled,
+      ecmpAlgorithm,
+      ecmpStrictSourcePath: str(dig(ecmpEl, "strict-source-path")) === "yes",
+      ecmpSymmetricReturn: str(dig(ecmpEl, "symmetric-return")) === "yes",
+      // BGP
+      bgp: extractBgpConfig(protocolEl),
+      // OSPF
+      ospf: extractOspfConfig(protocolEl),
+      // OSPFv3
+      ospfv3: extractOspfv3Config(protocolEl),
+      // RIP
+      rip: extractRipConfig(protocolEl),
+      // Redistribution
+      redistProfiles: extractRedistProfiles(protocolEl),
+      // Multicast
+      multicast: extractMulticastConfig(entry),
+      // Admin Distances
+      adminDistances: adminDists,
     }
   })
 }
 
-// ─── Logical Routers (PAN-OS 11+) ────────────────────────────────────────────
+// ─── Logical Routers ──────────────────────────────────────────────────────────
 
 export function extractLogicalRouters(
   networkEl: unknown,
@@ -501,34 +837,31 @@ export function extractLogicalRouters(
 
   return entries(lrEl).flatMap((lrEntry) => {
     const lrName = entryName(lrEntry)
-    // Each LR has one or more VRFs; we flatten them all (usually just "default")
+    // Each LR has one or more VRFs; flatten them (usually just "default")
     return entries(dig(lrEntry, "vrf")).map((vrfEntry) => {
       const vrfName = entryName(vrfEntry)
       const displayName = vrfName === "default" ? lrName : `${lrName}/${vrfName}`
 
       const ifaces = membersAt(vrfEntry, "interface")
-      const routeEntries = entries(dig(vrfEntry, "routing-table", "ip", "static-route"))
-      const staticRoutes: PanwStaticRoute[] = routeEntries.map((r) => {
-        const nexthopEl = r["nexthop"] as Record<string, unknown> | undefined
-        const nexthop = nexthopEl
-          ? str(nexthopEl["ip-address"])
-            ?? str(nexthopEl["next-vr"])
-            ?? str(nexthopEl["next-lr"])
-          : null
-        return {
-          name: entryName(r),
-          destination: str(r["destination"]) ?? "",
-          nexthop,
-          interface: str(r["interface"]),
-          metric: r["metric"] !== undefined ? Number(r["metric"]) : null,
-        }
-      })
+      const staticRoutes = extractStaticRoutes(dig(vrfEntry, "routing-table", "ip", "static-route"))
 
       return {
         name: displayName,
         interfaces: ifaces,
         staticRoutes,
+        staticRoutesV6: [],
         templateName,
+        ecmpEnabled: false,
+        ecmpAlgorithm: null,
+        ecmpStrictSourcePath: false,
+        ecmpSymmetricReturn: false,
+        bgp: { enabled: false, routerId: null, localAs: null, installRoute: false, gracefulRestartEnabled: false, rejectDefaultRoute: false, peerGroups: [] },
+        ospf: { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, areas: [] },
+        ospfv3: { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, areas: [] },
+        rip: { enabled: false, globalBfdProfile: null, rejectDefaultRoute: false, interfaces: [], timers: null },
+        redistProfiles: [],
+        multicast: { enabled: false, interfaceGroups: [] },
+        adminDistances: null,
       }
     })
   })

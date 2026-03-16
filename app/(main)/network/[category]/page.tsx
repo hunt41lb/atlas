@@ -20,6 +20,8 @@ import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types
 import { ZonesTable } from "@/app/(main)/network/_components/zones-table"
 import { VlansTable } from "../_components/vlans-table"
 import { VirtualWiresTable } from "../_components/virtual-wires-table"
+import { VirtualRoutersView } from "@/app/(main)/network/_components/virtual-routers-view"
+import { LogicalRoutersView } from "@/app/(main)/network/_components/logical-routers-view"
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
 
@@ -112,8 +114,8 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "vlans":                        { title: "VLANs",               component: VlansTable },
   "virtual-wires":                { title: "Virtual Wires",       component: VirtualWiresTable },
   "routing":                      { title: "Routing",             component: RoutingView },
-  "virtual-routers":              { title: "Virtual Routers" },
-  "logical-routers":              { title: "Logical Routers" },
+  "virtual-routers":              { title: "Virtual Routers",     component: VirtualRoutersView },
+  "logical-routers":              { title: "Logical Routers",     component: LogicalRoutersView },
   "routing-profiles":             { title: "Routing Profiles" },
   "routing-profiles-bgp":         { title: "BGP" },
   "routing-profiles-bfd":         { title: "BFD" },

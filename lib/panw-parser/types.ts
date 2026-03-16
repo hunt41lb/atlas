@@ -185,19 +185,204 @@ export interface PanwVirtualWire {
 export interface PanwStaticRoute {
   name: string
   destination: string
+  nexthopType: string
   nexthop: string | null
+  adminDistance: number | null
   interface: string | null
   metric: number | null
+  routeTable: string | null
+  bfdProfile: string | null
+  pathMonitorEnabled: boolean
+}
+
+export interface PanwAdminDistances {
+  static: number | null
+  staticIpv6: number | null
+  ospfIntra: number | null
+  ospfInter: number | null
+  ospfExt: number | null
+  ospfv3Intra: number | null
+  ospfv3Inter: number | null
+  ospfv3Ext: number | null
+  bgpInternal: number | null
+  bgpExternal: number | null
+  bgpLocal: number | null
+  rip: number | null
+}
+
+export interface PanwRedistProfile {
+  name: string
+  priority: number | null
+  action: string
+  filterTypes: string[]
+  filterInterfaces: string[]
+  filterDestinations: string[]
+  filterNexthops: string[]
+}
+
+// ─── RIP ─────────────────────────────────────────────────────────────────────
+
+export interface PanwRipInterface {
+  name: string
+  enabled: boolean
+  mode: string | null
+  bfdProfile: string | null
+  defaultRouteAdvertise: boolean
+  defaultRouteMetric: number | null
+  authProfile: string | null
+}
+
+export interface PanwRipTimers {
+  intervalSeconds: number | null
+  updateIntervals: number | null
+  expireIntervals: number | null
+  deleteIntervals: number | null
+}
+
+export interface PanwRipConfig {
+  enabled: boolean
+  globalBfdProfile: string | null
+  rejectDefaultRoute: boolean
+  interfaces: PanwRipInterface[]
+  timers: PanwRipTimers | null
+}
+
+// ─── OSPF ────────────────────────────────────────────────────────────────────
+
+export interface PanwOspfInterface {
+  name: string
+  enabled: boolean
+  passive: boolean
+  metric: number | null
+  priority: number | null
+  helloInterval: number | null
+  deadCounts: number | null
+  retransmitInterval: number | null
+  transitDelay: number | null
+  grDelay: number | null
+  linkType: string | null
+  bfdProfile: string | null
+}
+
+export interface PanwOspfArea {
+  id: string
+  type: string
+  interfaces: PanwOspfInterface[]
+}
+
+export interface PanwOspfConfig {
+  enabled: boolean
+  routerId: string | null
+  globalBfdProfile: string | null
+  rejectDefaultRoute: boolean
+  areas: PanwOspfArea[]
+}
+
+// ─── OSPFv3 ──────────────────────────────────────────────────────────────────
+
+export interface PanwOspfv3Interface {
+  name: string
+  enabled: boolean
+  passive: boolean
+  instanceId: number | null
+  metric: number | null
+  priority: number | null
+  helloInterval: number | null
+  deadCounts: number | null
+  retransmitInterval: number | null
+  transitDelay: number | null
+  grDelay: number | null
+  linkType: string | null
+  bfdProfile: string | null
+}
+
+export interface PanwOspfv3Area {
+  id: string
+  type: string
+  interfaces: PanwOspfv3Interface[]
+}
+
+export interface PanwOspfv3Config {
+  enabled: boolean
+  routerId: string | null
+  globalBfdProfile: string | null
+  rejectDefaultRoute: boolean
+  areas: PanwOspfv3Area[]
+}
+
+// ─── BGP ─────────────────────────────────────────────────────────────────────
+
+export interface PanwBgpPeer {
+  name: string
+  enabled: boolean
+  peerAs: string | null
+  peerAddress: string | null
+  localInterface: string | null
+  bfdProfile: string | null
+  maxPrefixes: number | null
+  addressFamily: string | null
+  reflectorClient: string | null
+  peeringType: string | null
+}
+
+export interface PanwBgpPeerGroup {
+  name: string
+  enabled: boolean
+  type: string | null
+  peers: PanwBgpPeer[]
+}
+
+export interface PanwBgpConfig {
+  enabled: boolean
+  routerId: string | null
+  localAs: string | null
+  installRoute: boolean
+  gracefulRestartEnabled: boolean
+  rejectDefaultRoute: boolean
+  peerGroups: PanwBgpPeerGroup[]
+}
+
+// ─── Multicast ───────────────────────────────────────────────────────────────
+
+export interface PanwMulticastInterfaceGroup {
+  name: string
+  description: string | null
+  interfaces: string[]
+  pimEnabled: boolean
+  igmpEnabled: boolean
+  igmpVersion: string | null
+}
+
+export interface PanwMulticastConfig {
+  enabled: boolean
+  interfaceGroups: PanwMulticastInterfaceGroup[]
 }
 
 export interface PanwVirtualRouter {
   name: string
   interfaces: string[]
   staticRoutes: PanwStaticRoute[]
+  staticRoutesV6: PanwStaticRoute[]
   /** Panorama: which template this came from */
   templateName: string | null
+  // ── ECMP ───────────────────────────────────────────────────────────────
+  ecmpEnabled: boolean
+  ecmpAlgorithm: string | null
+  ecmpStrictSourcePath: boolean
+  ecmpSymmetricReturn: boolean
+  // ── Protocol summary flags ─────────────────────────────────────────────
+  bgp: PanwBgpConfig
+  ospf: PanwOspfConfig
+  ospfv3: PanwOspfv3Config
+  // ── RIP ────────────────────────────────────────────────────────────────
+  rip: PanwRipConfig
+  // ── Redistribution ─────────────────────────────────────────────────────
+  redistProfiles: PanwRedistProfile[]
+  // ── Multicast ──────────────────────────────────────────────────────────
+  multicast: PanwMulticastConfig
+  // ── Admin Distances ────────────────────────────────────────────────────
+  adminDistances: PanwAdminDistances | null
 }
-
 // ─── Policies ────────────────────────────────────────────────────────────────
 
 export type PolicyAction = "allow" | "deny" | "drop" | "reset-client" | "reset-server" | "reset-both"
