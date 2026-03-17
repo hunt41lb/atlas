@@ -182,6 +182,18 @@ export interface PanwVirtualWire {
 
 // ─── Routing ─────────────────────────────────────────────────────────────────
 
+export interface PanwPathMonitorDestination {
+  name: string
+  enabled: boolean
+  source: string | null
+  sourceOverride: string | null
+  destinationType: string | null
+  destinationIp: string | null
+  destinationFqdn: string | null
+  interval: number | null
+  count: number | null
+}
+
 export interface PanwStaticRoute {
   name: string
   destination: string
@@ -193,6 +205,9 @@ export interface PanwStaticRoute {
   routeTable: string | null
   bfdProfile: string | null
   pathMonitorEnabled: boolean
+  pathMonitorFailureCondition: string | null
+  pathMonitorHoldTime: number | null
+  monitorDestinations: PanwPathMonitorDestination[]
 }
 
 export interface PanwAdminDistances {
@@ -624,4 +639,5 @@ export interface ParseError {
 export type ParseResult =
   | { success: true; config: ParsedConfig }
   | { success: false; error: ParseError }
+
 

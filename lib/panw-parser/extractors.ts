@@ -527,6 +527,27 @@ function extractStaticRoutes(routeEl: unknown): PanwStaticRoute[] {
       routeTable,
       bfdProfile: str(dig(r, "bfd", "profile")) ?? null,
       pathMonitorEnabled: str(dig(r, "path-monitor", "enable")) === "yes",
+      pathMonitorFailureCondition: str(dig(r, "path-monitor", "failure-condition")) ?? null,
+      pathMonitorHoldTime: dig(r, "path-monitor", "hold-time") !== undefined
+        ? Number(str(dig(r, "path-monitor", "hold-time")))
+        : null,
+      monitorDestinations: entries(dig(r, "path-monitor", "monitor-destinations")).map((md) => {
+        const destIp = str(md["destination"]) ?? null
+        const destFqdn = str(md["destination-fqdn"]) ?? null
+        const destinationType = destFqdn ? "FQDN" : destIp ? "IP Address" : "None"
+
+        return {
+          name: entryName(md),
+          enabled: str(md["enable"]) === "yes",
+          source: str(md["source"]) ?? null,
+          sourceOverride: str(md["source-override"]) ?? null,
+          destinationType,
+          destinationIp: destIp,
+          destinationFqdn: destFqdn,
+          interval: md["interval"] !== undefined ? Number(md["interval"]) : null,
+          count: md["count"] !== undefined ? Number(md["count"]) : null,
+        }
+      }),
     }
   })
 }
@@ -837,36 +858,56 @@ export function extractLogicalRouters(
 
   return entries(lrEl).flatMap((lrEntry) => {
     const lrName = entryName(lrEntry)
-    // Each LR has one or more VRFs; flatten them (usually just "default")
     return entries(dig(lrEntry, "vrf")).map((vrfEntry) => {
       const vrfName = entryName(vrfEntry)
       const displayName = vrfName === "default" ? lrName : `${lrName}/${vrfName}`
 
       const ifaces = membersAt(vrfEntry, "interface")
-      const staticRoutes = extractStaticRoutes(dig(vrfEntry, "routing-table", "ip", "static-route"))
+      const routingTableEl = vrfEntry["routing-table"] as Record<string, unknown> | undefined
+
+      // Static routes
+      const staticRoutes = extractStaticRoutes(dig(routingTableEl, "ip", "static-route"))
+      const staticRoutesV6 = extractStaticRoutes(dig(routingTableEl, "ipv6", "static-route"))
+
+      // ECMP — sits directly on VRF entry
+      const ecmpEl = vrfEntry["ecmp"] as Record<string, unknown> | undefined
+      const ecmpEnabled = str(dig(ecmpEl, "enable")) === "yes"
+      let ecmpAlgorithm: string | null = null
+      if (ecmpEl?.["algorithm"] && typeof ecmpEl["algorithm"] === "object") {
+        const algoKeys = Object.keys(ecmpEl["algorithm"] as Record<string, unknown>)
+        ecmpAlgorithm = algoKeys[0] ?? null
+      }
+
+      // Protocols — sit directly on VRF entry (no <protocol> wrapper like VR)
+      // The extract*Config functions dig for "ospf", "bgp", etc. within the passed element
+      const vrfAsProtocol = vrfEntry as unknown
 
       return {
         name: displayName,
         interfaces: ifaces,
         staticRoutes,
-        staticRoutesV6: [],
+        staticRoutesV6,
         templateName,
-        ecmpEnabled: false,
-        ecmpAlgorithm: null,
-        ecmpStrictSourcePath: false,
-        ecmpSymmetricReturn: false,
-        bgp: { enabled: false, routerId: null, localAs: null, installRoute: false, gracefulRestartEnabled: false, rejectDefaultRoute: false, peerGroups: [] },
-        ospf: { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, areas: [] },
-        ospfv3: { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, areas: [] },
-        rip: { enabled: false, globalBfdProfile: null, rejectDefaultRoute: false, interfaces: [], timers: null },
-        redistProfiles: [],
-        multicast: { enabled: false, interfaceGroups: [] },
-        adminDistances: null,
+        // ECMP
+        ecmpEnabled,
+        ecmpAlgorithm,
+        ecmpStrictSourcePath: str(dig(ecmpEl, "strict-source-path")) === "yes",
+        ecmpSymmetricReturn: str(dig(ecmpEl, "symmetric-return")) === "yes",
+        // Protocols
+        ospf: extractOspfConfig(vrfAsProtocol),
+        ospfv3: extractOspfv3Config(vrfAsProtocol),
+        bgp: extractBgpConfig(vrfAsProtocol),
+        rip: extractRipConfig(vrfAsProtocol),
+        // Redistribution
+        redistProfiles: extractRedistProfiles(vrfAsProtocol),
+        // Multicast
+        multicast: extractMulticastConfig(vrfEntry),
+        // Admin Distances
+        adminDistances: extractAdminDistances(vrfEntry["admin-dists"]),
       }
     })
   })
 }
-
 // ───  DHCP Relay ──────────────────────────────────────────────────────────────
 
 export function extractDhcpRelayInterfaces(networkEl: unknown): string[] {

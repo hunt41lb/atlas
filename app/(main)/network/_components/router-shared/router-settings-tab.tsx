@@ -2,6 +2,7 @@
 //
 // Shared overview table for Virtual Routers and Logical Routers.
 // Shows name, interfaces, configuration summary, protocol status badges.
+// Optionally supports clickable names to open a detail dialog.
 
 "use client"
 
@@ -16,6 +17,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DataTable } from "@/components/ui/data-table"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
@@ -25,12 +27,30 @@ import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
 
 const columnHelper = createColumnHelper<PanwVirtualRouter>()
 
-function buildColumns(isPanorama: boolean): ColumnDef<PanwVirtualRouter, unknown>[] {
+function buildColumns(
+  isPanorama: boolean,
+  onRouterClick?: (router: PanwVirtualRouter) => void,
+): ColumnDef<PanwVirtualRouter, unknown>[] {
   return [
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      cell: (info) => {
+        const router = info.row.original
+        if (onRouterClick) {
+          return (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => onRouterClick(router)}
+              className="text-foreground h-auto p-0 font-medium"
+            >
+              {info.getValue()}
+            </Button>
+          )
+        }
+        return <span className="font-medium">{info.getValue()}</span>
+      },
     }) as ColumnDef<PanwVirtualRouter, unknown>,
 
     {
@@ -154,15 +174,20 @@ export function RouterSettingsTab({
   routers,
   isPanorama,
   title = "Router Settings",
+  onRouterClick,
 }: {
   routers: PanwVirtualRouter[]
   isPanorama: boolean
   title?: string
+  onRouterClick?: (router: PanwVirtualRouter) => void
 }) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
 
-  const columns = React.useMemo(() => buildColumns(isPanorama), [isPanorama])
+  const columns = React.useMemo(
+    () => buildColumns(isPanorama, onRouterClick),
+    [isPanorama, onRouterClick]
+  )
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
