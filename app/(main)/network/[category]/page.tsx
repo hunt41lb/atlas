@@ -22,6 +22,8 @@ import { VlansTable } from "../_components/vlans-table"
 import { VirtualWiresTable } from "../_components/virtual-wires-table"
 import { VirtualRoutersView } from "@/app/(main)/network/_components/virtual-routers-view"
 import { LogicalRoutersView } from "@/app/(main)/network/_components/logical-routers-view"
+import { BfdProfilesView } from "@/app/(main)/network/_components/routing-profiles/bfd/bfd-profiles-view"
+import { BgpProfilesView } from "@/app/(main)/network/_components/routing-profiles/bgp/bgp-profiles-view"
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
 
@@ -117,8 +119,8 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "virtual-routers":              { title: "Virtual Routers",     component: VirtualRoutersView },
   "logical-routers":              { title: "Logical Routers",     component: LogicalRoutersView },
   "routing-profiles":             { title: "Routing Profiles" },
-  "routing-profiles-bgp":         { title: "BGP" },
-  "routing-profiles-bfd":         { title: "BFD" },
+  "routing-profiles-bgp":         { title: "BGP",                 component: BgpProfilesView },
+  "routing-profiles-bfd":         { title: "BFD",                 component: BfdProfilesView },
   "routing-profiles-ospf":        { title: "OSPF" },
   "routing-profiles-ospfv3":      { title: "OSPFv3" },
   "routing-profiles-ripv2":       { title: "RIPv2" },

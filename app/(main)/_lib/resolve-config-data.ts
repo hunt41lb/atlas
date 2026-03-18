@@ -7,6 +7,7 @@ import type {
   PanwApplicationGroup, PanwApplicationFilter, PanwProfileGroup, PanwTag,
   PanwSecurityRule, PanwNatRule,
 } from "@/lib/panw-parser/types"
+import type { PanwBfdProfile, PanwBgpRoutingProfiles } from "@/lib/panw-parser/routing-profiles"
 
 // ─── Template resolution (Network scope) ─────────────────────────────────────
 
@@ -38,6 +39,17 @@ export interface ResolvedNetworkData {
   dhcpRelayInterfaces: string[]
   vlans: PanwVlan[]
   virtualWires: PanwVirtualWire[]
+  bfdProfiles: PanwBfdProfile[]
+  bgpRoutingProfiles: PanwBgpRoutingProfiles
+}
+
+const EMPTY_BGP_ROUTING_PROFILES: PanwBgpRoutingProfiles = {
+  authProfiles: [],
+  timerProfiles: [],
+  dampeningProfiles: [],
+  redistributionProfiles: [],
+  addressFamilyProfiles: [],
+  filteringProfiles: [],
 }
 
 export function resolveNetworkData(config: ParsedConfig, scope: string | null): ResolvedNetworkData {
@@ -50,6 +62,8 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       dhcpRelayInterfaces: [],
       vlans: config.vlans ?? [],
       virtualWires: config.virtualWires ?? [],
+      bfdProfiles: [],
+      bgpRoutingProfiles: EMPTY_BGP_ROUTING_PROFILES,
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -74,6 +88,15 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     dhcpRelayInterfaces: templates.flatMap((t) => t.dhcpRelayInterfaces ?? []),
     vlans: templates.flatMap((t) => t.vlans ?? []),
     virtualWires: templates.flatMap((t) => t.virtualWires ?? []),
+    bfdProfiles: templates.flatMap((t) => t.bfdProfiles ?? []),
+    bgpRoutingProfiles: {                              // ← ADD
+      authProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.authProfiles ?? []),
+      timerProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.timerProfiles ?? []),
+      dampeningProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.dampeningProfiles ?? []),
+      redistributionProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.redistributionProfiles ?? []),
+      addressFamilyProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.addressFamilyProfiles ?? []),
+      filteringProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.filteringProfiles ?? []),
+    },
   }
 }
 
@@ -191,4 +214,5 @@ function mergeZoneOverrides(templateZones: PanwZone[], overrides: PanwZone[]): P
 
   return merged
 }
+
 

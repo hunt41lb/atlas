@@ -1,5 +1,7 @@
 // @/lib/panw-parser/types.ts
 
+import type { PanwBfdProfile, PanwBgpRoutingProfiles } from "./routing-profiles"
+
 // ─── Color ──────────────────────────────────────────────────────────────────
 
 /** e.g. "color1" → "var(--panw-color1)", undefined → "var(--muted-foreground)" */
@@ -482,6 +484,8 @@ export interface PanwTemplate {
   // Network counts from template
   vlans: PanwVlan[]
   virtualWires: PanwVirtualWire[]
+  bfdProfiles: PanwBfdProfile[]
+  bgpRoutingProfiles: PanwBgpRoutingProfiles
   ipsecTunnels: number
   greTunnels: number
   dhcpInterfaces: number
@@ -639,5 +643,6 @@ export interface ParseError {
 export type ParseResult =
   | { success: true; config: ParsedConfig }
   | { success: false; error: ParseError }
+
 
 
