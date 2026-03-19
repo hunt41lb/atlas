@@ -2,3 +2,4 @@
 
 export { ProfileTable, ProfileTrigger, ProfileSection } from "./profile-table"
 export { DefaultCell } from "./default-cell"
+export { useSectionTable } from "./use-section-table"

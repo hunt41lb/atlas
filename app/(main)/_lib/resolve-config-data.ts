@@ -7,7 +7,7 @@ import type {
   PanwApplicationGroup, PanwApplicationFilter, PanwProfileGroup, PanwTag,
   PanwSecurityRule, PanwNatRule,
 } from "@/lib/panw-parser/types"
-import type { PanwBfdProfile, PanwBgpRoutingProfiles } from "@/lib/panw-parser/routing-profiles"
+import type { PanwBfdProfile, PanwBgpRoutingProfiles, PanwRoutingFilters } from "@/lib/panw-parser/routing-profiles"
 
 // ─── Template resolution (Network scope) ─────────────────────────────────────
 
@@ -41,6 +41,7 @@ export interface ResolvedNetworkData {
   virtualWires: PanwVirtualWire[]
   bfdProfiles: PanwBfdProfile[]
   bgpRoutingProfiles: PanwBgpRoutingProfiles
+  routingFilters: PanwRoutingFilters
 }
 
 const EMPTY_BGP_ROUTING_PROFILES: PanwBgpRoutingProfiles = {
@@ -50,6 +51,15 @@ const EMPTY_BGP_ROUTING_PROFILES: PanwBgpRoutingProfiles = {
   redistributionProfiles: [],
   addressFamilyProfiles: [],
   filteringProfiles: [],
+}
+
+const EMPTY_ROUTING_FILTERS: PanwRoutingFilters = {
+  accessLists: [],
+  prefixLists: [],
+  communityLists: [],
+  asPathAccessLists: [],
+  bgpRouteMaps: [],
+  redistRouteMaps: [],
 }
 
 export function resolveNetworkData(config: ParsedConfig, scope: string | null): ResolvedNetworkData {
@@ -64,6 +74,7 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       virtualWires: config.virtualWires ?? [],
       bfdProfiles: [],
       bgpRoutingProfiles: EMPTY_BGP_ROUTING_PROFILES,
+      routingFilters: EMPTY_ROUTING_FILTERS,
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -96,6 +107,14 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       redistributionProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.redistributionProfiles ?? []),
       addressFamilyProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.addressFamilyProfiles ?? []),
       filteringProfiles: templates.flatMap((t) => t.bgpRoutingProfiles?.filteringProfiles ?? []),
+    },
+    routingFilters: {
+      accessLists: templates.flatMap((t) => t.routingFilters?.accessLists ?? []),
+      prefixLists: templates.flatMap((t) => t.routingFilters?.prefixLists ?? []),
+      communityLists: templates.flatMap((t) => t.routingFilters?.communityLists ?? []),
+      asPathAccessLists: templates.flatMap((t) => t.routingFilters?.asPathAccessLists ?? []),
+      bgpRouteMaps: templates.flatMap((t) => t.routingFilters?.bgpRouteMaps ?? []),
+      redistRouteMaps: templates.flatMap((t) => t.routingFilters?.redistRouteMaps ?? []),
     },
   }
 }
@@ -214,5 +233,3 @@ function mergeZoneOverrides(templateZones: PanwZone[], overrides: PanwZone[]): P
 
   return merged
 }
-
-

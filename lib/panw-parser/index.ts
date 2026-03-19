@@ -14,7 +14,7 @@ import type {
   ParseResult, ParsedFirewallConfig, ParsedPanoramaConfig,
   PanwDeviceGroup, PanwTemplate,
 } from "./types"
-import { extractBfdProfiles, extractBgpRoutingProfiles } from "./routing-profiles"
+import { extractBfdProfiles, extractBgpRoutingProfiles, extractRoutingFilters } from "./routing-profiles"
 
 // ─── XML Parser config ───────────────────────────────────────────────────────
 
@@ -310,6 +310,7 @@ function parsePanorama(
       virtualWires:   extractVirtualWires(networkEl, tmplName),
       bfdProfiles:    extractBfdProfiles(networkEl, tmplName),
       bgpRoutingProfiles:   extractBgpRoutingProfiles(networkEl, tmplName),
+      routingFilters:       extractRoutingFilters(networkEl, tmplName),
       ...extractNetworkCounts(networkEl),
     }
   })
@@ -407,5 +408,3 @@ export function deriveConfigName(
   if (config.hostname) return config.hostname
   return fileName.replace(/\.(xml|cfg|conf)$/i, "").replace(/^\d{2}-\d{2}-\d{4}-/, "")
 }
-
-

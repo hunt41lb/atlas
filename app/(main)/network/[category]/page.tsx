@@ -24,6 +24,8 @@ import { VirtualRoutersView } from "@/app/(main)/network/_components/virtual-rou
 import { LogicalRoutersView } from "@/app/(main)/network/_components/logical-routers-view"
 import { BfdProfilesView } from "@/app/(main)/network/_components/routing-profiles/bfd/bfd-profiles-view"
 import { BgpProfilesView } from "@/app/(main)/network/_components/routing-profiles/bgp/bgp-profiles-view"
+import { FiltersView } from "@/app/(main)/network/_components/routing-profiles/filters/filters-view"
+
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
 
@@ -124,7 +126,7 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "routing-profiles-ospf":        { title: "OSPF" },
   "routing-profiles-ospfv3":      { title: "OSPFv3" },
   "routing-profiles-ripv2":       { title: "RIPv2" },
-  "routing-profiles-filters":     { title: "Filters" },
+  "routing-profiles-filters":     { title: "Filters",             component: FiltersView },
   "routing-profiles-multicast":   { title: "Multicast" },
   "ipsec-tunnels":                { title: "IPSec Tunnels" },
   "gre-tunnels":                  { title: "GRE Tunnels" },

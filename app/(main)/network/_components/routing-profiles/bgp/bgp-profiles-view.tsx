@@ -6,13 +6,6 @@
 "use client"
 
 import * as React from "react"
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  type ColumnDef,
-  type SortingState,
-} from "@tanstack/react-table"
 
 import { Badge } from "@/components/ui/badge"
 import { Accordion } from "@/components/ui/accordion"
@@ -27,29 +20,13 @@ import type {
   PanwBgpAddressFamilyProfile,
 } from "@/lib/panw-parser/routing-profiles"
 
-import { ProfileSection } from "../_shared"
+import { ProfileSection, useSectionTable } from "../_shared"
 import { AuthProfileDialog, buildAuthColumns } from "./bgp-auth-dialog"
 import { TimerProfileDialog, buildTimerColumns } from "./bgp-timer-dialog"
 import { buildDampeningColumns } from "./bgp-dampening-columns"
 import { buildRedistColumns } from "./bgp-redist-columns"
 import { AfProfileDialog, buildAfColumns, flattenAfProfiles } from "./bgp-af-dialog"
 import { buildFilterColumns } from "./bgp-filter-columns"
-
-// ─── Section table hook ───────────────────────────────────────────────────────
-
-function useSectionTable<T>(data: T[], columns: ColumnDef<T, unknown>[]) {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-
-  // eslint-disable-next-line react-hooks/incompatible-library
-  return useReactTable({
-    data,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  })
-}
 
 // ─── Section keys ─────────────────────────────────────────────────────────────
 

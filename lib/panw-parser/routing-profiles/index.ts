@@ -8,7 +8,6 @@ export { type PanwBfdProfile, BFD_DEFAULTS, extractBfdProfiles } from "./bfd"
 
 // ─── BGP ──────────────────────────────────────────────────────────────────────
 export {
-  // Types
   type PanwBgpAuthProfile,
   type PanwBgpTimerProfile,
   type PanwBgpDampeningProfile,
@@ -37,8 +36,31 @@ export {
 // ─── RIPv2 (future) ──────────────────────────────────────────────────────────
 // export { ... } from "./ripv2"
 
-// ─── Filters (future) ────────────────────────────────────────────────────────
-// export { ... } from "./filters"
+// ─── Filters ─────────────────────────────────────────────────────────────────
+export {
+  type PanwAccessListEntry,
+  type PanwAccessList,
+  type PanwPrefixListEntry,
+  type PanwPrefixList,
+  type PanwCommunityListEntry,
+  type PanwCommunityList,
+  type PanwAsPathAccessListEntry,
+  type PanwAsPathAccessList,
+  type PanwRouteMapFilterRef,
+  type PanwRouteMapMetric,
+  type PanwRouteMapAggregator,
+  type PanwBgpRouteMapMatch,
+  type PanwBgpRouteMapSet,
+  type PanwBgpRouteMapEntry,
+  type PanwBgpRouteMap,
+  type PanwRedistRouteMapMatch,
+  type PanwRedistRouteMapSet,
+  type PanwRedistRouteMapEntry,
+  type PanwRedistRouteMap,
+  type PanwRoutingFilters,
+  // Extractor
+  extractRoutingFilters,
+} from "./filters"
 
 // ─── Multicast (future) ──────────────────────────────────────────────────────
 // export { ... } from "./multicast"
