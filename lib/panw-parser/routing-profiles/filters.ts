@@ -147,6 +147,8 @@ export interface PanwBgpRouteMapSet {
   largeCommunity: string[]
   ipv4SourceAddress: string | null
   ipv4NextHop: string | null
+  ipv6NextHop: string | null
+  ipv6NextHopPreferGlobal: boolean
   atomicAggregate: boolean
   removeRegularCommunity: string | null
   overwriteRegularCommunity: boolean
@@ -180,6 +182,9 @@ export interface PanwRedistRouteMapMatch {
   /** Filter refs under <ipv4> wrapper (connected-static→bgp) */
   ipv4Address: PanwRouteMapFilterRef | null
   ipv4NextHop: PanwRouteMapFilterRef | null
+  /** Filter refs under <ipv6> wrapper */
+  ipv6Address: PanwRouteMapFilterRef | null
+  ipv6NextHop: PanwRouteMapFilterRef | null
   /** Filter refs directly on match (ospf→bgp, rip→bgp) */
   address: PanwRouteMapFilterRef | null
   nextHop: PanwRouteMapFilterRef | null
@@ -200,6 +205,7 @@ export interface PanwRedistRouteMapSet {
   largeCommunity: string[]
   ipv4SourceAddress: string | null
   ipv4NextHop: string | null
+  ipv6NextHop: string | null
   tag: number | null
   localPreference: number | null
   weight: number | null
@@ -523,7 +529,8 @@ function extractBgpRouteMapSet(setEl: unknown): PanwBgpRouteMapSet {
   const empty: PanwBgpRouteMapSet = {
     aspathPrepend: [], aspathExclude: [], aggregator: null, metric: null,
     regularCommunity: [], largeCommunity: [], ipv4SourceAddress: null,
-    ipv4NextHop: null, atomicAggregate: false, removeRegularCommunity: null,
+    ipv4NextHop: null, ipv6NextHop: null, ipv6NextHopPreferGlobal: false,
+    atomicAggregate: false, removeRegularCommunity: null,
     overwriteRegularCommunity: false, overwriteLargeCommunity: false,
     removeLargeCommunity: null, tag: null, localPreference: null,
     weight: null, origin: null, originatorId: null,
@@ -532,6 +539,7 @@ function extractBgpRouteMapSet(setEl: unknown): PanwBgpRouteMapSet {
   const s = setEl as Record<string, unknown>
 
   const ipv4El = s["ipv4"] as Record<string, unknown> | undefined
+  const ipv6El = s["ipv6"] as Record<string, unknown> | undefined
 
   return {
     aspathPrepend: members(s["aspath-prepend"]),
@@ -542,6 +550,8 @@ function extractBgpRouteMapSet(setEl: unknown): PanwBgpRouteMapSet {
     largeCommunity: members(s["large-community"]),
     ipv4SourceAddress: ipv4El ? (str(ipv4El["source-address"]) ?? null) : null,
     ipv4NextHop: ipv4El ? (str(ipv4El["next-hop"]) ?? null) : null,
+    ipv6NextHop: ipv6El ? (str(ipv6El["next-hop"]) ?? null) : null,
+    ipv6NextHopPreferGlobal: str(s["ipv6-nexthop-prefer-global"]) === "yes",
     atomicAggregate: str(s["atomic-aggregate"]) === "yes",
     removeRegularCommunity: str(s["remove-regular-community"]) ?? null,
     overwriteRegularCommunity: str(s["overwrite-regular-community"]) === "yes",
@@ -581,6 +591,7 @@ function extractBgpRouteMaps(
 function extractRedistRouteMapMatch(matchEl: unknown): PanwRedistRouteMapMatch {
   const empty: PanwRedistRouteMapMatch = {
     ipv4Address: null, ipv4NextHop: null,
+    ipv6Address: null, ipv6NextHop: null,
     address: null, nextHop: null,
     interface: null, origin: null, metric: null,
     tag: null, localPreference: null, peer: null,
@@ -589,10 +600,13 @@ function extractRedistRouteMapMatch(matchEl: unknown): PanwRedistRouteMapMatch {
   const m = matchEl as Record<string, unknown>
 
   const ipv4El = m["ipv4"] as Record<string, unknown> | undefined
+  const ipv6El = m["ipv6"] as Record<string, unknown> | undefined
 
   return {
     ipv4Address: ipv4El ? extractFilterRef(ipv4El["address"]) : null,
     ipv4NextHop: ipv4El ? extractFilterRef(ipv4El["next-hop"]) : null,
+    ipv6Address: ipv6El ? extractFilterRef(ipv6El["address"]) : null,
+    ipv6NextHop: ipv6El ? extractFilterRef(ipv6El["next-hop"]) : null,
     address: extractFilterRef(m["address"]),
     nextHop: extractFilterRef(m["next-hop"]),
     interface: str(m["interface"]) ?? null,
@@ -608,7 +622,7 @@ function extractRedistRouteMapSet(setEl: unknown): PanwRedistRouteMapSet {
   const empty: PanwRedistRouteMapSet = {
     aggregator: null, metric: null, metricType: null,
     aspathPrepend: [], regularCommunity: [], largeCommunity: [],
-    ipv4SourceAddress: null, ipv4NextHop: null,
+    ipv4SourceAddress: null, ipv4NextHop: null, ipv6NextHop: null,
     tag: null, localPreference: null, weight: null,
     origin: null, atomicAggregate: false, originatorId: null,
   }
@@ -616,6 +630,7 @@ function extractRedistRouteMapSet(setEl: unknown): PanwRedistRouteMapSet {
   const s = setEl as Record<string, unknown>
 
   const ipv4El = s["ipv4"] as Record<string, unknown> | undefined
+  const ipv6El = s["ipv6"] as Record<string, unknown> | undefined
 
   return {
     aggregator: extractAggregator(s["aggregator"]),
@@ -626,6 +641,7 @@ function extractRedistRouteMapSet(setEl: unknown): PanwRedistRouteMapSet {
     largeCommunity: members(s["large-community"]),
     ipv4SourceAddress: ipv4El ? (str(ipv4El["source-address"]) ?? null) : null,
     ipv4NextHop: ipv4El ? (str(ipv4El["next-hop"]) ?? null) : null,
+    ipv6NextHop: ipv6El ? (str(ipv6El["next-hop"]) ?? null) : null,
     tag: numOrNull(s["tag"]),
     localPreference: numOrNull(s["local-preference"]),
     weight: numOrNull(s["weight"]),
@@ -639,7 +655,7 @@ function extractRedistRouteMapSet(setEl: unknown): PanwRedistRouteMapSet {
 const REDIST_SOURCE_KEYS = ["connected-static", "rip", "bgp", "ospf"] as const
 
 /** Known destination protocol keys */
-const REDIST_DEST_KEYS = ["ospf", "bgp"] as const
+const REDIST_DEST_KEYS = ["ospf", "bgp", "ospfv3", "rip", "rib"] as const
 
 function extractRedistRouteMaps(
   routeMapsEl: Record<string, unknown>,

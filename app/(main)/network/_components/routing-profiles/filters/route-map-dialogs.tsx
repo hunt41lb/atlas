@@ -165,6 +165,9 @@ const SOURCE_PROTOCOL_LABELS: Record<string, string> = {
 const DEST_PROTOCOL_LABELS: Record<string, string> = {
   ospf: "OSPF",
   bgp: "BGP",
+  ospfv3: "OSPFv3",
+  rip: "RIP",
+  rib: "RIB",
 }
 
 export function RedistRouteMapDialog({

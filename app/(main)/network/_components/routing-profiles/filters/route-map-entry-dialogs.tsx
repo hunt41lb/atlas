@@ -244,6 +244,8 @@ function BgpSetTab({ set }: { set: PanwBgpRouteMapSet }) {
             <CardContent>
               <Field label="Source Address" value={set.ipv4SourceAddress} />
               <Field label="IPv4 Next-Hop" value={set.ipv4NextHop} />
+              <Field label="IPv6 Next-Hop" value={set.ipv6NextHop} />
+              <CheckboxField label="IPv6 Next-Hop prefer global" checked={set.ipv6NextHopPreferGlobal} />
             </CardContent>
           </Card>
         </div>
@@ -350,15 +352,26 @@ function RedistMatchTab({
   sourceProtocol: string
 }) {
   const isBgpSource = sourceProtocol === "bgp"
+  const [ipVersion, setIpVersion] = React.useState<"ipv4" | "ipv6">("ipv4")
   const [addressTab, setAddressTab] = React.useState("address")
 
-  const hasDirect = match.address !== null || match.nextHop !== null
+  // Resolve filter ref based on IP version and address tab
+  const getFilterRef = (tab: string) => {
+    if (ipVersion === "ipv6") {
+      return tab === "address" ? match.ipv6Address : match.ipv6NextHop
+    }
+    // IPv4 — check wrapped first, then direct
+    const hasIpv4Wrapped = match.ipv4Address !== null || match.ipv4NextHop !== null
+    if (hasIpv4Wrapped) return tab === "address" ? match.ipv4Address : match.ipv4NextHop
+    return tab === "address" ? match.address : match.nextHop
+  }
+
+  const filterRef = getFilterRef(addressTab)
 
   return (
     <div className="p-5">
       {isBgpSource ? (
         <div className="space-y-4">
-          {/* Full BGP-like match layout */}
           <Card size="sm">
             <CardContent>
               <div className="grid grid-cols-2 gap-x-6">
@@ -382,23 +395,24 @@ function RedistMatchTab({
 
           <Card size="sm">
             <CardHeader className="border-b">
-              <CardTitle>IPv4</CardTitle>
+              <Tabs value={ipVersion} onValueChange={(v) => { setIpVersion(v as "ipv4" | "ipv6"); setAddressTab("address") }}>
+                <TabsList variant="line">
+                  <TabsTrigger value="ipv4">IPv4</TabsTrigger>
+                  <TabsTrigger value="ipv6">IPv6</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </CardHeader>
             <CardContent>
               <Tabs value={addressTab} onValueChange={setAddressTab} className="flex flex-col">
                 <TabsList variant="line">
                   <TabsTrigger value="address">Address</TabsTrigger>
                   <TabsTrigger value="next-hop">Next Hop</TabsTrigger>
-                  <TabsTrigger value="route-source">Route Source</TabsTrigger>
+                  {ipVersion === "ipv4" && (
+                    <TabsTrigger value="route-source">Route Source</TabsTrigger>
+                  )}
                 </TabsList>
-                <TabsContent value="address">
-                  <FilterRefFields filterRef={hasDirect ? match.address : match.ipv4Address} />
-                </TabsContent>
-                <TabsContent value="next-hop">
-                  <FilterRefFields filterRef={hasDirect ? match.nextHop : match.ipv4NextHop} />
-                </TabsContent>
-                <TabsContent value="route-source">
-                  <FilterRefFields filterRef={null} />
+                <TabsContent value={addressTab}>
+                  <FilterRefFields filterRef={filterRef} />
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -406,7 +420,6 @@ function RedistMatchTab({
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Match criteria */}
           <Card size="sm">
             <CardContent>
               <Field label="Metric" value={match.metric} />
@@ -415,10 +428,14 @@ function RedistMatchTab({
             </CardContent>
           </Card>
 
-          {/* IPv4 filter refs */}
           <Card size="sm">
             <CardHeader className="border-b">
-              <CardTitle>IPv4</CardTitle>
+              <Tabs value={ipVersion} onValueChange={(v) => { setIpVersion(v as "ipv4" | "ipv6"); setAddressTab("address") }}>
+                <TabsList variant="line">
+                  <TabsTrigger value="ipv4">IPv4</TabsTrigger>
+                  <TabsTrigger value="ipv6">IPv6</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </CardHeader>
             <CardContent>
               <Tabs value={addressTab} onValueChange={setAddressTab} className="flex flex-col">
@@ -426,11 +443,8 @@ function RedistMatchTab({
                   <TabsTrigger value="address">Address</TabsTrigger>
                   <TabsTrigger value="next-hop">Next Hop</TabsTrigger>
                 </TabsList>
-                <TabsContent value="address">
-                  <FilterRefFields filterRef={hasDirect ? match.address : match.ipv4Address} />
-                </TabsContent>
-                <TabsContent value="next-hop">
-                  <FilterRefFields filterRef={hasDirect ? match.nextHop : match.ipv4NextHop} />
+                <TabsContent value={addressTab}>
+                  <FilterRefFields filterRef={filterRef} />
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -478,6 +492,7 @@ function RedistSetTab({
               <CardContent>
                 <Field label="Source Address" value={set.ipv4SourceAddress} />
                 <Field label="IPv4 Next-Hop" value={set.ipv4NextHop} />
+                <Field label="IPv6 Next-Hop" value={set.ipv6NextHop} />
               </CardContent>
             </Card>
           </div>
@@ -551,6 +566,9 @@ const SOURCE_LABELS: Record<string, string> = {
 const DEST_LABELS: Record<string, string> = {
   ospf: "OSPF",
   bgp: "BGP",
+  ospfv3: "OSPFv3",
+  rip: "RIP",
+  rib: "RIB",
 }
 
 export function RedistRouteMapEntryDialog({
