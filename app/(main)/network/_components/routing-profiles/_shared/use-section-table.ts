@@ -1,7 +1,4 @@
 // @/app/(main)/network/_components/routing-profiles/_shared/use-section-table.ts
-//
-// Reusable table hook for accordion profile sections.
-// Provides a minimal TanStack Table with sorting only (no search/filter).
 
 "use client"
 

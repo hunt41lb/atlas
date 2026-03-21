@@ -27,6 +27,7 @@ import { ComingSoonView } from "@/app/(main)/_components/ui/category-shell"
 import { GeneralPage, type RouterDialogPageProps } from "./router-dialog/router-dialog-general"
 import { StaticPage } from "./router-dialog/router-dialog-static"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
+import { OspfPage, Ospfv3Page } from "./router-dialog/router-dialog-ospf"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,16 +56,15 @@ const DEFAULT_PAGES: DialogSidebarItem[] = [
 // ─── Page registry ────────────────────────────────────────────────────────────
 // Map page values to their components. Add new pages here as they're built.
 
-const PAGE_COMPONENTS: Record<
-  string,
-  React.ComponentType<RouterDialogPageProps>
-> = {
+const PAGE_COMPONENTS: Record<string, React.ComponentType<RouterDialogPageProps>> = {
   general: GeneralPage,
   static: StaticPage,
+  ospf: OspfPage,
+  ospfv3: Ospfv3Page,
 }
 
 // Fallback for pages not yet built
-function ComingSoonPage({ router }: RouterDialogPageProps) {
+function ComingSoonPage({ }: RouterDialogPageProps) {
   const label = DEFAULT_PAGES.find((p) =>
     Object.keys(PAGE_COMPONENTS).every((k) => k !== p.value)
   )?.label
@@ -157,3 +157,4 @@ export function RouterDialog({
     </Dialog>
   )
 }
+

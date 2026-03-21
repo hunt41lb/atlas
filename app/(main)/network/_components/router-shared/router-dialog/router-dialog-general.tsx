@@ -11,7 +11,6 @@ import { FieldRow, LabeledValue, ReadOnlyCheckbox, FieldGroup } from "./field-di
 import {
   DEFAULT_ADMIN_DISTANCES,
   DEFAULT_ECMP,
-  DEFAULT_RIB_FILTER,
   ECMP_ALGORITHM_LABELS,
 } from "@/lib/panw-defaults"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
@@ -136,22 +135,22 @@ function EcmpTab({
 
 // ─── RIB Filter Tab ───────────────────────────────────────────────────────────
 
-function RibFilterTab() {
-  const f = DEFAULT_RIB_FILTER
+function RibFilterTab({ router }: { router: PanwVirtualRouter }) {
+  const rf = router.ribFilter
 
   return (
     <div className="grid grid-cols-2 gap-4 px-1">
       <FieldGroup title="IPv4">
-        <LabeledValue label="BGP Route-Map"    value={f.ipv4.bgpRouteMap} />
-        <LabeledValue label="OSPFv2 Route-Map" value={f.ipv4.ospfv2RouteMap} />
-        <LabeledValue label="Static Route-Map" value={f.ipv4.staticRouteMap} />
-        <LabeledValue label="RIP Route-Map"    value={f.ipv4.ripRouteMap} />
-      </FieldGroup>
-      <FieldGroup title="IPv6">
-        <LabeledValue label="BGP Route-Map"    value={f.ipv6.bgpRouteMap} />
-        <LabeledValue label="OSPFv3 Route-Map" value={f.ipv6.ospfv3RouteMap} />
-        <LabeledValue label="Static Route-Map" value={f.ipv6.staticRouteMap} />
-      </FieldGroup>
+      <LabeledValue label="BGP Route-Map"    value={rf?.ipv4.bgp ?? "None"} />
+      <LabeledValue label="OSPF Route-Map"   value={rf?.ipv4.ospf ?? "None"} />
+      <LabeledValue label="Static Route-Map" value={rf?.ipv4.static ?? "None"} />
+      <LabeledValue label="RIP Route-Map"    value={rf?.ipv4.rip ?? "None"} />
+    </FieldGroup>
+    <FieldGroup title="IPv6">
+      <LabeledValue label="BGP Route-Map"    value={rf?.ipv6.bgp ?? "None"} />
+      <LabeledValue label="OSPFv3 Route-Map" value={rf?.ipv6.ospfv3 ?? "None"} />
+      <LabeledValue label="Static Route-Map" value={rf?.ipv6.static ?? "None"} />
+    </FieldGroup>
     </div>
   )
 }
@@ -194,10 +193,11 @@ export function GeneralPage({ router, showDefaults }: RouterDialogPageProps) {
             <EcmpTab router={router} showDefaults={showDefaults} />
           </TabsContent>
           <TabsContent value="rib-filter">
-            <RibFilterTab />
+            <RibFilterTab router={router} />
           </TabsContent>
         </div>
       </Tabs>
     </div>
   )
 }
+

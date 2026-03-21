@@ -7,7 +7,11 @@ import type {
   PanwApplicationGroup, PanwApplicationFilter, PanwProfileGroup, PanwTag,
   PanwSecurityRule, PanwNatRule,
 } from "@/lib/panw-parser/types"
-import type { PanwBfdProfile, PanwBgpRoutingProfiles, PanwRoutingFilters } from "@/lib/panw-parser/routing-profiles"
+import type {
+  PanwBfdProfile, PanwBgpRoutingProfiles, PanwRoutingFilters,
+  PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles,PanwRipRoutingProfiles,
+  PanwMulticastRoutingProfiles,
+} from "@/lib/panw-parser/routing-profiles"
 
 // ─── Template resolution (Network scope) ─────────────────────────────────────
 
@@ -42,7 +46,16 @@ export interface ResolvedNetworkData {
   bfdProfiles: PanwBfdProfile[]
   bgpRoutingProfiles: PanwBgpRoutingProfiles
   routingFilters: PanwRoutingFilters
+  ospfRoutingProfiles: PanwOspfRoutingProfiles
+  ospfv3RoutingProfiles: PanwOspfv3RoutingProfiles
+  ripRoutingProfiles: PanwRipRoutingProfiles
+  multicastRoutingProfiles: PanwMulticastRoutingProfiles
 }
+
+const EMPTY_OSPF: PanwOspfRoutingProfiles = { spfTimerProfiles: [], authProfiles: [], ifTimerProfiles: [], redistributionProfiles: [] }
+const EMPTY_OSPFV3: PanwOspfv3RoutingProfiles = { spfTimerProfiles: [], authProfiles: [], ifTimerProfiles: [], redistributionProfiles: [] }
+const EMPTY_RIP: PanwRipRoutingProfiles = { globalTimerProfiles: [], authProfiles: [], redistributionProfiles: [] }
+const EMPTY_MULTICAST: PanwMulticastRoutingProfiles = { pimInterfaceTimerProfiles: [], igmpInterfaceQueryProfiles: [], msdpAuthProfiles: [], msdpTimerProfiles: [] }
 
 const EMPTY_BGP_ROUTING_PROFILES: PanwBgpRoutingProfiles = {
   authProfiles: [],
@@ -75,6 +88,10 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       bfdProfiles: [],
       bgpRoutingProfiles: EMPTY_BGP_ROUTING_PROFILES,
       routingFilters: EMPTY_ROUTING_FILTERS,
+      ospfRoutingProfiles: EMPTY_OSPF,
+      ospfv3RoutingProfiles: EMPTY_OSPFV3,
+      ripRoutingProfiles: EMPTY_RIP,
+      multicastRoutingProfiles: EMPTY_MULTICAST,
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -115,6 +132,29 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       asPathAccessLists: templates.flatMap((t) => t.routingFilters?.asPathAccessLists ?? []),
       bgpRouteMaps: templates.flatMap((t) => t.routingFilters?.bgpRouteMaps ?? []),
       redistRouteMaps: templates.flatMap((t) => t.routingFilters?.redistRouteMaps ?? []),
+    },
+    ospfRoutingProfiles: {
+      spfTimerProfiles: templates.flatMap(t => t.ospfRoutingProfiles?.spfTimerProfiles ?? []),
+      authProfiles: templates.flatMap(t => t.ospfRoutingProfiles?.authProfiles ?? []),
+      ifTimerProfiles: templates.flatMap(t => t.ospfRoutingProfiles?.ifTimerProfiles ?? []),
+      redistributionProfiles: templates.flatMap(t => t.ospfRoutingProfiles?.redistributionProfiles ?? []),
+    },
+    ospfv3RoutingProfiles: {
+      spfTimerProfiles: templates.flatMap(t => t.ospfv3RoutingProfiles?.spfTimerProfiles ?? []),
+      authProfiles: templates.flatMap(t => t.ospfv3RoutingProfiles?.authProfiles ?? []),
+      ifTimerProfiles: templates.flatMap(t => t.ospfv3RoutingProfiles?.ifTimerProfiles ?? []),
+      redistributionProfiles: templates.flatMap(t => t.ospfv3RoutingProfiles?.redistributionProfiles ?? []),
+    },
+    ripRoutingProfiles: {
+      globalTimerProfiles: templates.flatMap(t => t.ripRoutingProfiles?.globalTimerProfiles ?? []),
+      authProfiles: templates.flatMap(t => t.ripRoutingProfiles?.authProfiles ?? []),
+      redistributionProfiles: templates.flatMap(t => t.ripRoutingProfiles?.redistributionProfiles ?? []),
+    },
+    multicastRoutingProfiles: {
+      pimInterfaceTimerProfiles: templates.flatMap(t => t.multicastRoutingProfiles?.pimInterfaceTimerProfiles ?? []),
+      igmpInterfaceQueryProfiles: templates.flatMap(t => t.multicastRoutingProfiles?.igmpInterfaceQueryProfiles ?? []),
+      msdpAuthProfiles: templates.flatMap(t => t.multicastRoutingProfiles?.msdpAuthProfiles ?? []),
+      msdpTimerProfiles: templates.flatMap(t => t.multicastRoutingProfiles?.msdpTimerProfiles ?? []),
     },
   }
 }

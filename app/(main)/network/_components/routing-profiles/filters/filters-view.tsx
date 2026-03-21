@@ -196,6 +196,7 @@ const SOURCE_PROTOCOL_LABELS: Record<string, string> = {
   rip: "RIP",
   bgp: "BGP",
   ospf: "OSPF",
+  ospfv3: "OSPFv3",
 }
 
 const DEST_PROTOCOL_LABELS: Record<string, string> = {

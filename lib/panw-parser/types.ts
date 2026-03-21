@@ -1,6 +1,6 @@
 // @/lib/panw-parser/types.ts
 
-import type { PanwBfdProfile, PanwBgpRoutingProfiles, PanwRoutingFilters } from "./routing-profiles"
+import type { PanwBfdProfile, PanwBgpRoutingProfiles, PanwMulticastRoutingProfiles, PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles, PanwRipRoutingProfiles, PanwRoutingFilters } from "./routing-profiles"
 
 // ─── Color ──────────────────────────────────────────────────────────────────
 
@@ -184,6 +184,94 @@ export interface PanwVirtualWire {
 
 // ─── Routing ─────────────────────────────────────────────────────────────────
 
+// ─── Shared sub-types for LR protocol references ─────────────────────────────
+export interface PanwLrAreaRef {
+  id: string
+  abrImportList: string | null
+  abrExportList: string | null
+  abrInboundFilterList: string | null
+  abrOutboundFilterList: string | null
+  authProfile: string | null
+  interfaces: {
+    name: string
+    timingProfile: string | null
+    authProfile: string | null
+    bfdProfile: string | null
+  }[]
+}
+
+export interface PanwLrOspfRefs {
+  enabled: boolean
+  routerId: string | null
+  redistProfileName: string | null
+  spfTimerName: string | null
+  globalIfTimerName: string | null
+  globalBfdProfile: string | null
+  areas: PanwLrAreaRef[]
+}
+
+export interface PanwLrRipRefs {
+  enabled: boolean
+  globalTimerName: string | null
+  authProfileName: string | null
+  redistProfileName: string | null
+  globalBfdProfile: string | null
+  globalInboundDistList: string | null
+  globalOutboundDistList: string | null
+  interfaces: {
+    name: string
+    inboundDistList: string | null
+    outboundDistList: string | null
+    authProfile: string | null
+    bfdProfile: string | null
+  }[]
+}
+
+export interface PanwLrBgpPeerGroup {
+  name: string
+  type: string | null
+  addressFamily: { ipv4: string | null; ipv6: string | null }
+  filteringProfile: { ipv4: string | null; ipv6: string | null }
+  connectionOptions: { auth: string | null; timers: string | null; dampening: string | null }
+  peers: {
+    name: string
+    connectionOptions: { auth: string | null; timers: string | null; dampening: string | null }
+    bfdProfile: string | null
+  }[]
+}
+
+export interface PanwLrBgpAggregateRoute {
+  name: string
+  suppressMap: string | null
+  attributeMap: string | null
+}
+
+export interface PanwLrBgpRefs {
+  enabled: boolean
+  routerId: string | null
+  localAs: string | null
+  globalBfdProfile: string | null
+  redistProfile: { ipv4Unicast: string | null; ipv6Unicast: string | null }
+  peerGroups: PanwLrBgpPeerGroup[]
+  aggregateRoutes: PanwLrBgpAggregateRoute[]
+}
+
+export interface PanwLrRibFilter {
+  ipv4: { bgp: string | null; ospf: string | null; static: string | null; rip: string | null }
+  ipv6: { bgp: string | null; ospfv3: string | null; static: string | null }
+}
+
+export interface PanwLrMsdpRefs {
+  globalTimerName: string | null
+  globalAuthName: string | null
+  peers: {
+    name: string
+    authProfile: string | null
+    inboundSaFilter: string | null
+    outboundSaFilter: string | null
+  }[]
+}
+
 export interface PanwPathMonitorDestination {
   name: string
   enabled: boolean
@@ -278,12 +366,29 @@ export interface PanwOspfInterface {
   transitDelay: number | null
   grDelay: number | null
   linkType: string | null
+  authProfile: string | null
+  timingProfile: string | null
   bfdProfile: string | null
+}
+
+export interface PanwOspfRange {
+  prefix: string
+  substitute: string | null
+  advertise: boolean
+}
+
+export interface PanwOspfGracefulRestart {
+  enabled: boolean
+  helperEnabled: boolean
+  strictLsaChecking: boolean
+  gracePeriod: number | null
+  maxNeighborRestartTime: number | null
 }
 
 export interface PanwOspfArea {
   id: string
   type: string
+  ranges: PanwOspfRange[]
   interfaces: PanwOspfInterface[]
 }
 
@@ -292,6 +397,8 @@ export interface PanwOspfConfig {
   routerId: string | null
   globalBfdProfile: string | null
   rejectDefaultRoute: boolean
+  gracefulRestart: PanwOspfGracefulRestart | null
+  rfc1583: boolean
   areas: PanwOspfArea[]
 }
 
@@ -310,12 +417,15 @@ export interface PanwOspfv3Interface {
   transitDelay: number | null
   grDelay: number | null
   linkType: string | null
+  authProfile: string | null
+  timingProfile: string | null
   bfdProfile: string | null
 }
 
 export interface PanwOspfv3Area {
   id: string
   type: string
+  ranges: PanwOspfRange[]
   interfaces: PanwOspfv3Interface[]
 }
 
@@ -324,6 +434,8 @@ export interface PanwOspfv3Config {
   routerId: string | null
   globalBfdProfile: string | null
   rejectDefaultRoute: boolean
+  gracefulRestart: PanwOspfGracefulRestart | null
+  disableTransitTraffic: boolean
   areas: PanwOspfv3Area[]
 }
 
@@ -382,24 +494,25 @@ export interface PanwVirtualRouter {
   staticRoutesV6: PanwStaticRoute[]
   /** Panorama: which template this came from */
   templateName: string | null
-  // ── ECMP ───────────────────────────────────────────────────────────────
   ecmpEnabled: boolean
   ecmpAlgorithm: string | null
   ecmpStrictSourcePath: boolean
   ecmpSymmetricReturn: boolean
-  // ── Protocol summary flags ─────────────────────────────────────────────
   bgp: PanwBgpConfig
   ospf: PanwOspfConfig
   ospfv3: PanwOspfv3Config
-  // ── RIP ────────────────────────────────────────────────────────────────
   rip: PanwRipConfig
-  // ── Redistribution ─────────────────────────────────────────────────────
   redistProfiles: PanwRedistProfile[]
-  // ── Multicast ──────────────────────────────────────────────────────────
   multicast: PanwMulticastConfig
-  // ── Admin Distances ────────────────────────────────────────────────────
   adminDistances: PanwAdminDistances | null
+  ospfRefs?: PanwLrOspfRefs
+  ospfv3Refs?: PanwLrOspfRefs
+  ripRefs?: PanwLrRipRefs
+  bgpRefs?: PanwLrBgpRefs
+  ribFilter?: PanwLrRibFilter
+  msdpRefs?: PanwLrMsdpRefs
 }
+
 // ─── Policies ────────────────────────────────────────────────────────────────
 
 export type PolicyAction = "allow" | "deny" | "drop" | "reset-client" | "reset-server" | "reset-both"
@@ -486,6 +599,10 @@ export interface PanwTemplate {
   virtualWires: PanwVirtualWire[]
   bfdProfiles: PanwBfdProfile[]
   bgpRoutingProfiles: PanwBgpRoutingProfiles
+  ospfRoutingProfiles: PanwOspfRoutingProfiles
+  ospfv3RoutingProfiles: PanwOspfv3RoutingProfiles
+  ripRoutingProfiles: PanwRipRoutingProfiles
+  multicastRoutingProfiles: PanwMulticastRoutingProfiles
   routingFilters: PanwRoutingFilters
   ipsecTunnels: number
   greTunnels: number

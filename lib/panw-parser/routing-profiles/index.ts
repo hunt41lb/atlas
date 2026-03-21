@@ -1,4 +1,4 @@
-// @/lib/panw-parser/routing-profiles/index.ts
+// @/src/parser/routing-profiles/index.ts
 //
 // Barrel re-export for all routing profile types and extractors.
 // Import from "routing-profiles" instead of individual protocol files.
@@ -27,14 +27,33 @@ export {
   extractBgpRoutingProfiles,
 } from "./bgp"
 
-// ─── OSPF (future) ───────────────────────────────────────────────────────────
-// export { ... } from "./ospf"
+// ─── OSPF ─────────────────────────────────────────────────────────────────────
+export {
+  // Shared types (OSPF + OSPFv3)
+  type PanwOspfSpfTimerProfile,
+  type PanwOspfIfTimerProfile,
+  type PanwOspfRedistEntry,
+  type PanwOspfRedistProfile,
+  // OSPF-specific types
+  type PanwOspfAuthProfile,
+  type PanwOspfRoutingProfiles,
+  // OSPFv3-specific types
+  type PanwOspfv3AuthProfile,
+  type PanwOspfv3RoutingProfiles,
+  // Extractors
+  extractOspfRoutingProfiles,
+  extractOspfv3RoutingProfiles,
+} from "./ospf"
 
-// ─── OSPFv3 (future) ─────────────────────────────────────────────────────────
-// export { ... } from "./ospfv3"
-
-// ─── RIPv2 (future) ──────────────────────────────────────────────────────────
-// export { ... } from "./ripv2"
+// ─── RIP ──────────────────────────────────────────────────────────────────────
+export {
+  type PanwRipGlobalTimerProfile,
+  type PanwRipAuthProfile,
+  type PanwRipRedistEntry,
+  type PanwRipRedistProfile,
+  type PanwRipRoutingProfiles,
+  extractRipRoutingProfiles,
+} from "./rip"
 
 // ─── Filters ─────────────────────────────────────────────────────────────────
 export {
@@ -62,5 +81,12 @@ export {
   extractRoutingFilters,
 } from "./filters"
 
-// ─── Multicast (future) ──────────────────────────────────────────────────────
-// export { ... } from "./multicast"
+// ─── Multicast ────────────────────────────────────────────────────────────────
+export {
+  type PanwPimInterfaceTimerProfile,
+  type PanwIgmpInterfaceQueryProfile,
+  type PanwMsdpAuthProfile,
+  type PanwMsdpTimerProfile,
+  type PanwMulticastRoutingProfiles,
+  extractMulticastRoutingProfiles,
+} from "./multicast"

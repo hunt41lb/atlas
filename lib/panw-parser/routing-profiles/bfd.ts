@@ -3,23 +3,18 @@
 // BFD (Bidirectional Forwarding Detection) routing profile types and extractor.
 // These are LOGICAL ROUTER routing profiles, NOT Virtual Router BFD profiles.
 
-import { entries, entryName } from "../xml-helpers"
+import { entries, entryName, str } from "../xml-helpers"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface PanwBfdProfile {
   name: string
-  /** Minimum TX interval in ms — PAN-OS default: 1000 */
   minTxInterval: number
-  /** Minimum RX interval in ms — PAN-OS default: 1000 */
   minRxInterval: number
-  /** Detection time multiplier — PAN-OS default: 3 */
   detectionMultiplier: number
-  /** Hold time in ms — null = not configured */
   holdTime: number | null
-  /** Multihop: minimum received TTL — null = not configured */
   multihopMinReceivedTtl: number | null
-  /** Panorama: which template this came from */
+  mode: string | null
   templateName: string | null
 }
 
@@ -71,6 +66,7 @@ export function extractBfdProfiles(
         ? Number(mh["min-received-ttl"])
         : null
     })(),
+    mode: str(entry["mode"]) ?? null,
     templateName,
   }))
 }

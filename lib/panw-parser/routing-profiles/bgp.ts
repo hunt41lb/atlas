@@ -148,15 +148,24 @@ export interface PanwBgpFilteringCondAdvert {
   advertiseMap: string | null
 }
 
-export interface PanwBgpFilteringSubConfig {
-  conditionalAdvertExist: PanwBgpFilteringCondAdvert | null
-  conditionalAdvertNonExist: PanwBgpFilteringCondAdvert | null
-  routeMapInbound: string | null
-  routeMapOutbound: string | null
-  unsuppressMap: string | null
-  /** Multicast inherit from unicast — only relevant on multicast sub-config */
-  inherit: boolean
-}
+   export interface PanwBgpFilteringSubConfig {
+     conditionalAdvertExist: PanwBgpFilteringCondAdvert | null
+     conditionalAdvertNonExist: PanwBgpFilteringCondAdvert | null
+     routeMapInbound: string | null
+     routeMapOutbound: string | null
+     unsuppressMap: string | null
+     /** AS Path Access List filter-list refs */
+     filterListInbound: string | null
+     filterListOutbound: string | null
+     /** Inbound network filters — mutually exclusive: distribute-list (Access List) OR prefix-list */
+     inboundDistributeList: string | null
+     inboundPrefixList: string | null
+     /** Outbound network filters — mutually exclusive: distribute-list (Access List) OR prefix-list */
+     outboundDistributeList: string | null
+     outboundPrefixList: string | null
+     /** Multicast inherit from unicast — only relevant on multicast sub-config */
+     inherit: boolean
+   }
 
 export interface PanwBgpFilteringProfile {
   name: string
@@ -357,6 +366,9 @@ function extractFilteringSubConfig(castEl: unknown): PanwBgpFilteringSubConfig |
   const existEl = condAdvert?.["exist"] as Record<string, unknown> | undefined
   const nonExistEl = condAdvert?.["non-exist"] as Record<string, unknown> | undefined
   const routeMapsEl = c["route-maps"] as Record<string, unknown> | undefined
+  const filterListEl = c["filter-list"] as Record<string, unknown> | undefined
+  const inboundNfEl = c["inbound-network-filters"] as Record<string, unknown> | undefined
+  const outboundNfEl = c["outbound-network-filters"] as Record<string, unknown> | undefined
 
   return {
     conditionalAdvertExist: existEl ? {
@@ -370,6 +382,12 @@ function extractFilteringSubConfig(castEl: unknown): PanwBgpFilteringSubConfig |
     routeMapInbound: routeMapsEl ? (str(routeMapsEl["inbound"]) ?? null) : null,
     routeMapOutbound: routeMapsEl ? (str(routeMapsEl["outbound"]) ?? null) : null,
     unsuppressMap: str(c["unsuppress-map"]) ?? null,
+    filterListInbound: filterListEl ? (str(filterListEl["inbound"]) ?? null) : null,
+    filterListOutbound: filterListEl ? (str(filterListEl["outbound"]) ?? null) : null,
+    inboundDistributeList: inboundNfEl ? (str(inboundNfEl["distribute-list"]) ?? null) : null,
+    inboundPrefixList: inboundNfEl ? (str(inboundNfEl["prefix-list"]) ?? null) : null,
+    outboundDistributeList: outboundNfEl ? (str(outboundNfEl["distribute-list"]) ?? null) : null,
+    outboundPrefixList: outboundNfEl ? (str(outboundNfEl["prefix-list"]) ?? null) : null,
     inherit: str(c["inherit"]) === "yes",
   }
 }

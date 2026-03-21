@@ -25,6 +25,10 @@ import { LogicalRoutersView } from "@/app/(main)/network/_components/logical-rou
 import { BfdProfilesView } from "@/app/(main)/network/_components/routing-profiles/bfd/bfd-profiles-view"
 import { BgpProfilesView } from "@/app/(main)/network/_components/routing-profiles/bgp/bgp-profiles-view"
 import { FiltersView } from "@/app/(main)/network/_components/routing-profiles/filters/filters-view"
+import { OspfProfilesView } from "@/app/(main)/network/_components/routing-profiles/ospf/ospf-profiles-view"
+import { Ospfv3ProfilesView } from "@/app/(main)/network/_components/routing-profiles/ospfv3/ospfv3-profiles-view"
+import { RipProfilesView } from "@/app/(main)/network/_components/routing-profiles/rip/rip-profiles-view"
+import { MulticastProfilesView } from "@/app/(main)/network/_components/routing-profiles/multicast/multicast-profiles-view"
 
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
@@ -123,11 +127,11 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "routing-profiles":             { title: "Routing Profiles" },
   "routing-profiles-bgp":         { title: "BGP",                 component: BgpProfilesView },
   "routing-profiles-bfd":         { title: "BFD",                 component: BfdProfilesView },
-  "routing-profiles-ospf":        { title: "OSPF" },
-  "routing-profiles-ospfv3":      { title: "OSPFv3" },
-  "routing-profiles-ripv2":       { title: "RIPv2" },
+  "routing-profiles-ospf":        { title: "OSPF",                component: OspfProfilesView },
+  "routing-profiles-ospfv3":      { title: "OSPFv3",              component: Ospfv3ProfilesView },
+  "routing-profiles-ripv2":       { title: "RIPv2",               component: RipProfilesView },
   "routing-profiles-filters":     { title: "Filters",             component: FiltersView },
-  "routing-profiles-multicast":   { title: "Multicast" },
+  "routing-profiles-multicast":   { title: "Multicast",           component: MulticastProfilesView },
   "ipsec-tunnels":                { title: "IPSec Tunnels" },
   "gre-tunnels":                  { title: "GRE Tunnels" },
   "dhcp":                         { title: "DHCP" },

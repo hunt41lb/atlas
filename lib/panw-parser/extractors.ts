@@ -13,6 +13,8 @@ import type {
   PanwAdminDistances, PanwRipConfig, PanwRipInterface, PanwRipTimers,
   PanwOspfConfig, PanwOspfArea, PanwOspfv3Config, PanwOspfv3Area, PanwBgpConfig,
   PanwBgpPeerGroup, PanwMulticastConfig, PanwMulticastInterfaceGroup,
+  PanwLrOspfRefs, PanwLrRipRefs, PanwLrBgpRefs, PanwLrRibFilter, PanwLrMsdpRefs, PanwLrAreaRef,
+  PanwOspfGracefulRestart, PanwOspfRange,
 } from "./types"
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -640,15 +642,36 @@ function detectLinkType(entry: Record<string, unknown>): string | null {
   return null
 }
 
+function extractGracefulRestart(el: unknown): PanwOspfGracefulRestart | null {
+  if (!el || typeof el !== "object") return null
+  const gr = el as Record<string, unknown>
+  return {
+    enabled: str(gr["enable"]) === "yes",
+    helperEnabled: str(gr["helper-enable"]) === "yes",
+    strictLsaChecking: str(gr["strict-LSA-checking"]) === "yes",
+    gracePeriod: gr["grace-period"] !== undefined ? Number(gr["grace-period"]) : null,
+    maxNeighborRestartTime: gr["max-neighbor-restart-time"] !== undefined ? Number(gr["max-neighbor-restart-time"]) : null,
+  }
+}
+
+function extractOspfRanges(areaEntry: Record<string, unknown>): PanwOspfRange[] {
+  return entries(areaEntry["range"]).map((r) => ({
+    prefix: entryName(r),
+    substitute: str(r["substitute"]) ?? null,
+    advertise: str(r["advertise"]) !== "no",
+  }))
+}
+
 function extractOspfConfig(protocolEl: unknown): PanwOspfConfig {
   const ospfEl = dig(protocolEl, "ospf") as Record<string, unknown> | undefined
   if (!ospfEl) {
-    return { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, areas: [] }
+    return { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, gracefulRestart: null, rfc1583: false, areas: [] }
   }
 
   const areas: PanwOspfArea[] = entries(dig(ospfEl, "area")).map((areaEntry) => ({
     id: entryName(areaEntry),
     type: detectAreaType(areaEntry),
+    ranges: extractOspfRanges(areaEntry),
     interfaces: entries(dig(areaEntry, "interface")).map((ifEntry) => ({
       name: entryName(ifEntry),
       enabled: str(ifEntry["enable"]) === "yes",
@@ -661,6 +684,8 @@ function extractOspfConfig(protocolEl: unknown): PanwOspfConfig {
       transitDelay: ifEntry["transit-delay"] !== undefined ? Number(ifEntry["transit-delay"]) : null,
       grDelay: ifEntry["gr-delay"] !== undefined ? Number(ifEntry["gr-delay"]) : null,
       linkType: detectLinkType(ifEntry),
+      authProfile: str(ifEntry["authentication"]) ?? null,
+      timingProfile: str(ifEntry["timing"]) ?? null,
       bfdProfile: str(dig(ifEntry, "bfd", "profile")) ?? null,
     })),
   }))
@@ -670,6 +695,8 @@ function extractOspfConfig(protocolEl: unknown): PanwOspfConfig {
     routerId: str(ospfEl["router-id"]) ?? null,
     globalBfdProfile: str(dig(ospfEl, "global-bfd", "profile")) ?? null,
     rejectDefaultRoute: str(dig(ospfEl, "reject-default-route")) === "yes",
+    gracefulRestart: extractGracefulRestart(ospfEl["graceful-restart"]),
+    rfc1583: str(ospfEl["rfc1583"]) === "yes",
     areas,
   }
 }
@@ -679,12 +706,13 @@ function extractOspfConfig(protocolEl: unknown): PanwOspfConfig {
 function extractOspfv3Config(protocolEl: unknown): PanwOspfv3Config {
   const ospfv3El = dig(protocolEl, "ospfv3") as Record<string, unknown> | undefined
   if (!ospfv3El) {
-    return { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, areas: [] }
+    return { enabled: false, routerId: null, globalBfdProfile: null, rejectDefaultRoute: false, gracefulRestart: null, disableTransitTraffic: false, areas: [] }
   }
 
   const areas: PanwOspfv3Area[] = entries(dig(ospfv3El, "area")).map((areaEntry) => ({
     id: entryName(areaEntry),
     type: detectAreaType(areaEntry),
+    ranges: extractOspfRanges(areaEntry),
     interfaces: entries(dig(areaEntry, "interface")).map((ifEntry) => ({
       name: entryName(ifEntry),
       enabled: str(ifEntry["enable"]) === "yes",
@@ -698,6 +726,8 @@ function extractOspfv3Config(protocolEl: unknown): PanwOspfv3Config {
       transitDelay: ifEntry["transit-delay"] !== undefined ? Number(ifEntry["transit-delay"]) : null,
       grDelay: ifEntry["gr-delay"] !== undefined ? Number(ifEntry["gr-delay"]) : null,
       linkType: detectLinkType(ifEntry),
+      authProfile: str(ifEntry["authentication"]) ?? null,
+      timingProfile: str(ifEntry["timing"]) ?? null,
       bfdProfile: str(dig(ifEntry, "bfd", "profile")) ?? null,
     })),
   }))
@@ -707,6 +737,8 @@ function extractOspfv3Config(protocolEl: unknown): PanwOspfv3Config {
     routerId: str(ospfv3El["router-id"]) ?? null,
     globalBfdProfile: str(dig(ospfv3El, "global-bfd", "profile")) ?? null,
     rejectDefaultRoute: str(dig(ospfv3El, "reject-default-route")) === "yes",
+    gracefulRestart: extractGracefulRestart(ospfv3El["graceful-restart"]),
+    disableTransitTraffic: str(ospfv3El["disable-transit-traffic"]) === "yes",
     areas,
   }
 }
@@ -845,6 +877,167 @@ export function extractVirtualRouters(
   })
 }
 
+// ─── Shared: OSPF/OSPFv3 area refs ───────────────────────────────────────────
+
+function extractAreaRefs(protocolEl: Record<string, unknown> | undefined): PanwLrAreaRef[] {
+  return entries(protocolEl?.["area"]).map((area) => {
+    // ABR filters live under type > normal > abr (most common area type)
+    const abrEl = dig(area, "type", "normal", "abr") as Record<string, unknown> | undefined
+    return {
+      id: entryName(area),
+      abrImportList: abrEl ? (str(abrEl["import-list"]) ?? null) : null,
+      abrExportList: abrEl ? (str(abrEl["export-list"]) ?? null) : null,
+      abrInboundFilterList: abrEl ? (str(abrEl["inbound-filter-list"]) ?? null) : null,
+      abrOutboundFilterList: abrEl ? (str(abrEl["outbound-filter-list"]) ?? null) : null,
+      authProfile: str(area["authentication"]) ?? null,
+      interfaces: entries(area["interface"]).map((iface) => ({
+        name: entryName(iface),
+        timingProfile: str(iface["timing"]) ?? null,
+        authProfile: str(iface["authentication"]) ?? null,
+        bfdProfile: iface["bfd"] ? (str((iface["bfd"] as Record<string, unknown>)["profile"]) ?? null) : null,
+      })),
+    }
+  })
+}
+
+// ─── OSPF refs ────────────────────────────────────────────────────────────────
+
+function extractLrOspfRefs(ospfEl: Record<string, unknown> | undefined): PanwLrOspfRefs | undefined {
+  if (!ospfEl) return undefined
+  return {
+    enabled: str(ospfEl["enable"]) === "yes",
+    routerId: str(ospfEl["router-id"]) ?? null,
+    redistProfileName: str(ospfEl["redistribution-profile"]) ?? null,
+    spfTimerName: str(ospfEl["spf-timer"]) ?? null,
+    globalIfTimerName: str(ospfEl["global-if-timer"]) ?? null,
+    globalBfdProfile: ospfEl["global-bfd"] ? (str((ospfEl["global-bfd"] as Record<string, unknown>)["profile"]) ?? null) : null,
+    areas: extractAreaRefs(ospfEl),
+  }
+}
+
+// ─── RIP refs ─────────────────────────────────────────────────────────────────
+
+function extractLrRipRefs(ripEl: Record<string, unknown> | undefined): PanwLrRipRefs | undefined {
+  if (!ripEl) return undefined
+  const gInEl = ripEl["global-inbound-distribute-list"] as Record<string, unknown> | undefined
+  const gOutEl = ripEl["global-outbound-distribute-list"] as Record<string, unknown> | undefined
+  return {
+    enabled: str(ripEl["enable"]) === "yes",
+    globalTimerName: str(ripEl["global-timer"]) ?? null,
+    authProfileName: str(ripEl["auth-profile"]) ?? null,
+    redistProfileName: str(ripEl["redistribution-profile"]) ?? null,
+    globalBfdProfile: ripEl["global-bfd"] ? (str((ripEl["global-bfd"] as Record<string, unknown>)["profile"]) ?? null) : null,
+    globalInboundDistList: gInEl ? (str(gInEl["access-list"]) ?? null) : null,
+    globalOutboundDistList: gOutEl ? (str(gOutEl["access-list"]) ?? null) : null,
+    interfaces: entries(ripEl["interface"]).map((iface) => {
+      const iInEl = iface["interface-inbound-distribute-list"] as Record<string, unknown> | undefined
+      const iOutEl = iface["interface-outbound-distribute-list"] as Record<string, unknown> | undefined
+      return {
+        name: entryName(iface),
+        inboundDistList: iInEl ? (str(iInEl["access-list"]) ?? null) : null,
+        outboundDistList: iOutEl ? (str(iOutEl["access-list"]) ?? null) : null,
+        authProfile: str(iface["authentication"]) ?? null,
+        bfdProfile: iface["bfd"] ? (str((iface["bfd"] as Record<string, unknown>)["profile"]) ?? null) : null,
+      }
+    }),
+  }
+}
+
+// ─── BGP refs ─────────────────────────────────────────────────────────────────
+
+function extractLrBgpRefs(bgpEl: Record<string, unknown> | undefined): PanwLrBgpRefs | undefined {
+  if (!bgpEl) return undefined
+  const redistEl = bgpEl["redistribution-profile"] as Record<string, unknown> | undefined
+  return {
+    enabled: str(bgpEl["enable"]) === "yes",
+    routerId: str(bgpEl["router-id"]) ?? null,
+    localAs: str(bgpEl["local-as"]) ?? null,
+    globalBfdProfile: bgpEl["global-bfd"] ? (str((bgpEl["global-bfd"] as Record<string, unknown>)["profile"]) ?? null) : null,
+    redistProfile: {
+      ipv4Unicast: redistEl?.["ipv4"] ? (str((redistEl["ipv4"] as Record<string, unknown>)["unicast"]) ?? null) : null,
+      ipv6Unicast: redistEl?.["ipv6"] ? (str((redistEl["ipv6"] as Record<string, unknown>)["unicast"]) ?? null) : null,
+    },
+    peerGroups: entries(bgpEl["peer-group"]).map((pg) => {
+      const afEl = pg["address-family"] as Record<string, unknown> | undefined
+      const fpEl = pg["filtering-profile"] as Record<string, unknown> | undefined
+      const coEl = pg["connection-options"] as Record<string, unknown> | undefined
+      return {
+        name: entryName(pg),
+        type: pg["type"] ? Object.keys(pg["type"] as Record<string, unknown>)[0] : null,
+        addressFamily: { ipv4: afEl ? (str(afEl["ipv4"]) ?? null) : null, ipv6: afEl ? (str(afEl["ipv6"]) ?? null) : null },
+        filteringProfile: { ipv4: fpEl ? (str(fpEl["ipv4"]) ?? null) : null, ipv6: fpEl ? (str(fpEl["ipv6"]) ?? null) : null },
+        connectionOptions: {
+          auth: coEl ? (str(coEl["authentication"]) ?? null) : null,
+          timers: coEl ? (str(coEl["timers"]) ?? null) : null,
+          dampening: coEl ? (str(coEl["dampening"]) ?? null) : null,
+        },
+        peers: entries(pg["peer"]).map((p) => {
+          const pco = p["connection-options"] as Record<string, unknown> | undefined
+          return {
+            name: entryName(p),
+            connectionOptions: {
+              auth: pco ? (str(pco["authentication"]) ?? null) : null,
+              timers: pco ? (str(pco["timers"]) ?? null) : null,
+              dampening: pco ? (str(pco["dampening"]) ?? null) : null,
+            },
+            bfdProfile: p["bfd"] ? (str((p["bfd"] as Record<string, unknown>)["profile"]) ?? null) : null,
+          }
+        }),
+      }
+    }),
+    aggregateRoutes: entries(bgpEl["aggregate-routes"]).map((ar) => {
+      const typeEl = ar["type"] as Record<string, unknown> | undefined
+      const ipv4 = typeEl?.["ipv4"] as Record<string, unknown> | undefined
+      const ipv6 = typeEl?.["ipv6"] as Record<string, unknown> | undefined
+      return {
+        name: entryName(ar),
+        suppressMap: str(ipv4?.["suppress-map"] ?? ipv6?.["suppress-map"]) ?? null,
+        attributeMap: str(ipv4?.["attribute-map"] ?? ipv6?.["attribute-map"]) ?? null,
+      }
+    }),
+  }
+}
+
+// ─── RIB Filter ───────────────────────────────────────────────────────────────
+
+function extractLrRibFilter(ribFilterEl: Record<string, unknown> | undefined): PanwLrRibFilter | undefined {
+  if (!ribFilterEl) return undefined
+  const ipv4 = ribFilterEl["ipv4"] as Record<string, unknown> | undefined
+  const ipv6 = ribFilterEl["ipv6"] as Record<string, unknown> | undefined
+  const routeMap = (proto: Record<string, unknown> | undefined) =>
+    proto ? (str(proto["route-map"]) ?? null) : null
+  return {
+    ipv4: {
+      bgp: routeMap(ipv4?.["bgp"] as Record<string, unknown> | undefined),
+      ospf: routeMap(ipv4?.["ospf"] as Record<string, unknown> | undefined),
+      static: routeMap(ipv4?.["static"] as Record<string, unknown> | undefined),
+      rip: routeMap(ipv4?.["rip"] as Record<string, unknown> | undefined),
+    },
+    ipv6: {
+      bgp: routeMap(ipv6?.["bgp"] as Record<string, unknown> | undefined),
+      ospfv3: routeMap(ipv6?.["ospfv3"] as Record<string, unknown> | undefined),
+      static: routeMap(ipv6?.["static"] as Record<string, unknown> | undefined),
+    },
+  }
+}
+
+// ─── MSDP refs ────────────────────────────────────────────────────────────────
+
+function extractLrMsdpRefs(multicastEl: Record<string, unknown> | undefined): PanwLrMsdpRefs | undefined {
+  const msdpEl = multicastEl?.["msdp"] as Record<string, unknown> | undefined
+  if (!msdpEl) return undefined
+  return {
+    globalTimerName: str(msdpEl["global-timer"]) ?? null,
+    globalAuthName: str(msdpEl["global-authentication"]) ?? null,
+    peers: entries(msdpEl["peer"]).map((p) => ({
+      name: entryName(p),
+      authProfile: str(p["authentication"]) ?? null,
+      inboundSaFilter: str(p["inbound-sa-filter"]) ?? null,
+      outboundSaFilter: str(p["outbound-sa-filter"]) ?? null,
+    })),
+  }
+}
+
 // ─── Logical Routers ──────────────────────────────────────────────────────────
 
 export function extractLogicalRouters(
@@ -904,6 +1097,12 @@ export function extractLogicalRouters(
         multicast: extractMulticastConfig(vrfEntry),
         // Admin Distances
         adminDistances: extractAdminDistances(vrfEntry["admin-dists"]),
+        ospfRefs: extractLrOspfRefs(vrfEntry["ospf"] as Record<string, unknown> | undefined),
+        ospfv3Refs: extractLrOspfRefs(vrfEntry["ospfv3"] as Record<string, unknown> | undefined),
+        ripRefs: extractLrRipRefs(vrfEntry["rip"] as Record<string, unknown> | undefined),
+        bgpRefs: extractLrBgpRefs(vrfEntry["bgp"] as Record<string, unknown> | undefined),
+        ribFilter: extractLrRibFilter(vrfEntry["rib-filter"] as Record<string, unknown> | undefined),
+        msdpRefs: extractLrMsdpRefs(vrfEntry["multicast"] as Record<string, unknown> | undefined),
       }
     })
   })
@@ -1011,29 +1210,29 @@ export function extractNatRules(
 }
 
 export function extractTemplateVariables(variableEl: unknown): PanwTemplateVariable[] {
-   return entries(variableEl).map((entry) => {
-     const typeEl = entry["type"] as Record<string, unknown> | undefined
+  return entries(variableEl).map((entry) => {
+    const typeEl = entry["type"] as Record<string, unknown> | undefined
 
-     // Type contains a single key whose name is the variable type
-     // and whose value is the resolved value
-     let type: TemplateVariableType = "ip-netmask"
-     let value = ""
+    // Type contains a single key whose name is the variable type
+    // and whose value is the resolved value
+    let type: TemplateVariableType = "ip-netmask"
+    let value = ""
 
-     if (typeEl) {
-       for (const key of ["ip-netmask", "ip-range", "fqdn", "ip-wildcard"] as const) {
-         if (typeEl[key] !== undefined) {
-           type = key
-           value = str(typeEl[key]) ?? ""
-           break
-         }
-       }
-     }
+    if (typeEl) {
+      for (const key of ["ip-netmask", "ip-range", "fqdn", "ip-wildcard"] as const) {
+        if (typeEl[key] !== undefined) {
+          type = key
+          value = str(typeEl[key]) ?? ""
+          break
+        }
+      }
+    }
 
-     return {
-       name: entryName(entry),
-       type,
-       value,
-       description: str(entry["description"]),
-     }
-   })
+    return {
+      name: entryName(entry),
+      type,
+      value,
+      description: str(entry["description"]),
+    }
+  })
 }

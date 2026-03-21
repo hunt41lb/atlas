@@ -1,4 +1,4 @@
-// @/lib/panw-parser/routing-profiles/filters.ts
+// @/src/parser/routing-profiles/filters.ts
 //
 // Routing filter types and extractors for Logical Routers.
 // XML path: <network><routing-profile><filters>
@@ -179,15 +179,21 @@ export interface PanwBgpRouteMap {
 // ─── Redistribution Route Map ─────────────────────────────────────────────────
 
 export interface PanwRedistRouteMapMatch {
-  /** Filter refs under <ipv4> wrapper (connected-static→bgp) */
+  /** Filter refs under <ipv4> wrapper */
   ipv4Address: PanwRouteMapFilterRef | null
   ipv4NextHop: PanwRouteMapFilterRef | null
+  ipv4RouteSource: PanwRouteMapFilterRef | null
   /** Filter refs under <ipv6> wrapper */
   ipv6Address: PanwRouteMapFilterRef | null
   ipv6NextHop: PanwRouteMapFilterRef | null
-  /** Filter refs directly on match (ospf→bgp, rip→bgp) */
+  /** Filter refs directly on match (ospf→bgp, rip→bgp, etc.) */
   address: PanwRouteMapFilterRef | null
   nextHop: PanwRouteMapFilterRef | null
+  /** Community / AS path fields (BGP-source entries) */
+  asPathAccessList: string | null
+  regularCommunity: string | null
+  largeCommunity: string | null
+  extendedCommunity: string | null
   interface: string | null
   origin: string | null
   metric: number | null
@@ -205,7 +211,12 @@ export interface PanwRedistRouteMapSet {
   largeCommunity: string[]
   ipv4SourceAddress: string | null
   ipv4NextHop: string | null
+  ipv6SourceAddress: string | null
   ipv6NextHop: string | null
+  /** Direct next-hop on set root (not under ipv4/ipv6), e.g. "unchanged" */
+  nextHop: string | null
+  /** Direct source-address on set root (Rib dest entries) */
+  sourceAddress: string | null
   tag: number | null
   localPreference: number | null
   weight: number | null
@@ -590,9 +601,10 @@ function extractBgpRouteMaps(
 
 function extractRedistRouteMapMatch(matchEl: unknown): PanwRedistRouteMapMatch {
   const empty: PanwRedistRouteMapMatch = {
-    ipv4Address: null, ipv4NextHop: null,
+    ipv4Address: null, ipv4NextHop: null, ipv4RouteSource: null,
     ipv6Address: null, ipv6NextHop: null,
     address: null, nextHop: null,
+    asPathAccessList: null, regularCommunity: null, largeCommunity: null, extendedCommunity: null,
     interface: null, origin: null, metric: null,
     tag: null, localPreference: null, peer: null,
   }
@@ -605,10 +617,15 @@ function extractRedistRouteMapMatch(matchEl: unknown): PanwRedistRouteMapMatch {
   return {
     ipv4Address: ipv4El ? extractFilterRef(ipv4El["address"]) : null,
     ipv4NextHop: ipv4El ? extractFilterRef(ipv4El["next-hop"]) : null,
+    ipv4RouteSource: ipv4El ? extractFilterRef(ipv4El["route-source"]) : null,
     ipv6Address: ipv6El ? extractFilterRef(ipv6El["address"]) : null,
     ipv6NextHop: ipv6El ? extractFilterRef(ipv6El["next-hop"]) : null,
     address: extractFilterRef(m["address"]),
     nextHop: extractFilterRef(m["next-hop"]),
+    asPathAccessList: str(m["as-path-access-list"]) ?? null,
+    regularCommunity: str(m["regular-community"]) ?? null,
+    largeCommunity: str(m["large-community"]) ?? null,
+    extendedCommunity: str(m["extended-community"]) ?? null,
     interface: str(m["interface"]) ?? null,
     origin: str(m["origin"]) ?? null,
     metric: numOrNull(m["metric"]),
@@ -622,7 +639,9 @@ function extractRedistRouteMapSet(setEl: unknown): PanwRedistRouteMapSet {
   const empty: PanwRedistRouteMapSet = {
     aggregator: null, metric: null, metricType: null,
     aspathPrepend: [], regularCommunity: [], largeCommunity: [],
-    ipv4SourceAddress: null, ipv4NextHop: null, ipv6NextHop: null,
+    ipv4SourceAddress: null, ipv4NextHop: null,
+    ipv6SourceAddress: null, ipv6NextHop: null,
+    nextHop: null, sourceAddress: null,
     tag: null, localPreference: null, weight: null,
     origin: null, atomicAggregate: false, originatorId: null,
   }
@@ -641,7 +660,10 @@ function extractRedistRouteMapSet(setEl: unknown): PanwRedistRouteMapSet {
     largeCommunity: members(s["large-community"]),
     ipv4SourceAddress: ipv4El ? (str(ipv4El["source-address"]) ?? null) : null,
     ipv4NextHop: ipv4El ? (str(ipv4El["next-hop"]) ?? null) : null,
+    ipv6SourceAddress: ipv6El ? (str(ipv6El["source-address"]) ?? null) : null,
     ipv6NextHop: ipv6El ? (str(ipv6El["next-hop"]) ?? null) : null,
+    nextHop: str(s["next-hop"]) ?? null,
+    sourceAddress: str(s["source-address"]) ?? null,
     tag: numOrNull(s["tag"]),
     localPreference: numOrNull(s["local-preference"]),
     weight: numOrNull(s["weight"]),
@@ -652,7 +674,7 @@ function extractRedistRouteMapSet(setEl: unknown): PanwRedistRouteMapSet {
 }
 
 /** Known source protocol keys in redistribution route maps */
-const REDIST_SOURCE_KEYS = ["connected-static", "rip", "bgp", "ospf"] as const
+const REDIST_SOURCE_KEYS = ["connected-static", "rip", "bgp", "ospf", "ospfv3"] as const
 
 /** Known destination protocol keys */
 const REDIST_DEST_KEYS = ["ospf", "bgp", "ospfv3", "rip", "rib"] as const

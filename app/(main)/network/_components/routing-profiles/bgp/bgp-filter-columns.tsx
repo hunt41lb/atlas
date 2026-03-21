@@ -24,6 +24,13 @@ function FilterSummary({ sub }: { sub: PanwBgpFilteringProfile["ipv4Unicast"] })
   if (sub.routeMapInbound) items.push(`In: ${sub.routeMapInbound}`)
   if (sub.routeMapOutbound) items.push(`Out: ${sub.routeMapOutbound}`)
   if (sub.unsuppressMap) items.push(`Unsuppress: ${sub.unsuppressMap}`)
+  // New fields
+  if (sub.filterListInbound) items.push(`FL In: ${sub.filterListInbound}`)
+  if (sub.filterListOutbound) items.push(`FL Out: ${sub.filterListOutbound}`)
+  if (sub.inboundDistributeList) items.push(`NF In (ACL): ${sub.inboundDistributeList}`)
+  if (sub.inboundPrefixList) items.push(`NF In (PL): ${sub.inboundPrefixList}`)
+  if (sub.outboundDistributeList) items.push(`NF Out (ACL): ${sub.outboundDistributeList}`)
+  if (sub.outboundPrefixList) items.push(`NF Out (PL): ${sub.outboundPrefixList}`)
 
   if (items.length === 0) return <span className="text-muted-foreground text-xs">—</span>
 

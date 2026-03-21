@@ -362,7 +362,11 @@ function RedistMatchTab({
     }
     // IPv4 — check wrapped first, then direct
     const hasIpv4Wrapped = match.ipv4Address !== null || match.ipv4NextHop !== null
-    if (hasIpv4Wrapped) return tab === "address" ? match.ipv4Address : match.ipv4NextHop
+    if (hasIpv4Wrapped) {
+      return tab === "address" ? match.ipv4Address
+        : tab === "next-hop" ? match.ipv4NextHop
+        : (match.ipv4RouteSource ?? null)
+    }
     return tab === "address" ? match.address : match.nextHop
   }
 
@@ -376,10 +380,10 @@ function RedistMatchTab({
             <CardContent>
               <div className="grid grid-cols-2 gap-x-6">
                 <div>
-                  <Field label="AS Path Access List" value={null} />
-                  <Field label="Regular Community" value={null} />
-                  <Field label="Large Community" value={null} />
-                  <Field label="Extended Community" value={null} />
+                  <Field label="AS Path Access List" value={match.asPathAccessList} />
+                  <Field label="Regular Community" value={match.regularCommunity} />
+                  <Field label="Large Community" value={match.largeCommunity} />
+                  <Field label="Extended Community" value={match.extendedCommunity} />
                   <Field label="Metric" value={match.metric} />
                 </div>
                 <div>
@@ -492,6 +496,7 @@ function RedistSetTab({
               <CardContent>
                 <Field label="Source Address" value={set.ipv4SourceAddress} />
                 <Field label="IPv4 Next-Hop" value={set.ipv4NextHop} />
+                <Field label="IPv6 Source Address" value={set.ipv6SourceAddress} />
                 <Field label="IPv6 Next-Hop" value={set.ipv6NextHop} />
               </CardContent>
             </Card>
@@ -522,7 +527,10 @@ function RedistSetTab({
     )
   }
 
-  // OSPF destination — simpler set, organized in Cards
+  const isOspfDest = destProtocol === "ospf" || destProtocol === "ospfv3"
+  const isRibDest = destProtocol === "rib"
+
+  // Non-BGP destination — OSPF, OSPFv3, RIP, or Rib
   return (
     <div className="p-5 space-y-4">
       <Card size="sm">
@@ -537,15 +545,21 @@ function RedistSetTab({
 
       <Card size="sm">
         <CardContent>
-          <RadioField
-            label="Metric Type"
-            value={set.metricType}
-            options={[
-              { value: "type-1", label: "Type 1" },
-              { value: "type-2", label: "Type 2" },
-            ]}
-          />
+          {isOspfDest && (
+            <RadioField
+              label="Metric Type"
+              value={set.metricType}
+              options={[
+                { value: "type-1", label: "Type 1" },
+                { value: "type-2", label: "Type 2" },
+              ]}
+            />
+          )}
+          <Field label="Next Hop" value={set.nextHop} />
           <Field label="Tag" value={set.tag} />
+          {isRibDest && (
+            <Field label="Source Address" value={set.sourceAddress} />
+          )}
         </CardContent>
       </Card>
     </div>
@@ -561,6 +575,7 @@ const SOURCE_LABELS: Record<string, string> = {
   rip: "RIP",
   bgp: "BGP",
   ospf: "OSPF",
+  ospfv3: "OSPFv3",
 }
 
 const DEST_LABELS: Record<string, string> = {
