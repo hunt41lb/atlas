@@ -87,11 +87,34 @@ function AreaDetailDialog({
               </div>
             </TabsContent>
 
-            {/* Range tab - placeholder */}
+            {/* Range tab */}
             <TabsContent value="range">
-              <p className="py-4 text-xs text-muted-foreground text-center">
-                No range entries configured.
-              </p>
+              {(area.ranges ?? []).length === 0 ? (
+                <p className="py-4 text-xs text-muted-foreground text-center">
+                  No range entries configured.
+                </p>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-[11px]">IP ADDRESS/NETMASK</TableHead>
+                        <TableHead className="text-[11px]">SUBSTITUTE</TableHead>
+                        <TableHead className="text-[11px]">ADVERTISE</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {area.ranges.map((r) => (
+                        <TableRow key={r.prefix}>
+                          <TableCell><MonoValue className="text-xs">{r.prefix}</MonoValue></TableCell>
+                          <TableCell><span className="text-xs">{r.substitute ?? "—"}</span></TableCell>
+                          <TableCell>{r.advertise ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </TabsContent>
 
             {/* Interface tab */}
@@ -124,8 +147,8 @@ function AreaDetailDialog({
                         <TableCell><span className="text-xs">{iface.linkType ?? "—"}</span></TableCell>
                         <TableCell><span className="tabular-nums text-xs">{iface.metric ?? "—"}</span></TableCell>
                         <TableCell><span className="tabular-nums text-xs">{iface.priority ?? "—"}</span></TableCell>
-                        <TableCell><span className="text-xs">{(iface as unknown as Record<string, unknown>)["authProfile"] as string ?? "—"}</span></TableCell>
-                        <TableCell><span className="text-xs">{(iface as unknown as Record<string, unknown>)["timingProfile"] as string ?? "—"}</span></TableCell>
+                        <TableCell><span className="text-xs">{iface.authProfile ?? "—"}</span></TableCell>
+                        <TableCell><span className="text-xs">{iface.timingProfile ?? "—"}</span></TableCell>
                         <TableCell><span className="text-xs">{iface.bfdProfile ?? "—"}</span></TableCell>
                       </TableRow>
                     ))}
@@ -200,7 +223,12 @@ function AreaTab({
                   <TableCell><MonoValue className="text-xs">{area.id}</MonoValue></TableCell>
                   <TableCell><span className="text-xs">{area.type}</span></TableCell>
                   <TableCell><span className="text-xs">{ref?.authProfile ?? "—"}</span></TableCell>
-                  <TableCell><span className="text-xs text-muted-foreground">—</span></TableCell>
+                  <TableCell>
+                    {(area.ranges ?? []).length > 0
+                      ? <MonoValue className="text-xs">{area.ranges[0].prefix}</MonoValue>
+                      : <span className="text-xs text-muted-foreground">—</span>
+                    }
+                  </TableCell>
                   <TableCell><MonoValue className="text-xs">{firstInterface(area)}</MonoValue></TableCell>
                 </TableRow>
               )
@@ -223,28 +251,24 @@ function AreaTab({
 // ─── Advanced Tab ─────────────────────────────────────────────────────────────
 
 function AdvancedTab({ router, protocol }: { router: RouterDialogPageProps["router"]; protocol: "ospf" | "ospfv3" }) {
-  // Graceful restart and rfc1583 come from the existing ospf/ospfv3 config
-  // These fields are parsed by the existing extractOspfConfig/extractOspfv3Config
   const cfg = router[protocol]
-  const gr = (cfg as unknown as Record<string, unknown>)?.["gracefulRestart"] as Record<string, unknown> | undefined
-  const rfc = protocol === "ospf" ? (cfg as unknown as Record<string, unknown>)?.["rfc1583"] : null
-  const disableTransit = protocol === "ospfv3" ? (cfg as unknown as Record<string, unknown>)?.["disableTransitTraffic"] : null
+  const gr = cfg?.gracefulRestart ?? null
 
   return (
     <div className="grid grid-cols-2 gap-6">
       <FieldGroup title="Graceful Restart">
-        <ReadOnlyCheckbox checked={gr?.["enabled"] === true} label="Enable Graceful Restart" />
-        <ReadOnlyCheckbox checked={gr?.["helperEnabled"] === true} label="Enable Helper Mode" />
-        <ReadOnlyCheckbox checked={gr?.["strictLsaChecking"] === true} label="Enable Strict LSA Checking" />
-        <LabeledValue label="Grace Period (sec)" value={String(gr?.["gracePeriod"] ?? "—")} />
-        <LabeledValue label="Max Neighbor Restart Time (sec)" value={String(gr?.["maxNeighborRestartTime"] ?? "—")} />
+        <ReadOnlyCheckbox checked={gr?.enabled ?? false} label="Enable Graceful Restart" />
+        <ReadOnlyCheckbox checked={gr?.helperEnabled ?? false} label="Enable Helper Mode" />
+        <ReadOnlyCheckbox checked={gr?.strictLsaChecking ?? false} label="Enable Strict LSA Checking" />
+        <LabeledValue label="Grace Period (sec)" value={gr?.gracePeriod ?? "—"} />
+        <LabeledValue label="Max Neighbor Restart Time (sec)" value={gr?.maxNeighborRestartTime ?? "—"} />
       </FieldGroup>
       <div>
         {protocol === "ospf" && (
-          <ReadOnlyCheckbox checked={rfc === true} label="rfc-1583 compatibility" />
+          <ReadOnlyCheckbox checked={(cfg as { rfc1583?: boolean })?.rfc1583 ?? false} label="rfc-1583 compatibility" />
         )}
         {protocol === "ospfv3" && (
-          <ReadOnlyCheckbox checked={disableTransit === true} label="Disable R-Bit and v6-Bit" />
+          <ReadOnlyCheckbox checked={(cfg as { disableTransitTraffic?: boolean })?.disableTransitTraffic ?? false} label="Disable R-Bit and v6-Bit" />
         )}
       </div>
     </div>

@@ -1132,7 +1132,7 @@ function BgpGlobalSummary({ routers, vrFilter }: { routers: PanwVirtualRouter[];
               <Badge variant="green" size="sm">Install Route</Badge>
             </>
           )}
-          {vr.bgp.gracefulRestartEnabled && (
+          {vr.bgp.gracefulRestart?.enabled && (
             <>
               <span className="text-muted-foreground">|</span>
               <Badge variant="blue" size="sm">Graceful Restart</Badge>

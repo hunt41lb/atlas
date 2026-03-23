@@ -28,6 +28,9 @@ import { GeneralPage, type RouterDialogPageProps } from "./router-dialog/router-
 import { StaticPage } from "./router-dialog/router-dialog-static"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
 import { OspfPage, Ospfv3Page } from "./router-dialog/router-dialog-ospf"
+import { RipPage } from "./router-dialog/router-dialog-rip"
+import { BgpPage } from "./router-dialog/router-dialog-bgp"
+import { MulticastPage } from "./router-dialog/router-dialog-multicast"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,6 +64,9 @@ const PAGE_COMPONENTS: Record<string, React.ComponentType<RouterDialogPageProps>
   static: StaticPage,
   ospf: OspfPage,
   ospfv3: Ospfv3Page,
+  ripv2: RipPage,
+  bgp: BgpPage,
+  multicast: MulticastPage,
 }
 
 // Fallback for pages not yet built
@@ -157,4 +163,3 @@ export function RouterDialog({
     </Dialog>
   )
 }
-

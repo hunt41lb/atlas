@@ -14,7 +14,8 @@ import type {
   PanwOspfConfig, PanwOspfArea, PanwOspfv3Config, PanwOspfv3Area, PanwBgpConfig,
   PanwBgpPeerGroup, PanwMulticastConfig, PanwMulticastInterfaceGroup,
   PanwLrOspfRefs, PanwLrRipRefs, PanwLrBgpRefs, PanwLrRibFilter, PanwLrMsdpRefs, PanwLrAreaRef,
-  PanwOspfGracefulRestart, PanwOspfRange,
+  PanwOspfGracefulRestart, PanwOspfRange, PanwBgpNetworkEntry,
+  PanwMulticastStaticRoute, PanwMulticastPimConfig, PanwMulticastIgmpConfig, PanwMulticastMsdpConfig,
 } from "./types"
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -586,6 +587,7 @@ function extractRipConfig(protocolEl: unknown): PanwRipConfig {
   if (!ripEl) {
     return {
       enabled: false,
+      defaultInformationOriginate: false,
       globalBfdProfile: null,
       rejectDefaultRoute: false,
       interfaces: [],
@@ -596,13 +598,14 @@ function extractRipConfig(protocolEl: unknown): PanwRipConfig {
   const interfaces: PanwRipInterface[] = entries(dig(ripEl, "interface")).map((entry) => ({
     name: entryName(entry),
     enabled: str(entry["enable"]) === "yes",
+    splitHorizon: str(entry["split-horizon"]) ?? null,
     mode: str(entry["mode"]) ?? null,
     bfdProfile: str(dig(entry, "bfd", "profile")) ?? null,
     defaultRouteAdvertise: dig(entry, "default-route", "advertise") !== undefined,
     defaultRouteMetric: dig(entry, "default-route", "advertise", "metric") !== undefined
       ? Number(str(dig(entry, "default-route", "advertise", "metric")))
       : null,
-    authProfile: str(entry["auth-profile"]) ?? null,
+    authProfile: str(entry["authentication"]) ?? str(entry["auth-profile"]) ?? null,
   }))
 
   const timersEl = ripEl["timers"] as Record<string, unknown> | undefined
@@ -615,6 +618,7 @@ function extractRipConfig(protocolEl: unknown): PanwRipConfig {
 
   return {
     enabled: str(ripEl["enable"]) === "yes",
+    defaultInformationOriginate: str(ripEl["default-information-originate"]) === "yes",
     globalBfdProfile: str(dig(ripEl, "global-bfd", "profile")) ?? null,
     rejectDefaultRoute: str(dig(ripEl, "reject-default-route")) === "yes",
     interfaces,
@@ -657,7 +661,7 @@ function extractGracefulRestart(el: unknown): PanwOspfGracefulRestart | null {
 function extractOspfRanges(areaEntry: Record<string, unknown>): PanwOspfRange[] {
   return entries(areaEntry["range"]).map((r) => ({
     prefix: entryName(r),
-    substitute: str(r["substitute"]) ?? null,
+    substitute: str(r["@_substitute"]) ?? null,
     advertise: str(r["advertise"]) !== "no",
   }))
 }
@@ -759,8 +763,14 @@ function extractBgpConfig(protocolEl: unknown): PanwBgpConfig {
   const bgpEl = dig(protocolEl, "bgp") as Record<string, unknown> | undefined
   if (!bgpEl) {
     return {
-      enabled: false, routerId: null, localAs: null, installRoute: false,
-      gracefulRestartEnabled: false, rejectDefaultRoute: false, peerGroups: [],
+      enabled: false, routerId: null, localAs: null, globalBfdProfile: null,
+      installRoute: false, fastExternalFailover: false, gracefulShutdown: false,
+      ecmpMultiAs: false, enforceFirstAs: false, defaultLocalPreference: null,
+      alwaysAdvertiseNetworkRoute: false,
+      gracefulRestart: { enabled: false, staleRouteTime: null, maxPeerRestartTime: null, localRestartTime: null },
+      alwaysCompareMed: false, deterministicMedComparison: false,
+      rejectDefaultRoute: false, peerGroups: [],
+      ipv4Networks: [], ipv6Networks: [],
     }
   }
 
@@ -782,14 +792,45 @@ function extractBgpConfig(protocolEl: unknown): PanwBgpConfig {
     })),
   }))
 
+  const grEl = bgpEl["graceful-restart"] as Record<string, unknown> | undefined
+  const medEl = bgpEl["med"] as Record<string, unknown> | undefined
+  const advNet = bgpEl["advertise-network"] as Record<string, unknown> | undefined
+
+  function extractNetworkEntries(afiEl: unknown): PanwBgpNetworkEntry[] {
+    if (!afiEl || typeof afiEl !== "object") return []
+    const afi = afiEl as Record<string, unknown>
+    return entries(dig(afi, "network")).map((entry) => ({
+      network: entryName(entry),
+      unicast: str(entry["unicast"]) === "yes",
+      multicast: str(entry["multicast"]) === "yes",
+      backdoor: str(entry["backdoor"]) === "yes",
+    }))
+  }
+
   return {
     enabled: str(bgpEl["enable"]) === "yes",
     routerId: str(bgpEl["router-id"]) ?? null,
     localAs: str(bgpEl["local-as"]) ?? null,
+    globalBfdProfile: str(dig(bgpEl, "global-bfd", "profile")) ?? null,
     installRoute: str(bgpEl["install-route"]) === "yes",
-    gracefulRestartEnabled: str(dig(bgpEl, "routing-options", "graceful-restart", "enable")) === "yes",
+    fastExternalFailover: str(bgpEl["fast-external-failover"]) === "yes",
+    gracefulShutdown: str(bgpEl["graceful-shutdown"]) === "yes",
+    ecmpMultiAs: str(bgpEl["ecmp-multi-as"]) === "yes",
+    enforceFirstAs: str(bgpEl["enforce-first-as"]) === "yes",
+    defaultLocalPreference: bgpEl["default-local-preference"] !== undefined ? Number(bgpEl["default-local-preference"]) : null,
+    alwaysAdvertiseNetworkRoute: str(bgpEl["always-advertise-network-route"]) === "yes",
+    gracefulRestart: {
+      enabled: grEl ? str(grEl["enable"]) === "yes" : false,
+      staleRouteTime: grEl?.["stale-route-time"] !== undefined ? Number(grEl["stale-route-time"]) : null,
+      maxPeerRestartTime: grEl?.["max-peer-restart-time"] !== undefined ? Number(grEl["max-peer-restart-time"]) : null,
+      localRestartTime: grEl?.["local-restart-time"] !== undefined ? Number(grEl["local-restart-time"]) : null,
+    },
+    alwaysCompareMed: medEl ? str(medEl["always-compare-med"]) === "yes" : false,
+    deterministicMedComparison: medEl ? str(medEl["deterministic-med-comparison"]) === "yes" : false,
     rejectDefaultRoute: str(dig(bgpEl, "reject-default-route")) === "yes",
     peerGroups,
+    ipv4Networks: extractNetworkEntries(advNet?.["ipv4"]),
+    ipv6Networks: extractNetworkEntries(advNet?.["ipv6"]),
   }
 }
 
@@ -798,9 +839,10 @@ function extractBgpConfig(protocolEl: unknown): PanwBgpConfig {
 function extractMulticastConfig(vrEntry: Record<string, unknown>): PanwMulticastConfig {
   const mcEl = vrEntry["multicast"] as Record<string, unknown> | undefined
   if (!mcEl) {
-    return { enabled: false, interfaceGroups: [] }
+    return { enabled: false, interfaceGroups: [], staticRoutes: [], pim: null, igmp: null, msdp: null }
   }
 
+  //Interface groups (VR style)
   const interfaceGroups: PanwMulticastInterfaceGroup[] = entries(dig(mcEl, "interface-group")).map((igEntry) => ({
     name: entryName(igEntry),
     description: str(igEntry["description"]) ?? null,
@@ -810,12 +852,98 @@ function extractMulticastConfig(vrEntry: Record<string, unknown>): PanwMulticast
     igmpVersion: str(dig(igEntry, "igmp", "version")) ?? null,
   }))
 
+  //Static routes
+  const staticRoutes: PanwMulticastStaticRoute[] = entries(mcEl["static-route"]).map((entry) => ({
+    name: entryName(entry),
+    destination: str(entry["destination"]) ?? null,
+    nexthop: str(dig(entry, "nexthop", "ip-address")) ?? null,
+    interface: str(entry["interface"]) ?? null,
+    preference: entry["preference"] !== undefined ? Number(entry["preference"]) : null,
+  }))
+
+  //PIM
+  const pimEl = mcEl["pim"] as Record<string, unknown> | undefined
+  const pim: PanwMulticastPimConfig | null = pimEl ? {
+    enabled: str(pimEl["enable"]) === "yes",
+    rpfLookupMode: str(pimEl["rpf-lookup-mode"]) ?? null,
+    routeAgeoutTime: pimEl["route-ageout-time"] !== undefined ? Number(pimEl["route-ageout-time"]) : null,
+    groupPermission: str(pimEl["group-permission"]) ?? null,
+    ssmGroupList: str(dig(pimEl, "ssm-address-space", "group-list")) ?? null,
+    interfaces: entries(dig(pimEl, "interface")).map((entry) => ({
+      name: entryName(entry),
+      drPriority: entry["dr-priority"] !== undefined ? Number(entry["dr-priority"]) : null,
+      ifTimer: str(entry["if-timer"]) ?? null,
+      neighborFilter: str(entry["neighbor-filter"]) ?? null,
+      description: str(entry["description"]) ?? null,
+      sendBsm: str(entry["send-bsm"]) === "yes",
+    })),
+    sptThresholds: entries(dig(pimEl, "spt-threshold")).map((entry) => ({
+      groupAddress: entryName(entry),
+      threshold: str(entry["threshold"]) ?? null,
+    })),
+    localRp: (() => {
+      const rpEl = dig(pimEl, "rp", "local-rp", "static-rp") as Record<string, unknown> | undefined
+      if (!rpEl) return null
+      return {
+        address: str(rpEl["address"]) ?? null,
+        groupList: str(rpEl["group-list"]) ?? null,
+        interface: str(rpEl["interface"]) ?? null,
+        override: str(rpEl["override"]) === "yes",
+      }
+    })(),
+  } : null
+
+  //IGMP
+  const igmpEl = mcEl["igmp"] as Record<string, unknown> | undefined
+  const igmp: PanwMulticastIgmpConfig | null = igmpEl ? {
+    enabled: str(igmpEl["enable"]) === "yes",
+    dynamicInterfaces: entries(dig(igmpEl, "dynamic", "interface")).map((entry) => ({
+      name: entryName(entry),
+      groupFilter: str(entry["group-filter"]) ?? null,
+      queryProfile: str(entry["query-profile"]) ?? null,
+      version: str(entry["version"]) ?? null,
+      robustness: entry["robustness"] !== undefined ? Number(entry["robustness"]) : null,
+      maxGroups: str(entry["max-groups"]) ?? null,
+      maxSources: str(entry["max-sources"]) ?? null,
+      routerAlertPolicing: str(entry["router-alert-policing"]) === "yes",
+    })),
+    staticEntries: entries(dig(igmpEl, "static")).map((entry) => ({
+      name: entryName(entry),
+      interface: str(entry["interface"]) ?? null,
+      groupAddress: str(entry["group-address"]) ?? null,
+      sourceAddress: str(entry["source-address"]) ?? null,
+    })),
+  } : null
+
+  //MSDP
+  const msdpEl = mcEl["msdp"] as Record<string, unknown> | undefined
+  const msdp: PanwMulticastMsdpConfig | null = msdpEl ? {
+    enabled: str(msdpEl["enable"]) === "yes",
+    globalTimer: str(msdpEl["global-timer"]) ?? null,
+    globalAuth: str(msdpEl["global-authentication"]) ?? null,
+    originatorIp: str(dig(msdpEl, "originator-id", "ip")) ?? null,
+    originatorInterface: str(dig(msdpEl, "originator-id", "interface")) ?? null,
+    peers: entries(dig(msdpEl, "peer")).map((entry) => ({
+      name: entryName(entry),
+      peerAddress: str(dig(entry, "peer-address", "ip")) ?? null,
+      localInterface: str(dig(entry, "local-address", "interface")) ?? null,
+      localIp: str(dig(entry, "local-address", "ip")) ?? null,
+      authProfile: str(entry["authentication"]) ?? null,
+      maxSa: entry["max-sa"] !== undefined ? Number(entry["max-sa"]) : null,
+      inboundSaFilter: str(entry["inbound-sa-filter"]) ?? null,
+      outboundSaFilter: str(entry["outbound-sa-filter"]) ?? null,
+    })),
+  } : null
+
   return {
     enabled: str(mcEl["enable"]) === "yes",
     interfaceGroups,
+    staticRoutes,
+    pim,
+    igmp,
+    msdp,
   }
 }
-
 // ─── Virtual Routers ──────────────────────────────────────────────────────────
 
 export function extractVirtualRouters(
@@ -935,7 +1063,9 @@ function extractLrRipRefs(ripEl: Record<string, unknown> | undefined): PanwLrRip
       return {
         name: entryName(iface),
         inboundDistList: iInEl ? (str(iInEl["access-list"]) ?? null) : null,
+        inboundDistMetric: iInEl?.["metric"] !== undefined ? Number(iInEl["metric"]) : null,
         outboundDistList: iOutEl ? (str(iOutEl["access-list"]) ?? null) : null,
+        outboundDistMetric: iOutEl?.["metric"] !== undefined ? Number(iOutEl["metric"]) : null,
         authProfile: str(iface["authentication"]) ?? null,
         bfdProfile: iface["bfd"] ? (str((iface["bfd"] as Record<string, unknown>)["profile"]) ?? null) : null,
       }
@@ -963,6 +1093,7 @@ function extractLrBgpRefs(bgpEl: Record<string, unknown> | undefined): PanwLrBgp
       const coEl = pg["connection-options"] as Record<string, unknown> | undefined
       return {
         name: entryName(pg),
+        enabled: str(pg["enable"]) === "yes",
         type: pg["type"] ? Object.keys(pg["type"] as Record<string, unknown>)[0] : null,
         addressFamily: { ipv4: afEl ? (str(afEl["ipv4"]) ?? null) : null, ipv6: afEl ? (str(afEl["ipv6"]) ?? null) : null },
         filteringProfile: { ipv4: fpEl ? (str(fpEl["ipv4"]) ?? null) : null, ipv6: fpEl ? (str(fpEl["ipv6"]) ?? null) : null },
@@ -970,15 +1101,22 @@ function extractLrBgpRefs(bgpEl: Record<string, unknown> | undefined): PanwLrBgp
           auth: coEl ? (str(coEl["authentication"]) ?? null) : null,
           timers: coEl ? (str(coEl["timers"]) ?? null) : null,
           dampening: coEl ? (str(coEl["dampening"]) ?? null) : null,
+          multihop: coEl ? (str(coEl["multihop"]) ?? null) : null,
         },
         peers: entries(pg["peer"]).map((p) => {
           const pco = p["connection-options"] as Record<string, unknown> | undefined
           return {
             name: entryName(p),
+            enabled: str(p["enable"]) === "yes",
+            peerAs: str(p["peer-as"]) ?? null,
+            inherit: p["inherit"] !== undefined && (p["inherit"] as Record<string,unknown>)["yes"] !== undefined,
+            localAddress: str(dig(p, "local-address", "ip")) ?? null,
+            peerAddress: str(dig(p, "peer-address", "ip")) ?? null,
             connectionOptions: {
               auth: pco ? (str(pco["authentication"]) ?? null) : null,
               timers: pco ? (str(pco["timers"]) ?? null) : null,
               dampening: pco ? (str(pco["dampening"]) ?? null) : null,
+              multihop: pco ? (str(pco["multihop"]) ?? null) : null,
             },
             bfdProfile: p["bfd"] ? (str((p["bfd"] as Record<string, unknown>)["profile"]) ?? null) : null,
           }
@@ -989,8 +1127,17 @@ function extractLrBgpRefs(bgpEl: Record<string, unknown> | undefined): PanwLrBgp
       const typeEl = ar["type"] as Record<string, unknown> | undefined
       const ipv4 = typeEl?.["ipv4"] as Record<string, unknown> | undefined
       const ipv6 = typeEl?.["ipv6"] as Record<string, unknown> | undefined
+      const isIpv4 = ipv4 !== undefined
+      const detail = ipv4 ?? ipv6
       return {
         name: entryName(ar),
+        description: str(ar["description"]) ?? null,
+        enabled: str(ar["enable"]) === "yes",
+        asSet: str(ar["as-set"]) === "yes",
+        summaryOnly: str(ar["summary-only"]) === "yes",
+        sameMed: str(ar["same-med"]) === "yes",
+        type: isIpv4 ? "ipv4" as const : ipv6 ? "ipv6" as const : null,
+        summaryPrefix: detail ? (str(detail["summary-prefix"]) ?? null) : null,
         suppressMap: str(ipv4?.["suppress-map"] ?? ipv6?.["suppress-map"]) ?? null,
         attributeMap: str(ipv4?.["attribute-map"] ?? ipv6?.["attribute-map"]) ?? null,
       }

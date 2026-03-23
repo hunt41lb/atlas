@@ -221,7 +221,9 @@ export interface PanwLrRipRefs {
   interfaces: {
     name: string
     inboundDistList: string | null
+    inboundDistMetric: number | null
     outboundDistList: string | null
+    outboundDistMetric: number | null
     authProfile: string | null
     bfdProfile: string | null
   }[]
@@ -229,19 +231,32 @@ export interface PanwLrRipRefs {
 
 export interface PanwLrBgpPeerGroup {
   name: string
+  enabled: boolean
   type: string | null
   addressFamily: { ipv4: string | null; ipv6: string | null }
   filteringProfile: { ipv4: string | null; ipv6: string | null }
-  connectionOptions: { auth: string | null; timers: string | null; dampening: string | null }
+  connectionOptions: { auth: string | null; timers: string | null; dampening: string | null; multihop: string | null }
   peers: {
     name: string
-    connectionOptions: { auth: string | null; timers: string | null; dampening: string | null }
+    enabled: boolean
+    peerAs: string | null
+    inherit: boolean
+    localAddress: string | null
+    peerAddress: string | null
+    connectionOptions: { auth: string | null; timers: string | null; dampening: string | null; multihop: string | null }
     bfdProfile: string | null
   }[]
 }
 
 export interface PanwLrBgpAggregateRoute {
   name: string
+  description: string | null
+  enabled: boolean
+  asSet: boolean
+  summaryOnly: boolean
+  sameMed: boolean
+  type: "ipv4" | "ipv6" | null
+  summaryPrefix: string | null
   suppressMap: string | null
   attributeMap: string | null
 }
@@ -330,6 +345,7 @@ export interface PanwRedistProfile {
 export interface PanwRipInterface {
   name: string
   enabled: boolean
+  splitHorizon: string | null
   mode: string | null
   bfdProfile: string | null
   defaultRouteAdvertise: boolean
@@ -346,6 +362,7 @@ export interface PanwRipTimers {
 
 export interface PanwRipConfig {
   enabled: boolean
+  defaultInformationOriginate: boolean
   globalBfdProfile: string | null
   rejectDefaultRoute: boolean
   interfaces: PanwRipInterface[]
@@ -461,14 +478,39 @@ export interface PanwBgpPeerGroup {
   peers: PanwBgpPeer[]
 }
 
+export interface PanwBgpGracefulRestart {
+  enabled: boolean
+  staleRouteTime: number | null
+  maxPeerRestartTime: number | null
+  localRestartTime: number | null
+}
+
+export interface PanwBgpNetworkEntry {
+  network: string
+  unicast: boolean
+  multicast: boolean
+  backdoor: boolean
+}
+
 export interface PanwBgpConfig {
   enabled: boolean
   routerId: string | null
   localAs: string | null
+  globalBfdProfile: string | null
   installRoute: boolean
-  gracefulRestartEnabled: boolean
+  fastExternalFailover: boolean
+  gracefulShutdown: boolean
+  ecmpMultiAs: boolean
+  enforceFirstAs: boolean
+  defaultLocalPreference: number | null
+  alwaysAdvertiseNetworkRoute: boolean
+  gracefulRestart: PanwBgpGracefulRestart
+  alwaysCompareMed: boolean
+  deterministicMedComparison: boolean
   rejectDefaultRoute: boolean
   peerGroups: PanwBgpPeerGroup[]
+  ipv4Networks: PanwBgpNetworkEntry[]
+  ipv6Networks: PanwBgpNetworkEntry[]
 }
 
 // ─── Multicast ───────────────────────────────────────────────────────────────
@@ -482,9 +524,97 @@ export interface PanwMulticastInterfaceGroup {
   igmpVersion: string | null
 }
 
+export interface PanwMulticastStaticRoute {
+  name: string
+  destination: string | null
+  nexthop: string | null
+  interface: string | null
+  preference: number | null
+}
+
+export interface PanwMulticastPimSptThreshold {
+  groupAddress: string
+  threshold: string | null
+}
+
+export interface PanwMulticastPimInterface {
+  name: string
+  drPriority: number | null
+  ifTimer: string | null
+  neighborFilter: string | null
+  description: string | null
+  sendBsm: boolean
+}
+
+export interface PanwMulticastPimRp {
+  address: string | null
+  groupList: string | null
+  interface: string | null
+  override: boolean
+}
+
+export interface PanwMulticastPimConfig {
+  enabled: boolean
+  rpfLookupMode: string | null
+  routeAgeoutTime: number | null
+  groupPermission: string | null
+  ssmGroupList: string | null
+  interfaces: PanwMulticastPimInterface[]
+  sptThresholds: PanwMulticastPimSptThreshold[]
+  localRp: PanwMulticastPimRp | null
+}
+
+export interface PanwMulticastIgmpDynamicInterface {
+  name: string
+  groupFilter: string | null
+  queryProfile: string | null
+  version: string | null
+  robustness: number | null
+  maxGroups: string | null
+  maxSources: string | null
+  routerAlertPolicing: boolean
+}
+
+export interface PanwMulticastIgmpStaticEntry {
+  name: string
+  interface: string | null
+  groupAddress: string | null
+  sourceAddress: string | null
+}
+
+export interface PanwMulticastIgmpConfig {
+  enabled: boolean
+  dynamicInterfaces: PanwMulticastIgmpDynamicInterface[]
+  staticEntries: PanwMulticastIgmpStaticEntry[]
+}
+
+export interface PanwMulticastMsdpPeer {
+  name: string
+  peerAddress: string | null
+  localInterface: string | null
+  localIp: string | null
+  authProfile: string | null
+  maxSa: number | null
+  inboundSaFilter: string | null
+  outboundSaFilter: string | null
+}
+
+export interface PanwMulticastMsdpConfig {
+  enabled: boolean
+  globalTimer: string | null
+  globalAuth: string | null
+  originatorIp: string | null
+  originatorInterface: string | null
+  peers: PanwMulticastMsdpPeer[]
+}
+
 export interface PanwMulticastConfig {
   enabled: boolean
   interfaceGroups: PanwMulticastInterfaceGroup[]
+  staticRoutes: PanwMulticastStaticRoute[]
+  pim: PanwMulticastPimConfig | null
+  igmp: PanwMulticastIgmpConfig | null
+  msdp: PanwMulticastMsdpConfig | null
 }
 
 export interface PanwVirtualRouter {
