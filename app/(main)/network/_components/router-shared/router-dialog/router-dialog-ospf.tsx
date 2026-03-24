@@ -236,8 +236,8 @@ function AdvancedTab({ router, protocol }: { router: RouterDialogPageProps["rout
         <ReadOnlyCheckbox checked={gr?.enabled ?? false} label="Enable Graceful Restart" />
         <ReadOnlyCheckbox checked={gr?.helperEnabled ?? false} label="Enable Helper Mode" />
         <ReadOnlyCheckbox checked={gr?.strictLsaChecking ?? false} label="Enable Strict LSA Checking" />
-        <LabeledValue label="Grace Period (sec)" value={gr?.gracePeriod ?? "—"} />
-        <LabeledValue label="Max Neighbor Restart Time (sec)" value={gr?.maxNeighborRestartTime ?? "—"} />
+        <LabeledValue label="Grace Period (sec)" value={gr?.gracePeriod ?? "—"} labelWidth="w-50" />
+        <LabeledValue label="Max Neighbor Restart Time (sec)" value={gr?.maxNeighborRestartTime ?? "—"} labelWidth="w-50" />
       </FieldGroup>
       <div>
         {protocol === "ospf" && (

@@ -97,14 +97,14 @@ export function RipPage({ router }: RouterDialogPageProps) {
               <Checkbox checked={(cfg as { defaultInformationOriginate?: boolean })?.defaultInformationOriginate ?? false} disabled />
               <span className="text-xs">default-information originate</span>
             </div>
-            <HeaderField labelWidth="w-44" label="BFD Profile" value={refs?.globalBfdProfile ?? cfg?.globalBfdProfile ?? "None"} />
-            <HeaderField labelWidth="w-44" label="Global Inbound Distribute List" value={refs?.globalInboundDistList ?? "None"} />
+            <HeaderField labelWidth="w-48" label="BFD Profile" value={refs?.globalBfdProfile ?? cfg?.globalBfdProfile ?? "None"} />
+            <HeaderField labelWidth="w-48" label="Global Inbound Distribute List" value={refs?.globalInboundDistList ?? "None"} />
           </div>
           <div className="space-y-2">
-            <HeaderField labelWidth="w-44" label="Global General Timer" value={refs?.globalTimerName ?? "None"} />
-            <HeaderField labelWidth="w-44" label="Auth Profile" value={refs?.authProfileName ?? "None"} />
-            <HeaderField labelWidth="w-44" label="Redistribution Profile" value={refs?.redistProfileName ?? "None"} />
-            <HeaderField labelWidth="w-44" label="Global Outbound Distribute List" value={refs?.globalOutboundDistList ?? "None"} />
+            <HeaderField labelWidth="w-48" label="Global General Timer" value={refs?.globalTimerName ?? "None"} />
+            <HeaderField labelWidth="w-48" label="Auth Profile" value={refs?.authProfileName ?? "None"} />
+            <HeaderField labelWidth="w-48" label="Redistribution Profile" value={refs?.redistProfileName ?? "None"} />
+            <HeaderField labelWidth="w-48" label="Global Outbound Distribute List" value={refs?.globalOutboundDistList ?? "None"} />
           </div>
         </div>
       </div>

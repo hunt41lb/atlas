@@ -50,7 +50,7 @@ export function FieldRow({
 export function LabeledValue({
   label,
   value,
-  labelWidth = "w-36",
+  labelWidth = "w-44",
 }: {
   label: string
   value: string | number
