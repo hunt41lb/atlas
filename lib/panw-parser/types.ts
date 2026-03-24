@@ -553,6 +553,12 @@ export interface PanwMulticastPimRp {
   override: boolean
 }
 
+export interface PanwMulticastPimExternalRp {
+  ipAddress: string
+  groupList: string | null
+  override: boolean
+}
+
 export interface PanwMulticastPimConfig {
   enabled: boolean
   rpfLookupMode: string | null
@@ -562,6 +568,7 @@ export interface PanwMulticastPimConfig {
   interfaces: PanwMulticastPimInterface[]
   sptThresholds: PanwMulticastPimSptThreshold[]
   localRp: PanwMulticastPimRp | null
+  externalRps: PanwMulticastPimExternalRp[]
 }
 
 export interface PanwMulticastIgmpDynamicInterface {

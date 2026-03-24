@@ -1,12 +1,18 @@
 // @/app/(main)/network/_components/router-shared/router-dialog/field-display.tsx
-//
-// Reusable read-only field display components for router dialog pages.
-// These render labeled values in a consistent style across all pages.
 
 "use client"
 
-import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog"
 
 // ─── FieldRow: label + value on a single line ────────────────────────────────
 
@@ -18,9 +24,7 @@ export function FieldRow({
 }: {
   label: string
   value: string | number
-  /** Small muted text shown before the value (e.g. "(default: 10)") */
   annotation?: string
-  /** Highlight the value in primary color */
   highlight?: boolean
 }) {
   return (
@@ -93,5 +97,62 @@ export function FieldGroup({
         {children}
       </div>
     </fieldset>
+  )
+}
+
+// ─── HeaderField: label + read-only input (PAN-OS style) ─────────────────────
+
+export function HeaderField({
+  label,
+  value,
+  labelWidth = "w-36",
+}: {
+  label: string
+  value: string
+  labelWidth?: string
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className={cn("text-xs text-muted-foreground shrink-0 text-right", labelWidth)}>{label}</span>
+      <Input readOnly value={value} className="h-7 flex-1 text-xs" />
+    </div>
+  )
+}
+
+// ─── Dash: muted em-dash placeholder ──────────────────────────────────────────
+
+export function Dash() {
+  return <span className="text-muted-foreground text-xs">—</span>
+}
+
+// ─── DetailDialog: reusable shell for clickable-row detail dialogs ────────────
+
+export function DetailDialog({
+  title,
+  open,
+  onOpenChange,
+  children,
+  maxWidth = "sm:max-w-lg",
+}: {
+  title: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  children: React.ReactNode
+  maxWidth?: string
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={`${maxWidth} max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden`}>
+        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 overflow-y-auto p-5 space-y-3">
+          {children}
+        </div>
+        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
+          <DialogClose render={<Button variant="outline">Close</Button>} />
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

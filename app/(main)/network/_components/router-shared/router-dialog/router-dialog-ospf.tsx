@@ -1,37 +1,34 @@
 // @/app/(main)/network/_components/router-shared/router-dialog/router-dialog-ospf.tsx
-//
-// OSPF page for the RouterDialog.
-// Layout matches PAN-OS GUI: header with profile refs + Area/Advanced tabs.
-// Uses both router.ospf (operational) and router.ospfRefs (profile names).
 
 "use client"
 
 import * as React from "react"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
 import {
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from "@/components/ui/tabs"
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
 } from "@/components/ui/table"
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import { ReadOnlyCheckbox, FieldGroup, LabeledValue } from "./field-display"
+import {
+  ReadOnlyCheckbox,
+  FieldGroup,
+  LabeledValue,
+  HeaderField,
+  DetailDialog,
+} from "./field-display"
 import type { RouterDialogPageProps } from "./router-dialog-general"
 import type { PanwOspfArea } from "@/lib/panw-parser/types"
-
-// ─── Shared field display ─────────────────────────────────────────────────────
-
-function HeaderField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground shrink-0 text-right w-36">{label}</span>
-      <Input readOnly value={value} className="h-7 flex-1 text-xs" />
-    </div>
-  )
-}
 
 // ─── Area Detail Dialog ───────────────────────────────────────────────────────
 
@@ -51,126 +48,105 @@ function AreaDetailDialog({
   if (!area) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
-        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
-          <DialogTitle>{protocol} - Area</DialogTitle>
-        </DialogHeader>
+    <DetailDialog title={`${protocol} - Area`} open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-4xl">
+      <HeaderField label="Area ID" value={area.id} />
 
-        <div className="shrink-0 px-5 pt-3 pb-1">
-          <HeaderField label="Area ID" value={area.id} />
+      <Tabs defaultValue="type" className="flex-1 flex flex-col min-h-0">
+        <div className="shrink-0 border-b">
+          <TabsList variant="line">
+            <TabsTrigger value="type">Type</TabsTrigger>
+            <TabsTrigger value="range">Range</TabsTrigger>
+            <TabsTrigger value="interface">Interface</TabsTrigger>
+            <TabsTrigger value="virtual-link">Virtual Link</TabsTrigger>
+          </TabsList>
         </div>
 
-        <Tabs defaultValue="type" className="flex-1 flex flex-col min-h-0">
-          <div className="shrink-0 border-b px-5">
-            <TabsList variant="line">
-              <TabsTrigger value="type">Type</TabsTrigger>
-              <TabsTrigger value="range">Range</TabsTrigger>
-              <TabsTrigger value="interface">Interface</TabsTrigger>
-              <TabsTrigger value="virtual-link">Virtual Link</TabsTrigger>
-            </TabsList>
-          </div>
+        <div className="flex-1 overflow-y-auto pt-3">
+          <TabsContent value="type">
+            <div className="space-y-3">
+              <LabeledValue label="Authentication" value={areaRef?.authProfile ?? "None"} />
+              <LabeledValue label="Type" value={area.type ?? "Normal"} />
+              <FieldGroup title="ABR">
+                <LabeledValue label="Import-list" value={areaRef?.abrImportList ?? "None"} />
+                <LabeledValue label="Export-list" value={areaRef?.abrExportList ?? "None"} />
+                <LabeledValue label="Inbound Filter List" value={areaRef?.abrInboundFilterList ?? "None"} />
+                <LabeledValue label="Outbound Filter List" value={areaRef?.abrOutboundFilterList ?? "None"} />
+              </FieldGroup>
+            </div>
+          </TabsContent>
 
-          <div className="flex-1 overflow-y-auto p-5">
-            {/* Type tab */}
-            <TabsContent value="type">
-              <div className="space-y-3">
-                <LabeledValue label="Authentication" value={areaRef?.authProfile ?? "None"} />
-                <LabeledValue label="Type" value={area.type ?? "Normal"} />
-
-                <FieldGroup title="ABR">
-                  <LabeledValue label="Import-list" value={areaRef?.abrImportList ?? "None"} />
-                  <LabeledValue label="Export-list" value={areaRef?.abrExportList ?? "None"} />
-                  <LabeledValue label="Inbound Filter List" value={areaRef?.abrInboundFilterList ?? "None"} />
-                  <LabeledValue label="Outbound Filter List" value={areaRef?.abrOutboundFilterList ?? "None"} />
-                </FieldGroup>
-              </div>
-            </TabsContent>
-
-            {/* Range tab */}
-            <TabsContent value="range">
-              {(area.ranges ?? []).length === 0 ? (
-                <p className="py-4 text-xs text-muted-foreground text-center">
-                  No range entries configured.
-                </p>
-              ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-[11px]">IP ADDRESS/NETMASK</TableHead>
-                        <TableHead className="text-[11px]">SUBSTITUTE</TableHead>
-                        <TableHead className="text-[11px]">ADVERTISE</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {area.ranges.map((r) => (
-                        <TableRow key={r.prefix}>
-                          <TableCell><MonoValue className="text-xs">{r.prefix}</MonoValue></TableCell>
-                          <TableCell><span className="text-xs">{r.substitute ?? "—"}</span></TableCell>
-                          <TableCell>{r.advertise ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Interface tab */}
-            <TabsContent value="interface">
+          <TabsContent value="range">
+            {(area.ranges ?? []).length === 0 ? (
+              <p className="py-4 text-xs text-muted-foreground text-center">No range entries configured.</p>
+            ) : (
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="text-[11px]">INTERFACE</TableHead>
-                      <TableHead className="text-[11px]">ENABLE</TableHead>
-                      <TableHead className="text-[11px]">PASSIVE</TableHead>
-                      <TableHead className="text-[11px]">LINK TYPE</TableHead>
-                      <TableHead className="text-[11px]">COST</TableHead>
-                      <TableHead className="text-[11px]">PRIORITY</TableHead>
-                      <TableHead className="text-[11px]">AUTH PROFILE</TableHead>
-                      <TableHead className="text-[11px]">TIMER PROFILE</TableHead>
-                      <TableHead className="text-[11px]">BFD PROFILE</TableHead>
+                      <TableHead className="text-[11px]">IP ADDRESS/NETMASK</TableHead>
+                      <TableHead className="text-[11px]">SUBSTITUTE</TableHead>
+                      <TableHead className="text-[11px]">ADVERTISE</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(area.interfaces ?? []).length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={9} className="py-6 text-center text-xs text-muted-foreground">No interfaces configured.</TableCell>
-                      </TableRow>
-                    ) : area.interfaces.map((iface) => (
-                      <TableRow key={iface.name}>
-                        <TableCell><MonoValue className="text-xs">{iface.name}</MonoValue></TableCell>
-                        <TableCell>{iface.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                        <TableCell>{iface.passive ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                        <TableCell><span className="text-xs">{iface.linkType ?? "—"}</span></TableCell>
-                        <TableCell><span className="tabular-nums text-xs">{iface.metric ?? "—"}</span></TableCell>
-                        <TableCell><span className="tabular-nums text-xs">{iface.priority ?? "—"}</span></TableCell>
-                        <TableCell><span className="text-xs">{iface.authProfile ?? "—"}</span></TableCell>
-                        <TableCell><span className="text-xs">{iface.timingProfile ?? "—"}</span></TableCell>
-                        <TableCell><span className="text-xs">{iface.bfdProfile ?? "—"}</span></TableCell>
+                    {area.ranges.map((r) => (
+                      <TableRow key={r.prefix}>
+                        <TableCell><MonoValue className="text-xs">{r.prefix}</MonoValue></TableCell>
+                        <TableCell><span className="text-xs">{r.substitute ?? "—"}</span></TableCell>
+                        <TableCell>{r.advertise ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               </div>
-            </TabsContent>
+            )}
+          </TabsContent>
 
-            {/* Virtual Link tab - placeholder */}
-            <TabsContent value="virtual-link">
-              <p className="py-4 text-xs text-muted-foreground text-center">
-                No virtual links configured.
-              </p>
-            </TabsContent>
-          </div>
-        </Tabs>
+          <TabsContent value="interface">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[11px]">INTERFACE</TableHead>
+                    <TableHead className="text-[11px]">ENABLE</TableHead>
+                    <TableHead className="text-[11px]">PASSIVE</TableHead>
+                    <TableHead className="text-[11px]">LINK TYPE</TableHead>
+                    <TableHead className="text-[11px]">COST</TableHead>
+                    <TableHead className="text-[11px]">PRIORITY</TableHead>
+                    <TableHead className="text-[11px]">AUTH PROFILE</TableHead>
+                    <TableHead className="text-[11px]">TIMER PROFILE</TableHead>
+                    <TableHead className="text-[11px]">BFD PROFILE</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(area.interfaces ?? []).length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="py-6 text-center text-xs text-muted-foreground">No interfaces configured.</TableCell>
+                    </TableRow>
+                  ) : area.interfaces.map((iface) => (
+                    <TableRow key={iface.name}>
+                      <TableCell><MonoValue className="text-xs">{iface.name}</MonoValue></TableCell>
+                      <TableCell>{iface.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                      <TableCell>{iface.passive ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                      <TableCell><span className="text-xs">{iface.linkType ?? "—"}</span></TableCell>
+                      <TableCell><span className="tabular-nums text-xs">{iface.metric ?? "—"}</span></TableCell>
+                      <TableCell><span className="tabular-nums text-xs">{iface.priority ?? "—"}</span></TableCell>
+                      <TableCell><span className="text-xs">{iface.authProfile ?? "—"}</span></TableCell>
+                      <TableCell><span className="text-xs">{iface.timingProfile ?? "—"}</span></TableCell>
+                      <TableCell><span className="text-xs">{iface.bfdProfile ?? "—"}</span></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
 
-        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
-          <DialogClose render={<Button variant="outline">Close</Button>} />
+          <TabsContent value="virtual-link">
+            <p className="py-4 text-xs text-muted-foreground text-center">No virtual links configured.</p>
+          </TabsContent>
         </div>
-      </DialogContent>
-    </Dialog>
+      </Tabs>
+    </DetailDialog>
   )
 }
 

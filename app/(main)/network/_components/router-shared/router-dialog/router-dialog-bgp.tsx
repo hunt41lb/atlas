@@ -1,39 +1,39 @@
 // @/app/(main)/network/_components/router-shared/router-dialog/router-dialog-bgp.tsx
-//
-// BGP page for the RouterDialog — 5 tabs matching PAN-OS GUI.
 
 "use client"
 
 import * as React from "react"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import {
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
 } from "@/components/ui/table"
+
+import type {
+  PanwLrBgpPeerGroup,
+  PanwLrBgpAggregateRoute
+} from "@/lib/panw-parser/types"
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+  ReadOnlyCheckbox,
+  FieldGroup,
+  LabeledValue,
+  HeaderField,
+  Dash,
+  DetailDialog
+} from "./field-display"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import { ReadOnlyCheckbox, FieldGroup, LabeledValue } from "./field-display"
 import type { RouterDialogPageProps } from "./router-dialog-general"
-import type { PanwLrBgpPeerGroup, PanwLrBgpAggregateRoute } from "@/lib/panw-parser/types"
-
-// ─── Shared ───────────────────────────────────────────────────────────────────
-
-function HeaderField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground shrink-0 text-right w-44">{label}</span>
-      <Input readOnly value={value} className="h-7 flex-1 text-xs" />
-    </div>
-  )
-}
-
-function Dash() {
-  return <span className="text-muted-foreground text-xs">—</span>
-}
 
 // ─── General Tab ──────────────────────────────────────────────────────────────
 
@@ -102,70 +102,56 @@ function PeerGroupDetailDialog({
   if (!pg) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
-        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
-          <DialogTitle>BGP - Peer Group</DialogTitle>
-        </DialogHeader>
+    <DetailDialog title="BGP - Peer Group" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-4xl">
+      <div className="grid grid-cols-2 gap-4">
+        <FieldGroup title="Peer Group">
+          <LabeledValue label="Name" value={pg.name} />
+          <ReadOnlyCheckbox checked={pg.enabled} label="Enable" />
+          <LabeledValue label="Type" value={pg.type ?? "—"} />
+          <LabeledValue label="IPv4 Address Family" value={pg.addressFamily.ipv4 ?? "None"} />
+          <LabeledValue label="IPv6 Address Family" value={pg.addressFamily.ipv6 ?? "None"} />
+          <LabeledValue label="IPv4 Filtering Profile" value={pg.filteringProfile.ipv4 ?? "None"} />
+          <LabeledValue label="IPv6 Filtering Profile" value={pg.filteringProfile.ipv6 ?? "None"} />
+        </FieldGroup>
+        <FieldGroup title="Connection Options">
+          <LabeledValue label="Auth Profile" value={pg.connectionOptions.auth ?? "None"} />
+          <LabeledValue label="Timer Profile" value={pg.connectionOptions.timers ?? "None"} />
+          <LabeledValue label="Multi Hop" value={pg.connectionOptions.multihop ?? "None"} />
+          <LabeledValue label="Dampening Profile" value={pg.connectionOptions.dampening ?? "None"} />
+        </FieldGroup>
+      </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {/* Top section — two columns */}
-          <div className="grid grid-cols-2 gap-4">
-            <FieldGroup title="Peer Group">
-              <LabeledValue label="Name" value={pg.name} />
-              <ReadOnlyCheckbox checked={pg.enabled} label="Enable" />
-              <LabeledValue label="Type" value={pg.type ?? "—"} />
-              <LabeledValue label="IPv4 Address Family" value={pg.addressFamily.ipv4 ?? "None"} />
-              <LabeledValue label="IPv6 Address Family" value={pg.addressFamily.ipv6 ?? "None"} />
-              <LabeledValue label="IPv4 Filtering Profile" value={pg.filteringProfile.ipv4 ?? "None"} />
-              <LabeledValue label="IPv6 Filtering Profile" value={pg.filteringProfile.ipv6 ?? "None"} />
-            </FieldGroup>
-            <FieldGroup title="Connection Options">
-              <LabeledValue label="Auth Profile" value={pg.connectionOptions.auth ?? "None"} />
-              <LabeledValue label="Timer Profile" value={pg.connectionOptions.timers ?? "None"} />
-              <LabeledValue label="Multi Hop" value={pg.connectionOptions.multihop ?? "None"} />
-              <LabeledValue label="Dampening Profile" value={pg.connectionOptions.dampening ?? "None"} />
-            </FieldGroup>
-          </div>
-
-          {/* Peers table */}
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[11px]">PEER</TableHead>
-                  <TableHead className="text-[11px]">ENABLE</TableHead>
-                  <TableHead className="text-[11px]">PEER AS</TableHead>
-                  <TableHead className="text-[11px]">INHERIT</TableHead>
-                  <TableHead className="text-[11px]">LOCAL ADDRESS</TableHead>
-                  <TableHead className="text-[11px]">PEER ADDRESS</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pg.peers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">No peers configured.</TableCell>
-                  </TableRow>
-                ) : pg.peers.map((peer) => (
-                  <TableRow key={peer.name}>
-                    <TableCell><span className="text-xs font-medium">{peer.name}</span></TableCell>
-                    <TableCell>{peer.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                    <TableCell><span className="text-xs">{peer.peerAs ?? <Dash />}</span></TableCell>
-                    <TableCell><span className="text-xs">{peer.inherit ? "yes" : "no"}</span></TableCell>
-                    <TableCell><MonoValue className="text-xs">{peer.localAddress ?? "—"}</MonoValue></TableCell>
-                    <TableCell><MonoValue className="text-xs">{peer.peerAddress ?? "—"}</MonoValue></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
-
-        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
-          <DialogClose render={<Button variant="outline">Close</Button>} />
-        </div>
-      </DialogContent>
-    </Dialog>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-[11px]">PEER</TableHead>
+              <TableHead className="text-[11px]">ENABLE</TableHead>
+              <TableHead className="text-[11px]">PEER AS</TableHead>
+              <TableHead className="text-[11px]">INHERIT</TableHead>
+              <TableHead className="text-[11px]">LOCAL ADDRESS</TableHead>
+              <TableHead className="text-[11px]">PEER ADDRESS</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pg.peers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">No peers configured.</TableCell>
+              </TableRow>
+            ) : pg.peers.map((peer) => (
+              <TableRow key={peer.name}>
+                <TableCell><span className="text-xs font-medium">{peer.name}</span></TableCell>
+                <TableCell>{peer.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                <TableCell><span className="text-xs">{peer.peerAs ?? <Dash />}</span></TableCell>
+                <TableCell><span className="text-xs">{peer.inherit ? "yes" : "no"}</span></TableCell>
+                <TableCell><MonoValue className="text-xs">{peer.localAddress ?? "—"}</MonoValue></TableCell>
+                <TableCell><MonoValue className="text-xs">{peer.peerAddress ?? "—"}</MonoValue></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </DetailDialog>
   )
 }
 
@@ -253,14 +239,17 @@ function NetworkTab({ router }: { router: RouterDialogPageProps["router"] }) {
     <div className="space-y-3">
       <ReadOnlyCheckbox checked={alwaysAdvertise} label="Always Advertise Network Route" />
 
-      <Tabs defaultValue="ipv4">
-        <TabsList variant="line">
-          <TabsTrigger value="ipv4">IPv4</TabsTrigger>
-          <TabsTrigger value="ipv6">IPv6</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="ipv4" className="flex flex-col min-h-0">
+        <div className="shrink-0">
+          <TabsList variant="line" className="overflow-visible">
+            <TabsTrigger value="ipv4">IPv4</TabsTrigger>
+            <TabsTrigger value="ipv6">IPv6</TabsTrigger>
+          </TabsList>
+        </div>
 
+        <div className="flex-1 overflow-y-auto pt-3">
         <TabsContent value="ipv4">
-          <div className="rounded-md border mt-3">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -289,7 +278,7 @@ function NetworkTab({ router }: { router: RouterDialogPageProps["router"] }) {
         </TabsContent>
 
         <TabsContent value="ipv6">
-          <div className="rounded-md border mt-3">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -312,6 +301,7 @@ function NetworkTab({ router }: { router: RouterDialogPageProps["router"] }) {
             </Table>
           </div>
         </TabsContent>
+        </div>
       </Tabs>
     </div>
   )
@@ -352,38 +342,26 @@ function AggregateRouteDetailDialog({
   if (!ar) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
-        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
-          <DialogTitle>BGP - Aggregate Routes</DialogTitle>
-        </DialogHeader>
+    <DetailDialog title="BGP - Aggregate Routes" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-2xl">
+      <HeaderField labelWidth="w-44" label="Name" value={ar.name} />
+      <HeaderField labelWidth="w-44" label="Description" value={ar.description ?? ""} />
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-3">
-          <HeaderField label="Name" value={ar.name} />
-          <HeaderField label="Description" value={ar.description ?? ""} />
+      <div className="space-y-1 pl-46">
+        <ReadOnlyCheckbox checked={ar.enabled} label="Enable" />
+        <ReadOnlyCheckbox checked={ar.summaryOnly} label="Summary Only" />
+        <ReadOnlyCheckbox checked={ar.asSet} label="AS Set" />
+        <ReadOnlyCheckbox checked={ar.sameMed} label="Aggregate Same MED Only" />
+      </div>
 
-          <div className="space-y-1 pl-46">
-            <ReadOnlyCheckbox checked={ar.enabled} label="Enable" />
-            <ReadOnlyCheckbox checked={ar.summaryOnly} label="Summary Only" />
-            <ReadOnlyCheckbox checked={ar.asSet} label="AS Set" />
-            <ReadOnlyCheckbox checked={ar.sameMed} label="Aggregate Same MED Only" />
-          </div>
+      <div className="flex items-center gap-4 pl-46">
+        <span className="text-xs text-muted-foreground">Type</span>
+        <span className="text-xs font-medium">{ar.type === "ipv4" ? "IPv4" : ar.type === "ipv6" ? "IPv6" : "—"}</span>
+      </div>
 
-          <div className="flex items-center gap-4 pl-46">
-            <span className="text-xs text-muted-foreground">Type</span>
-            <span className="text-xs font-medium">{ar.type === "ipv4" ? "IPv4" : ar.type === "ipv6" ? "IPv6" : "—"}</span>
-          </div>
-
-          <HeaderField label="Summary Prefix" value={ar.summaryPrefix ?? "None"} />
-          <HeaderField label="Suppress Map" value={ar.suppressMap ?? "None"} />
-          <HeaderField label="Attribute Map" value={ar.attributeMap ?? "None"} />
-        </div>
-
-        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
-          <DialogClose render={<Button variant="outline">Close</Button>} />
-        </div>
-      </DialogContent>
-    </Dialog>
+      <HeaderField labelWidth="w-44" label="Summary Prefix" value={ar.summaryPrefix ?? "None"} />
+      <HeaderField labelWidth="w-44" label="Suppress Map" value={ar.suppressMap ?? "None"} />
+      <HeaderField labelWidth="w-44" label="Attribute Map" value={ar.attributeMap ?? "None"} />
+    </DetailDialog>
   )
 }
 
@@ -460,20 +438,20 @@ export function BgpPage({ router }: RouterDialogPageProps) {
         </TabsList>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        <TabsContent value="general">
+      <div className="flex-1 min-h-0 p-4">
+        <TabsContent value="general" className="overflow-y-auto">
           <GeneralTab router={router} />
         </TabsContent>
-        <TabsContent value="peer-group">
+        <TabsContent value="peer-group" className="overflow-y-auto">
           <PeerGroupTab router={router} />
         </TabsContent>
-        <TabsContent value="network">
+        <TabsContent value="network" className="overflow-y-auto">
           <NetworkTab router={router} />
         </TabsContent>
-        <TabsContent value="redistribution">
+        <TabsContent value="redistribution" className="overflow-y-auto">
           <RedistributionTab router={router} />
         </TabsContent>
-        <TabsContent value="aggregate-route">
+        <TabsContent value="aggregate-route" className="overflow-y-auto">
           <AggregateRouteTab router={router} />
         </TabsContent>
       </div>

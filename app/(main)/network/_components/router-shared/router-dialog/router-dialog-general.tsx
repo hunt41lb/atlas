@@ -1,13 +1,20 @@
 // @/app/(main)/network/_components/router-shared/router-dialog/router-dialog-general.tsx
-//
-// General page for the RouterDialog — shows Interface, Administrative
-// Distances, ECMP, and RIB Filter tabs.
 
 "use client"
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent
+} from "@/components/ui/tabs"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import { FieldRow, LabeledValue, ReadOnlyCheckbox, FieldGroup } from "./field-display"
+import {
+  FieldRow,
+  LabeledValue,
+  ReadOnlyCheckbox,
+  FieldGroup
+} from "./field-display"
 import {
   DEFAULT_ADMIN_DISTANCES,
   DEFAULT_ECMP,
@@ -200,4 +207,3 @@ export function GeneralPage({ router, showDefaults }: RouterDialogPageProps) {
     </div>
   )
 }
-

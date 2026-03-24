@@ -1,36 +1,27 @@
 // @/app/(main)/network/_components/router-shared/router-dialog/router-dialog-rip.tsx
-//
-// RIPv2 page for the RouterDialog.
-// Layout matches PAN-OS GUI: header with global settings + interface table.
-// Clicking an interface opens a detail dialog.
 
 "use client"
 
 import * as React from "react"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
 import {
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell,
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
 } from "@/components/ui/table"
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import { LabeledValue, FieldGroup } from "./field-display"
+import {
+  LabeledValue,
+  FieldGroup,
+  HeaderField,
+  DetailDialog
+} from "./field-display"
 import type { RouterDialogPageProps } from "./router-dialog-general"
 import type { PanwRipInterface } from "@/lib/panw-parser/types"
-
-// ─── Shared ───────────────────────────────────────────────────────────────────
-
-function HeaderField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground shrink-0 text-right w-44">{label}</span>
-      <Input readOnly value={value} className="h-7 flex-1 text-xs" />
-    </div>
-  )
-}
 
 // ─── Interface Detail Dialog ──────────────────────────────────────────────────
 
@@ -53,43 +44,30 @@ function InterfaceDetailDialog({
   if (!iface) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col gap-0 p-0 overflow-hidden">
-        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
-          <DialogTitle>Interface</DialogTitle>
-        </DialogHeader>
+    <DetailDialog title="Interface" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-3xl">
+      <HeaderField labelWidth="w-44" label="Interface" value={iface.name} />
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <HeaderField label="Interface" value={iface.name} />
+      <div className="flex items-center gap-2 pl-46">
+        <Checkbox checked={iface.enabled} disabled />
+        <span className="text-xs">Enable</span>
+      </div>
 
-          <div className="flex items-center gap-2 pl-46">
-            <Checkbox checked={iface.enabled} disabled />
-            <span className="text-xs">Enable</span>
-          </div>
+      <LabeledValue label="Split Horizon" value={(iface as { splitHorizon?: string | null }).splitHorizon ?? "None"} />
+      <LabeledValue label="Mode" value={iface.mode ?? "None"} />
+      <LabeledValue label="Authentication" value={iface.authProfile ?? "None"} />
+      <LabeledValue label="BFD Profile" value={iface.bfdProfile ?? "None"} />
 
-          <LabeledValue label="Split Horizon" value={(iface as { splitHorizon?: string | null }).splitHorizon ?? "None"} />
-          <LabeledValue label="Mode" value={iface.mode ?? "None"} />
-          <LabeledValue label="Authentication" value={iface.authProfile ?? "None"} />
-          <LabeledValue label="BFD Profile" value={iface.bfdProfile ?? "None"} />
-
-          {/* Distribute Lists — side by side */}
-          <div className="grid grid-cols-2 gap-4 pt-2">
-            <FieldGroup title="Interface Inbound Distribute List">
-              <LabeledValue label="Access List" value={ifaceRef?.inboundDistList ?? "None"} />
-              <LabeledValue label="Metric" value={ifaceRef?.inboundDistMetric ?? "—"} />
-            </FieldGroup>
-            <FieldGroup title="Interface Outbound Distribute List">
-              <LabeledValue label="Access List" value={ifaceRef?.outboundDistList ?? "None"} />
-              <LabeledValue label="Metric" value={ifaceRef?.outboundDistMetric ?? "—"} />
-            </FieldGroup>
-          </div>
-        </div>
-
-        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
-          <DialogClose render={<Button variant="outline">Close</Button>} />
-        </div>
-      </DialogContent>
-    </Dialog>
+      <div className="grid grid-cols-2 gap-4 pt-2">
+        <FieldGroup title="Interface Inbound Distribute List">
+          <LabeledValue label="Access List" value={ifaceRef?.inboundDistList ?? "None"} />
+          <LabeledValue label="Metric" value={ifaceRef?.inboundDistMetric ?? "—"} />
+        </FieldGroup>
+        <FieldGroup title="Interface Outbound Distribute List">
+          <LabeledValue label="Access List" value={ifaceRef?.outboundDistList ?? "None"} />
+          <LabeledValue label="Metric" value={ifaceRef?.outboundDistMetric ?? "—"} />
+        </FieldGroup>
+      </div>
+    </DetailDialog>
   )
 }
 
@@ -119,14 +97,14 @@ export function RipPage({ router }: RouterDialogPageProps) {
               <Checkbox checked={(cfg as { defaultInformationOriginate?: boolean })?.defaultInformationOriginate ?? false} disabled />
               <span className="text-xs">default-information originate</span>
             </div>
-            <HeaderField label="BFD Profile" value={refs?.globalBfdProfile ?? cfg?.globalBfdProfile ?? "None"} />
-            <HeaderField label="Global Inbound Distribute List" value={refs?.globalInboundDistList ?? "None"} />
+            <HeaderField labelWidth="w-44" label="BFD Profile" value={refs?.globalBfdProfile ?? cfg?.globalBfdProfile ?? "None"} />
+            <HeaderField labelWidth="w-44" label="Global Inbound Distribute List" value={refs?.globalInboundDistList ?? "None"} />
           </div>
           <div className="space-y-2">
-            <HeaderField label="Global General Timer" value={refs?.globalTimerName ?? "None"} />
-            <HeaderField label="Auth Profile" value={refs?.authProfileName ?? "None"} />
-            <HeaderField label="Redistribution Profile" value={refs?.redistProfileName ?? "None"} />
-            <HeaderField label="Global Outbound Distribute List" value={refs?.globalOutboundDistList ?? "None"} />
+            <HeaderField labelWidth="w-44" label="Global General Timer" value={refs?.globalTimerName ?? "None"} />
+            <HeaderField labelWidth="w-44" label="Auth Profile" value={refs?.authProfileName ?? "None"} />
+            <HeaderField labelWidth="w-44" label="Redistribution Profile" value={refs?.redistProfileName ?? "None"} />
+            <HeaderField labelWidth="w-44" label="Global Outbound Distribute List" value={refs?.globalOutboundDistList ?? "None"} />
           </div>
         </div>
       </div>

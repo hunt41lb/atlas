@@ -891,6 +891,11 @@ function extractMulticastConfig(vrEntry: Record<string, unknown>): PanwMulticast
         override: str(rpEl["override"]) === "yes",
       }
     })(),
+    externalRps: entries(dig(pimEl, "rp", "external-rp")).map((entry) => ({
+      ipAddress: entryName(entry),
+      groupList: str(entry["group-list"]) ?? null,
+      override: str(entry["override"]) === "yes",
+    })),
   } : null
 
   //IGMP
