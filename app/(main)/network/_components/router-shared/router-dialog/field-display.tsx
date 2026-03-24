@@ -91,7 +91,7 @@ export function FieldGroup({
   children: React.ReactNode
 }) {
   return (
-    <fieldset className="rounded-md border px-3 py-2.5">
+    <fieldset className="rounded-md border bg-card px-3 py-2.5">
       <legend className="px-1 text-xs font-medium text-foreground">{title}</legend>
       <div className="space-y-1.5">
         {children}

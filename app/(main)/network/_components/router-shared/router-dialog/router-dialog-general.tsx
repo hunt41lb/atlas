@@ -110,32 +110,68 @@ function EcmpTab({
   router: PanwVirtualRouter
   showDefaults: boolean
 }) {
+  const ecmp = router.ecmp
+  const d = DEFAULT_ECMP
+
   const lbMethod = showDefaults
-    ? DEFAULT_ECMP.algorithm
-    : router.ecmpAlgorithm
-      ? (ECMP_ALGORITHM_LABELS[router.ecmpAlgorithm] ?? router.ecmpAlgorithm)
+    ? d.algorithm
+    : ecmp.algorithm
+      ? (ECMP_ALGORITHM_LABELS[ecmp.algorithm] ?? ecmp.algorithm)
       : "None"
 
   return (
     <div className="space-y-3 px-1">
       <div className="space-y-0.5">
         <ReadOnlyCheckbox
-          checked={showDefaults ? DEFAULT_ECMP.enabled : router.ecmpEnabled}
+          checked={showDefaults ? d.enabled : ecmp.enabled}
           label="Enable"
         />
         <ReadOnlyCheckbox
-          checked={showDefaults ? DEFAULT_ECMP.symmetricReturn : router.ecmpSymmetricReturn}
+          checked={showDefaults ? d.symmetricReturn : ecmp.symmetricReturn}
           label="Symmetric Return"
         />
         <ReadOnlyCheckbox
-          checked={showDefaults ? DEFAULT_ECMP.strictSourcePath : router.ecmpStrictSourcePath}
+          checked={showDefaults ? d.strictSourcePath : ecmp.strictSourcePath}
           label="Strict Source Path"
         />
       </div>
       <div className="border-t pt-2 space-y-0">
-        <LabeledValue label="Max Path" value={showDefaults ? DEFAULT_ECMP.maxPath : 2} />
-        <LabeledValue label="Load-Balancing Method" value={lbMethod} />
+        <LabeledValue label="Max Path" labelWidth="w-44" value={showDefaults ? d.maxPath : (ecmp.maxPath ?? 2)} />
+        <LabeledValue label="Load-Balancing Method" labelWidth="w-44" value={lbMethod} />
       </div>
+
+      {/* IP Hash sub-options */}
+      {!showDefaults && ecmp.ipHash && (
+        <FieldGroup title="IP Hash Options">
+          <ReadOnlyCheckbox checked={ecmp.ipHash.srcOnly} label="Source Only" />
+          <ReadOnlyCheckbox checked={ecmp.ipHash.usePort} label="Use Port" />
+          <LabeledValue label="Hash Seed" value={ecmp.ipHash.hashSeed ?? "—"} />
+        </FieldGroup>
+      )}
+
+      {/* Weighted Round Robin interfaces */}
+      {!showDefaults && ecmp.weightedInterfaces.length > 0 && (
+        <FieldGroup title="Weighted Round Robin">
+          <div className="rounded-md border">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b">
+                  <th className="px-3 py-1.5 text-left text-[11px] font-semibold text-muted-foreground">INTERFACE</th>
+                  <th className="px-3 py-1.5 text-left text-[11px] font-semibold text-muted-foreground">WEIGHT</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ecmp.weightedInterfaces.map((wi) => (
+                  <tr key={wi.name} className="border-b last:border-0">
+                    <td className="px-3 py-1.5 font-mono">{wi.name}</td>
+                    <td className="px-3 py-1.5 tabular-nums font-medium">{wi.weight ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </FieldGroup>
+      )}
     </div>
   )
 }

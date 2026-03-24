@@ -243,6 +243,8 @@ export interface PanwLrBgpPeerGroup {
     inherit: boolean
     localAddress: string | null
     peerAddress: string | null
+    passive: boolean
+    senderSideLoopDetection: boolean
     connectionOptions: { auth: string | null; timers: string | null; dampening: string | null; multihop: string | null }
     bfdProfile: string | null
   }[]
@@ -386,6 +388,7 @@ export interface PanwOspfInterface {
   authProfile: string | null
   timingProfile: string | null
   bfdProfile: string | null
+  mtuIgnore: boolean
 }
 
 export interface PanwOspfRange {
@@ -407,6 +410,7 @@ export interface PanwOspfArea {
   type: string
   ranges: PanwOspfRange[]
   interfaces: PanwOspfInterface[]
+  virtualLinks: PanwOspfVirtualLink[]
 }
 
 export interface PanwOspfConfig {
@@ -437,6 +441,16 @@ export interface PanwOspfv3Interface {
   authProfile: string | null
   timingProfile: string | null
   bfdProfile: string | null
+  mtuIgnore: boolean
+}
+
+export interface PanwOspfVirtualLink {
+  name: string
+  enabled: boolean
+  neighborId: string | null
+  transitAreaId: string | null
+  authProfile: string | null
+  timingProfile: string | null
 }
 
 export interface PanwOspfv3Area {
@@ -444,6 +458,7 @@ export interface PanwOspfv3Area {
   type: string
   ranges: PanwOspfRange[]
   interfaces: PanwOspfv3Interface[]
+  virtualLinks: PanwOspfVirtualLink[]
 }
 
 export interface PanwOspfv3Config {
@@ -624,17 +639,34 @@ export interface PanwMulticastConfig {
   msdp: PanwMulticastMsdpConfig | null
 }
 
+export interface PanwEcmpIpHash {
+  srcOnly: boolean
+  usePort: boolean
+  hashSeed: number | null
+}
+
+export interface PanwEcmpWeightedInterface {
+  name: string
+  weight: number | null
+}
+
+export interface PanwEcmpConfig {
+  enabled: boolean
+  maxPath: number | null
+  algorithm: string | null
+  symmetricReturn: boolean
+  strictSourcePath: boolean
+  ipHash: PanwEcmpIpHash | null
+  weightedInterfaces: PanwEcmpWeightedInterface[]
+}
+
 export interface PanwVirtualRouter {
   name: string
   interfaces: string[]
   staticRoutes: PanwStaticRoute[]
   staticRoutesV6: PanwStaticRoute[]
-  /** Panorama: which template this came from */
   templateName: string | null
-  ecmpEnabled: boolean
-  ecmpAlgorithm: string | null
-  ecmpStrictSourcePath: boolean
-  ecmpSymmetricReturn: boolean
+  ecmp: PanwEcmpConfig
   bgp: PanwBgpConfig
   ospf: PanwOspfConfig
   ospfv3: PanwOspfv3Config

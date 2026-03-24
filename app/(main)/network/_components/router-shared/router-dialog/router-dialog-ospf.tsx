@@ -116,12 +116,13 @@ function AreaDetailDialog({
                     <TableHead className="text-[11px]">AUTH PROFILE</TableHead>
                     <TableHead className="text-[11px]">TIMER PROFILE</TableHead>
                     <TableHead className="text-[11px]">BFD PROFILE</TableHead>
+                    <TableHead className="text-[11px]">MTU IGNORE</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(area.interfaces ?? []).length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="py-6 text-center text-xs text-muted-foreground">No interfaces configured.</TableCell>
+                      <TableCell colSpan={10} className="py-6 text-center text-xs text-muted-foreground">No interfaces configured.</TableCell>
                     </TableRow>
                   ) : area.interfaces.map((iface) => (
                     <TableRow key={iface.name}>
@@ -134,6 +135,7 @@ function AreaDetailDialog({
                       <TableCell><span className="text-xs">{iface.authProfile ?? "—"}</span></TableCell>
                       <TableCell><span className="text-xs">{iface.timingProfile ?? "—"}</span></TableCell>
                       <TableCell><span className="text-xs">{iface.bfdProfile ?? "—"}</span></TableCell>
+                      <TableCell>{iface.mtuIgnore ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -142,7 +144,36 @@ function AreaDetailDialog({
           </TabsContent>
 
           <TabsContent value="virtual-link">
-            <p className="py-4 text-xs text-muted-foreground text-center">No virtual links configured.</p>
+            {(area.virtualLinks ?? []).length === 0 ? (
+              <p className="py-4 text-xs text-muted-foreground text-center">No virtual links configured.</p>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-[11px]">NAME</TableHead>
+                      <TableHead className="text-[11px]">ENABLE</TableHead>
+                      <TableHead className="text-[11px]">NEIGHBOR ID</TableHead>
+                      <TableHead className="text-[11px]">TRANSIT AREA ID</TableHead>
+                      <TableHead className="text-[11px]">AUTH PROFILE</TableHead>
+                      <TableHead className="text-[11px]">TIMER PROFILE</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {area.virtualLinks.map((vl) => (
+                      <TableRow key={vl.name}>
+                        <TableCell><span className="text-xs font-medium">{vl.name}</span></TableCell>
+                        <TableCell>{vl.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                        <TableCell><MonoValue className="text-xs">{vl.neighborId ?? "—"}</MonoValue></TableCell>
+                        <TableCell><MonoValue className="text-xs">{vl.transitAreaId ?? "—"}</MonoValue></TableCell>
+                        <TableCell><span className="text-xs">{vl.authProfile ?? "—"}</span></TableCell>
+                        <TableCell><span className="text-xs">{vl.timingProfile ?? "—"}</span></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </TabsContent>
         </div>
       </Tabs>

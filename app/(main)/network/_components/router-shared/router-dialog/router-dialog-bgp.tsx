@@ -131,12 +131,14 @@ function PeerGroupDetailDialog({
               <TableHead className="text-[11px]">INHERIT</TableHead>
               <TableHead className="text-[11px]">LOCAL ADDRESS</TableHead>
               <TableHead className="text-[11px]">PEER ADDRESS</TableHead>
+              <TableHead className="text-[11px]">PASSIVE</TableHead>
+              <TableHead className="text-[11px]">LOOP DETECT</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {pg.peers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="py-6 text-center text-xs text-muted-foreground">No peers configured.</TableCell>
+                <TableCell colSpan={8} className="py-6 text-center text-xs text-muted-foreground">No peers configured.</TableCell>
               </TableRow>
             ) : pg.peers.map((peer) => (
               <TableRow key={peer.name}>
@@ -146,6 +148,8 @@ function PeerGroupDetailDialog({
                 <TableCell><span className="text-xs">{peer.inherit ? "yes" : "no"}</span></TableCell>
                 <TableCell><MonoValue className="text-xs">{peer.localAddress ?? "—"}</MonoValue></TableCell>
                 <TableCell><MonoValue className="text-xs">{peer.peerAddress ?? "—"}</MonoValue></TableCell>
+                <TableCell>{peer.passive ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                <TableCell>{peer.senderSideLoopDetection ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -343,8 +347,8 @@ function AggregateRouteDetailDialog({
 
   return (
     <DetailDialog title="BGP - Aggregate Routes" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-2xl">
-      <HeaderField labelWidth="w-44" label="Name" value={ar.name} />
-      <HeaderField labelWidth="w-44" label="Description" value={ar.description ?? ""} />
+      <HeaderField label="Name" value={ar.name} />
+      <HeaderField label="Description" value={ar.description ?? ""} />
 
       <div className="space-y-1 pl-46">
         <ReadOnlyCheckbox checked={ar.enabled} label="Enable" />
@@ -358,9 +362,9 @@ function AggregateRouteDetailDialog({
         <span className="text-xs font-medium">{ar.type === "ipv4" ? "IPv4" : ar.type === "ipv6" ? "IPv6" : "—"}</span>
       </div>
 
-      <HeaderField labelWidth="w-44" label="Summary Prefix" value={ar.summaryPrefix ?? "None"} />
-      <HeaderField labelWidth="w-44" label="Suppress Map" value={ar.suppressMap ?? "None"} />
-      <HeaderField labelWidth="w-44" label="Attribute Map" value={ar.attributeMap ?? "None"} />
+      <HeaderField label="Summary Prefix" value={ar.summaryPrefix ?? "None"} />
+      <HeaderField label="Suppress Map" value={ar.suppressMap ?? "None"} />
+      <HeaderField label="Attribute Map" value={ar.attributeMap ?? "None"} />
     </DetailDialog>
   )
 }

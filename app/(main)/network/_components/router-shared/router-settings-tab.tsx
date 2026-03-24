@@ -1,8 +1,4 @@
 // @/app/(main)/network/_components/router-shared/router-settings-tab.tsx
-//
-// Shared overview table for Virtual Routers and Logical Routers.
-// Shows name, interfaces, configuration summary, protocol status badges.
-// Optionally supports clickable names to open a detail dialog.
 
 "use client"
 
@@ -79,7 +75,7 @@ function buildColumns(
         const items: { label: string; value: string }[] = []
         if (vr.staticRoutes.length > 0) items.push({ label: "Static Routes", value: String(vr.staticRoutes.length) })
         if (vr.staticRoutesV6.length > 0) items.push({ label: "Static IPv6 Routes", value: String(vr.staticRoutesV6.length) })
-        if (vr.ecmpEnabled) items.push({ label: "ECMP", value: "Enabled" })
+        if (vr.ecmp.enabled) items.push({ label: "ECMP", value: "Enabled" })
         if (vr.redistProfiles.length > 0) items.push({ label: "Redist Profiles", value: String(vr.redistProfiles.length) })
 
         if (items.length === 0) return <span className="text-muted-foreground text-xs">—</span>

@@ -16,6 +16,7 @@ import type {
   PanwLrOspfRefs, PanwLrRipRefs, PanwLrBgpRefs, PanwLrRibFilter, PanwLrMsdpRefs, PanwLrAreaRef,
   PanwOspfGracefulRestart, PanwOspfRange, PanwBgpNetworkEntry,
   PanwMulticastStaticRoute, PanwMulticastPimConfig, PanwMulticastIgmpConfig, PanwMulticastMsdpConfig,
+  PanwOspfVirtualLink, PanwEcmpConfig, PanwEcmpIpHash, PanwEcmpWeightedInterface,
 } from "./types"
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -666,6 +667,17 @@ function extractOspfRanges(areaEntry: Record<string, unknown>): PanwOspfRange[] 
   }))
 }
 
+function extractVirtualLinks(areaEntry: Record<string, unknown>): PanwOspfVirtualLink[] {
+  return entries(dig(areaEntry, "virtual-link")).map((entry) => ({
+    name: entryName(entry),
+    enabled: str(entry["enable"]) === "yes",
+    neighborId: str(entry["neighbor-id"]) ?? null,
+    transitAreaId: str(entry["transit-area-id"]) ?? null,
+    authProfile: str(entry["authentication"]) ?? null,
+    timingProfile: str(entry["timing"]) ?? null,
+  }))
+}
+
 function extractOspfConfig(protocolEl: unknown): PanwOspfConfig {
   const ospfEl = dig(protocolEl, "ospf") as Record<string, unknown> | undefined
   if (!ospfEl) {
@@ -691,7 +703,9 @@ function extractOspfConfig(protocolEl: unknown): PanwOspfConfig {
       authProfile: str(ifEntry["authentication"]) ?? null,
       timingProfile: str(ifEntry["timing"]) ?? null,
       bfdProfile: str(dig(ifEntry, "bfd", "profile")) ?? null,
+      mtuIgnore: str(ifEntry["mtu-ignore"]) === "yes",
     })),
+    virtualLinks: extractVirtualLinks(areaEntry),
   }))
 
   return {
@@ -733,7 +747,9 @@ function extractOspfv3Config(protocolEl: unknown): PanwOspfv3Config {
       authProfile: str(ifEntry["authentication"]) ?? null,
       timingProfile: str(ifEntry["timing"]) ?? null,
       bfdProfile: str(dig(ifEntry, "bfd", "profile")) ?? null,
+      mtuIgnore: str(ifEntry["mtu-ignore"]) === "yes",
     })),
+    virtualLinks: extractVirtualLinks(areaEntry),
   }))
 
   return {
@@ -951,6 +967,47 @@ function extractMulticastConfig(vrEntry: Record<string, unknown>): PanwMulticast
 }
 // ─── Virtual Routers ──────────────────────────────────────────────────────────
 
+function extractEcmpConfig(ecmpEl: Record<string, unknown> | undefined): PanwEcmpConfig {
+  if (!ecmpEl) {
+    return { enabled: false, maxPath: null, algorithm: null, symmetricReturn: false, strictSourcePath: false, ipHash: null, weightedInterfaces: [] }
+  }
+
+  const algoEl = ecmpEl["algorithm"] as Record<string, unknown> | undefined
+  let algorithm: string | null = null
+  let ipHash: PanwEcmpIpHash | null = null
+  let weightedInterfaces: PanwEcmpWeightedInterface[] = []
+
+  if (algoEl) {
+    const algoKey = Object.keys(algoEl)[0] ?? null
+    algorithm = algoKey
+
+    if (algoKey === "ip-hash") {
+      const h = algoEl["ip-hash"] as Record<string, unknown>
+      ipHash = {
+        srcOnly: str(h["src-only"]) === "yes",
+        usePort: str(h["use-port"]) === "yes",
+        hashSeed: h["hash-seed"] !== undefined ? Number(h["hash-seed"]) : null,
+      }
+    } else if (algoKey === "weighted-round-robin") {
+      const w = algoEl["weighted-round-robin"] as Record<string, unknown>
+      weightedInterfaces = entries(dig(w, "interface")).map((entry) => ({
+        name: entryName(entry),
+        weight: entry["weight"] !== undefined ? Number(entry["weight"]) : null,
+      }))
+    }
+  }
+
+  return {
+    enabled: str(ecmpEl["enable"]) === "yes",
+    maxPath: ecmpEl["max-path"] !== undefined ? Number(ecmpEl["max-path"]) : null,
+    algorithm,
+    symmetricReturn: str(ecmpEl["symmetric-return"]) === "yes",
+    strictSourcePath: str(ecmpEl["strict-source-path"]) === "yes",
+    ipHash,
+    weightedInterfaces,
+  }
+}
+
 export function extractVirtualRouters(
   networkEl: unknown,
   templateName: string | null
@@ -970,12 +1027,7 @@ export function extractVirtualRouters(
 
     // ECMP
     const ecmpEl = entry["ecmp"] as Record<string, unknown> | undefined
-    const ecmpEnabled = str(dig(ecmpEl, "enable")) === "yes"
-    let ecmpAlgorithm: string | null = null
-    if (ecmpEl?.["algorithm"] && typeof ecmpEl["algorithm"] === "object") {
-      const algoKeys = Object.keys(ecmpEl["algorithm"] as Record<string, unknown>)
-      ecmpAlgorithm = algoKeys[0] ?? null
-    }
+    const ecmp = extractEcmpConfig(ecmpEl)
 
     // Admin distances (on Logical Routers these are inside vrf > entry > admin-dists)
     // On Virtual Routers they sit directly on the entry (if configured)
@@ -988,10 +1040,7 @@ export function extractVirtualRouters(
       staticRoutesV6,
       templateName,
       // ECMP
-      ecmpEnabled,
-      ecmpAlgorithm,
-      ecmpStrictSourcePath: str(dig(ecmpEl, "strict-source-path")) === "yes",
-      ecmpSymmetricReturn: str(dig(ecmpEl, "symmetric-return")) === "yes",
+      ecmp,
       // BGP
       bgp: extractBgpConfig(protocolEl),
       // OSPF
@@ -1117,6 +1166,8 @@ function extractLrBgpRefs(bgpEl: Record<string, unknown> | undefined): PanwLrBgp
             inherit: p["inherit"] !== undefined && (p["inherit"] as Record<string,unknown>)["yes"] !== undefined,
             localAddress: str(dig(p, "local-address", "ip")) ?? null,
             peerAddress: str(dig(p, "peer-address", "ip")) ?? null,
+            passive: str(p["passive"]) === "yes",
+            senderSideLoopDetection: str(p["enable-sender-side-loop-detection"]) === "yes",
             connectionOptions: {
               auth: pco ? (str(pco["authentication"]) ?? null) : null,
               timers: pco ? (str(pco["timers"]) ?? null) : null,
@@ -1216,12 +1267,7 @@ export function extractLogicalRouters(
 
       // ECMP — sits directly on VRF entry
       const ecmpEl = vrfEntry["ecmp"] as Record<string, unknown> | undefined
-      const ecmpEnabled = str(dig(ecmpEl, "enable")) === "yes"
-      let ecmpAlgorithm: string | null = null
-      if (ecmpEl?.["algorithm"] && typeof ecmpEl["algorithm"] === "object") {
-        const algoKeys = Object.keys(ecmpEl["algorithm"] as Record<string, unknown>)
-        ecmpAlgorithm = algoKeys[0] ?? null
-      }
+      const ecmp = extractEcmpConfig(ecmpEl)
 
       // Protocols — sit directly on VRF entry (no <protocol> wrapper like VR)
       // The extract*Config functions dig for "ospf", "bgp", etc. within the passed element
@@ -1234,10 +1280,7 @@ export function extractLogicalRouters(
         staticRoutesV6,
         templateName,
         // ECMP
-        ecmpEnabled,
-        ecmpAlgorithm,
-        ecmpStrictSourcePath: str(dig(ecmpEl, "strict-source-path")) === "yes",
-        ecmpSymmetricReturn: str(dig(ecmpEl, "symmetric-return")) === "yes",
+        ecmp,
         // Protocols
         ospf: extractOspfConfig(vrfAsProtocol),
         ospfv3: extractOspfv3Config(vrfAsProtocol),
@@ -1259,6 +1302,7 @@ export function extractLogicalRouters(
     })
   })
 }
+
 // ───  DHCP Relay ──────────────────────────────────────────────────────────────
 
 export function extractDhcpRelayInterfaces(networkEl: unknown): string[] {
