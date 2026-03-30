@@ -1,7 +1,27 @@
 // @/lib/panw-parser/types.ts
 
-import type { PanwBfdProfile, PanwBgpRoutingProfiles, PanwMulticastRoutingProfiles, PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles, PanwRipRoutingProfiles, PanwRoutingFilters } from "./routing-profiles"
-import type { PanwInterfaceMgmtProfile, PanwMonitorProfile, PanwZoneProtectionProfile, PanwIkeCryptoProfile } from "./network-profiles"
+import type {
+  PanwBfdProfile,
+  PanwBgpRoutingProfiles,
+  PanwMulticastRoutingProfiles,
+  PanwOspfRoutingProfiles,
+  PanwOspfv3RoutingProfiles,
+  PanwRipRoutingProfiles,
+  PanwRoutingFilters
+} from "./routing-profiles"
+import type {
+  PanwInterfaceMgmtProfile,
+  PanwMonitorProfile,
+  PanwZoneProtectionProfile,
+  PanwIkeCryptoProfile,
+  PanwIpsecCryptoProfile,
+  PanwIkeGateway,
+  PanwGpIpsecCryptoProfile,
+  PanwNetworkBfdProfile,
+  PanwLldpProfile,
+  PanwMacsecProfile,
+  PanwQosProfile
+} from "./network-profiles"
 
 // ─── Color ──────────────────────────────────────────────────────────────────
 
@@ -778,6 +798,13 @@ export interface PanwTemplate {
   monitorProfiles: PanwMonitorProfile[]
   zoneProtectionProfiles: PanwZoneProtectionProfile[]
   ikeCryptoProfiles: PanwIkeCryptoProfile[]
+  ipsecCryptoProfiles: PanwIpsecCryptoProfile[]
+  ikeGateways: PanwIkeGateway[]
+  gpIpsecCryptoProfiles: PanwGpIpsecCryptoProfile[]
+  networkBfdProfiles: PanwNetworkBfdProfile[]
+  lldpProfiles: PanwLldpProfile[]
+  macsecProfiles: PanwMacsecProfile[]
+  qosProfiles: PanwQosProfile[]
   ipsecTunnels: number
   greTunnels: number
   dhcpInterfaces: number

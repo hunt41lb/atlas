@@ -12,7 +12,19 @@ import type {
   PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles,PanwRipRoutingProfiles,
   PanwMulticastRoutingProfiles,
 } from "@/lib/panw-parser/routing-profiles"
-import type { PanwInterfaceMgmtProfile, PanwMonitorProfile, PanwZoneProtectionProfile, PanwIkeCryptoProfile } from "@/lib/panw-parser/network-profiles"
+import type {
+  PanwInterfaceMgmtProfile,
+  PanwMonitorProfile,
+  PanwZoneProtectionProfile,
+  PanwIkeCryptoProfile,
+  PanwIpsecCryptoProfile,
+  PanwIkeGateway,
+  PanwGpIpsecCryptoProfile,
+  PanwNetworkBfdProfile,
+  PanwLldpProfile,
+  PanwMacsecProfile,
+  PanwQosProfile,
+} from "@/lib/panw-parser/network-profiles"
 
 // ─── Template resolution (Network scope) ─────────────────────────────────────
 
@@ -55,6 +67,13 @@ export interface ResolvedNetworkData {
   monitorProfiles: PanwMonitorProfile[]
   zoneProtectionProfiles: PanwZoneProtectionProfile[]
   ikeCryptoProfiles: PanwIkeCryptoProfile[]
+  ipsecCryptoProfiles: PanwIpsecCryptoProfile[]
+  ikeGateways: PanwIkeGateway[]
+  gpIpsecCryptoProfiles: PanwGpIpsecCryptoProfile[]
+  networkBfdProfiles: PanwNetworkBfdProfile[]
+  lldpProfiles: PanwLldpProfile[]
+  macsecProfiles: PanwMacsecProfile[]
+  qosProfiles: PanwQosProfile[]
 }
 
 const EMPTY_OSPF: PanwOspfRoutingProfiles = { spfTimerProfiles: [], authProfiles: [], ifTimerProfiles: [], redistributionProfiles: [] }
@@ -101,6 +120,13 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       monitorProfiles: [],
       zoneProtectionProfiles: [],
       ikeCryptoProfiles: [],
+      ipsecCryptoProfiles: [],
+      ikeGateways: [],
+      gpIpsecCryptoProfiles: [],
+      networkBfdProfiles: [],
+      lldpProfiles: [],
+      macsecProfiles: [],
+      qosProfiles: [],
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -169,6 +195,13 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     monitorProfiles: templates.flatMap(t => t.monitorProfiles ?? []),
     zoneProtectionProfiles: templates.flatMap(t => t.zoneProtectionProfiles ?? []),
     ikeCryptoProfiles: templates.flatMap(t => t.ikeCryptoProfiles ?? []),
+    ipsecCryptoProfiles: templates.flatMap(t => t.ipsecCryptoProfiles ?? []),
+    ikeGateways: templates.flatMap(t => t.ikeGateways ?? []),
+    gpIpsecCryptoProfiles: templates.flatMap(t => t.gpIpsecCryptoProfiles ?? []),
+    networkBfdProfiles: templates.flatMap(t => t.networkBfdProfiles ?? []),
+    lldpProfiles: templates.flatMap(t => t.lldpProfiles ?? []),
+    macsecProfiles: templates.flatMap(t => t.macsecProfiles ?? []),
+    qosProfiles: templates.flatMap(t => t.qosProfiles ?? []),
   }
 }
 

@@ -24,6 +24,13 @@ import {
   extractMonitorProfiles,
   extractZoneProtectionProfiles,
   extractIkeCryptoProfiles,
+  extractIpsecCryptoProfiles,
+  extractIkeGateways,
+  extractGpIpsecCryptoProfiles,
+  extractNetworkBfdProfiles,
+  extractLldpProfiles,
+  extractMacsecProfiles,
+  extractQosProfiles,
 } from "./network-profiles"
 
 // ─── XML Parser config ───────────────────────────────────────────────────────
@@ -329,6 +336,13 @@ function parsePanorama(
       monitorProfiles:          extractMonitorProfiles(networkEl, tmplName),
       zoneProtectionProfiles:   extractZoneProtectionProfiles(networkEl, tmplName),
       ikeCryptoProfiles:        extractIkeCryptoProfiles(networkEl, tmplName),
+      ipsecCryptoProfiles:      extractIpsecCryptoProfiles(networkEl, tmplName),
+      ikeGateways:              extractIkeGateways(networkEl, tmplName),
+      gpIpsecCryptoProfiles:    extractGpIpsecCryptoProfiles(networkEl, tmplName),
+      networkBfdProfiles:       extractNetworkBfdProfiles(networkEl, tmplName),
+      lldpProfiles:             extractLldpProfiles(networkEl, tmplName),
+      macsecProfiles:           extractMacsecProfiles(networkEl, tmplName),
+      qosProfiles:              extractQosProfiles(networkEl, tmplName),
       ...extractNetworkCounts(networkEl),
     }
   })

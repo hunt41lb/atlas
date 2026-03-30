@@ -136,7 +136,7 @@ function buildColumns(
       cell: (info) => (
         <button
           type="button"
-          className="font-medium text-foreground hover:underline cursor-pointer"
+          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}

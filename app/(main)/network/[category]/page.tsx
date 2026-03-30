@@ -22,17 +22,17 @@ import { VlansTable } from "../_components/vlans-table"
 import { VirtualWiresTable } from "../_components/virtual-wires-table"
 import { VirtualRoutersView } from "@/app/(main)/network/_components/virtual-routers-view"
 import { LogicalRoutersView } from "@/app/(main)/network/_components/logical-routers-view"
-import { BfdProfilesView } from "@/app/(main)/network/_components/routing-profiles/bfd/bfd-profiles-view"
-import { BgpProfilesView } from "@/app/(main)/network/_components/routing-profiles/bgp/bgp-profiles-view"
-import { FiltersView } from "@/app/(main)/network/_components/routing-profiles/filters/filters-view"
-import { OspfProfilesView } from "@/app/(main)/network/_components/routing-profiles/ospf/ospf-profiles-view"
-import { Ospfv3ProfilesView } from "@/app/(main)/network/_components/routing-profiles/ospfv3/ospfv3-profiles-view"
-import { RipProfilesView } from "@/app/(main)/network/_components/routing-profiles/rip/rip-profiles-view"
-import { MulticastProfilesView } from "@/app/(main)/network/_components/routing-profiles/multicast/multicast-profiles-view"
-import { InterfaceMgmtView } from "@/app/(main)/network/_components/network-profiles/interface-mgmt/interface-mgmt-view"
-import { MonitorView } from "@/app/(main)/network/_components/network-profiles/monitor/monitor-view"
-import { ZoneProtectionView } from "@/app/(main)/network/_components/network-profiles/zone-protection/zone-protection-view"
-import { IkeCryptoView } from "@/app/(main)/network/_components/network-profiles/ike-crypto/ike-crypto-view"
+import {
+  BfdProfilesView, BgpProfilesView, FiltersView,
+  OspfProfilesView, Ospfv3ProfilesView, RipProfilesView,
+  MulticastProfilesView,
+} from "@/app/(main)/network/_components/routing-profiles"
+import {
+  InterfaceMgmtView, MonitorView, ZoneProtectionView,
+  IkeCryptoView, IpsecCryptoView, IkeGatewaysView,
+  GpIpsecCryptoView, NetworkBfdView, LldpProfileView,
+  MacsecView, QosView,
+} from "@/app/(main)/network/_components/network-profiles"
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
 
@@ -120,41 +120,41 @@ function RoutingView() {
 // ─── Route map ────────────────────────────────────────────────────────────────
 
 const NETWORK_VIEWS: Record<string, { title: string; component?: React.ComponentType; countKey?: string }> = {
-  "interfaces":                   { title: "Interfaces",          component: InterfacesView },
-  "zones":                        { title: "Zones",               component: ZonesTable },
-  "vlans":                        { title: "VLANs",               component: VlansTable },
-  "virtual-wires":                { title: "Virtual Wires",       component: VirtualWiresTable },
-  "routing":                      { title: "Routing",             component: RoutingView },
-  "virtual-routers":              { title: "Virtual Routers",     component: VirtualRoutersView },
-  "logical-routers":              { title: "Logical Routers",     component: LogicalRoutersView },
-  "routing-profiles":             { title: "Routing Profiles" },
-  "routing-profiles-bgp":         { title: "BGP",                 component: BgpProfilesView },
-  "routing-profiles-bfd":         { title: "BFD",                 component: BfdProfilesView },
-  "routing-profiles-ospf":        { title: "OSPF",                component: OspfProfilesView },
-  "routing-profiles-ospfv3":      { title: "OSPFv3",              component: Ospfv3ProfilesView },
-  "routing-profiles-ripv2":       { title: "RIPv2",               component: RipProfilesView },
-  "routing-profiles-filters":     { title: "Filters",             component: FiltersView },
-  "routing-profiles-multicast":   { title: "Multicast",           component: MulticastProfilesView },
-  "ipsec-tunnels":                { title: "IPSec Tunnels" },
-  "gre-tunnels":                  { title: "GRE Tunnels" },
-  "dhcp":                         { title: "DHCP" },
-  "dns-proxy":                    { title: "DNS Proxy" },
-  "global-protect":               { title: "GlobalProtect" },
-  "qos":                          { title: "QoS" },
-  "lldp":                         { title: "LLDP" },
-  "network-profiles":                   { title: "Network Profiles" },
-  "network-profiles-gp-ipsec-crypto":   { title: "GlobalProtect IPSec Crypto" },
-  "network-profiles-ike-gateways":      { title: "IKE Gateways" },
-  "network-profiles-ipsec-crypto":      { title: "IPSec Crypto" },
+  "interfaces":                          { title: "Interfaces",                 component: InterfacesView },
+  "zones":                               { title: "Zones",                      component: ZonesTable },
+  "vlans":                               { title: "VLANs",                      component: VlansTable },
+  "virtual-wires":                       { title: "Virtual Wires",              component: VirtualWiresTable },
+  "routing":                             { title: "Routing",                    component: RoutingView },
+  "virtual-routers":                     { title: "Virtual Routers",            component: VirtualRoutersView },
+  "logical-routers":                     { title: "Logical Routers",            component: LogicalRoutersView },
+  "routing-profiles":                    { title: "Routing Profiles" },
+  "routing-profiles-bgp":                { title: "BGP",                        component: BgpProfilesView },
+  "routing-profiles-bfd":                { title: "BFD",                        component: BfdProfilesView },
+  "routing-profiles-ospf":               { title: "OSPF",                       component: OspfProfilesView },
+  "routing-profiles-ospfv3":             { title: "OSPFv3",                     component: Ospfv3ProfilesView },
+  "routing-profiles-ripv2":              { title: "RIPv2",                      component: RipProfilesView },
+  "routing-profiles-filters":            { title: "Filters",                    component: FiltersView },
+  "routing-profiles-multicast":          { title: "Multicast",                  component: MulticastProfilesView },
+  "ipsec-tunnels":                       { title: "IPSec Tunnels" },
+  "gre-tunnels":                         { title: "GRE Tunnels" },
+  "dhcp":                                { title: "DHCP" },
+  "dns-proxy":                           { title: "DNS Proxy" },
+  "global-protect":                      { title: "GlobalProtect" },
+  "qos":                                 { title: "QoS" },
+  "lldp":                                { title: "LLDP" },
+  "network-profiles":                    { title: "Network Profiles" },
+  "network-profiles-gp-ipsec-crypto":    { title: "GlobalProtect IPSec Crypto", component: GpIpsecCryptoView },
+  "network-profiles-ike-gateways":       { title: "IKE Gateways",               component: IkeGatewaysView },
+  "network-profiles-ipsec-crypto":       { title: "IPSec Crypto",               component: IpsecCryptoView },
   "network-profiles-ike-crypto":         { title: "IKE Crypto",                 component: IkeCryptoView },
   "network-profiles-monitor":            { title: "Monitor",                    component: MonitorView },
-  "network-profiles-interface-mgmt":    { title: "Interface Management",        component: InterfaceMgmtView },
+  "network-profiles-interface-mgmt":     { title: "Interface Management",       component: InterfaceMgmtView },
   "network-profiles-zone-protection":    { title: "Zone Protection",            component: ZoneProtectionView },
-  "network-profiles-qos":               { title: "QoS Profile" },
-  "network-profiles-lldp":              { title: "LLDP Profile" },
-  "network-profiles-bfd":               { title: "BFD Profile" },
-  "network-profiles-macsec":            { title: "MACsec Profile" },
-  "sd-wan-interface":             { title: "SD-WAN Interface Profile" },
+  "network-profiles-qos":                { title: "QoS Profile",                component: QosView },
+  "network-profiles-lldp":               { title: "LLDP Profile",               component: LldpProfileView },
+  "network-profiles-bfd":                { title: "BFD Profile",                component: NetworkBfdView },
+  "network-profiles-macsec":             { title: "MACsec Profile",             component: MacsecView },
+  "sd-wan-interface":                    { title: "SD-WAN Interface Profile" },
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

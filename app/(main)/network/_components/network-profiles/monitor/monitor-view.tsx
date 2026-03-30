@@ -29,7 +29,7 @@ function buildColumns(isPanorama: boolean): ColumnDef<PanwMonitorProfile, unknow
     col.accessor("name", {
       header: "Name",
       enableHiding: false,
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      cell: (info) => <span className="text-xs text-foreground font-medium">{info.getValue()}</span>,
     }) as ColumnDef<PanwMonitorProfile, unknown>,
 
     {
