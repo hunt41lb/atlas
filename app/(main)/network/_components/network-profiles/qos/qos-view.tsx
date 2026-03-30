@@ -21,6 +21,7 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { QosDialog } from "./qos-dialog"
 import type { PanwQosProfile } from "@/lib/panw-parser/network-profiles"
+import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -76,15 +77,7 @@ function buildColumns(
       cell: () => null,  // Only shown on class rows
     },
 
-    ...(isPanorama ? [{
-      id: "template",
-      header: "Template",
-      enableSorting: true,
-      accessorFn: (row: PanwQosProfile) => row.templateName ?? "",
-      cell: ({ row }: { row: { original: PanwQosProfile } }) => row.original.templateName
-        ? <span className="text-xs">{row.original.templateName}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    } as ColumnDef<PanwQosProfile, unknown>] : []),
+    ...templateColumn<PanwQosProfile>(isPanorama),
   ]
 }
 

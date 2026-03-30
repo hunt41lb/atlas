@@ -21,6 +21,7 @@ import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { IkeGatewayDialog } from "./ike-gateways-dialog"
 import type { PanwIkeGateway } from "@/lib/panw-parser/network-profiles"
 import { ID_TYPE_LABELS } from "@/lib/panw-parser/network-profiles"
+import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -195,15 +196,7 @@ function buildColumns(
         : <span className="text-muted-foreground text-xs">—</span>,
     },
 
-    ...(isPanorama ? [{
-      id: "template",
-      header: "Template",
-      enableSorting: true,
-      accessorFn: (row: PanwIkeGateway) => row.templateName ?? "",
-      cell: ({ row }: { row: { original: PanwIkeGateway } }) => row.original.templateName
-        ? <span className="text-xs">{row.original.templateName}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    } as ColumnDef<PanwIkeGateway, unknown>] : []),
+    ...templateColumn<PanwIkeGateway>(isPanorama),
   ]
 }
 

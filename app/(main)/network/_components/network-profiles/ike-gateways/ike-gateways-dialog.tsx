@@ -3,14 +3,6 @@
 "use client"
 
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import {
   Tabs,
   TabsList,
   TabsTrigger,
@@ -21,6 +13,8 @@ import {
   HeaderField,
   LabeledValue,
   ReadOnlyCheckbox,
+  ReadOnlyRadio,
+  ProfileDialog,
 } from "../../router-shared/router-dialog/field-display"
 import type { PanwIkeGateway } from "@/lib/panw-parser/network-profiles"
 import { ID_TYPE_LABELS } from "@/lib/panw-parser/network-profiles"
@@ -92,16 +86,11 @@ function PqPpkSubTab({ gw }: { gw: PanwIkeGateway }) {
     <div className="space-y-3">
       <ReadOnlyCheckbox checked={gw.pqPpkEnabled} label="Enable Post-Quantum Pre-Shared Key(PPK)" />
       {gw.pqPpkEnabled && (
-        <div className="flex items-center gap-4 pl-6">
-          <span className="text-xs text-muted-foreground">Negotiation Mode</span>
-          <label className="flex items-center gap-1.5 text-xs">
-            <input type="radio" checked={gw.pqPpkNegotiationMode === "preferred"} readOnly className="accent-primary" />
-            Preferred
-          </label>
-          <label className="flex items-center gap-1.5 text-xs">
-            <input type="radio" checked={gw.pqPpkNegotiationMode === "mandatory"} readOnly className="accent-primary" />
-            Mandatory
-          </label>
+        <div className="pl-6">
+          <ReadOnlyRadio label="Negotiation Mode" value={gw.pqPpkNegotiationMode} labelWidth="w-auto" options={[
+            { value: "preferred", label: "Preferred" },
+            { value: "mandatory", label: "Mandatory" },
+          ]} />
         </div>
       )}
     </div>
@@ -177,37 +166,24 @@ export function IkeGatewayDialog({
   if (!gateway) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="sm:max-w-[75vw] h-[min(85vh,650px)] flex flex-col gap-0 p-0 overflow-hidden"
-      >
-        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
-          <DialogTitle>IKE Gateway</DialogTitle>
-        </DialogHeader>
-
-        <Tabs defaultValue="general" className="flex-1 flex flex-col min-h-0">
-          <div className="shrink-0 border-b px-5">
-            <TabsList variant="line">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="advanced">Advanced Options</TabsTrigger>
-            </TabsList>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-5">
-            <TabsContent value="general">
-              <GeneralTab gw={gateway} />
-            </TabsContent>
-            <TabsContent value="advanced">
-              <AdvancedOptionsTab gw={gateway} />
-            </TabsContent>
-          </div>
-        </Tabs>
-
-        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
-          <DialogClose render={<Button variant="outline">Close</Button>} />
+    <ProfileDialog title="IKE Gateway" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-[75vw]" height="h-[min(85vh,650px)]" noPadding>
+      <Tabs defaultValue="general" className="flex-1 flex flex-col min-h-0">
+        <div className="shrink-0 border-b px-5">
+          <TabsList variant="line">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced Options</TabsTrigger>
+          </TabsList>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <div className="flex-1 overflow-y-auto p-5">
+          <TabsContent value="general">
+            <GeneralTab gw={gateway} />
+          </TabsContent>
+          <TabsContent value="advanced">
+            <AdvancedOptionsTab gw={gateway} />
+          </TabsContent>
+        </div>
+      </Tabs>
+    </ProfileDialog>
   )
 }

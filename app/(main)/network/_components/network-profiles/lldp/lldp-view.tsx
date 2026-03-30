@@ -20,6 +20,7 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { LldpDialog } from "./lldp-dialog"
 import type { PanwLldpProfile } from "@/lib/panw-parser/network-profiles"
+import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -106,15 +107,7 @@ function buildColumns(
       },
     },
 
-    ...(isPanorama ? [{
-      id: "template",
-      header: "Template",
-      enableSorting: true,
-      accessorFn: (row: PanwLldpProfile) => row.templateName ?? "",
-      cell: ({ row }: { row: { original: PanwLldpProfile } }) => row.original.templateName
-        ? <span className="text-xs">{row.original.templateName}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    } as ColumnDef<PanwLldpProfile, unknown>] : []),
+    ...templateColumn<PanwLldpProfile>(isPanorama),
   ]
 }
 

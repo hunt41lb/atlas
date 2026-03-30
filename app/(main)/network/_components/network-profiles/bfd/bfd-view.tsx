@@ -20,6 +20,7 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { BfdDialog } from "./bfd-dialog"
 import type { PanwNetworkBfdProfile } from "@/lib/panw-parser/network-profiles"
+import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -91,15 +92,7 @@ function buildColumns(
       cell: ({ row }) => <Checkbox checked={row.original.multihopEnabled} disabled />,
     },
 
-    ...(isPanorama ? [{
-      id: "template",
-      header: "Template",
-      enableSorting: true,
-      accessorFn: (row: PanwNetworkBfdProfile) => row.templateName ?? "",
-      cell: ({ row }: { row: { original: PanwNetworkBfdProfile } }) => row.original.templateName
-        ? <span className="text-xs">{row.original.templateName}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    } as ColumnDef<PanwNetworkBfdProfile, unknown>] : []),
+    ...templateColumn<PanwNetworkBfdProfile>(isPanorama),
   ]
 }
 

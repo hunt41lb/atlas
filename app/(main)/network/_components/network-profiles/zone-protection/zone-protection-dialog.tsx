@@ -12,13 +12,6 @@
 "use client"
 
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from "@/components/ui/dialog"
-import {
   Tabs,
   TabsList,
   TabsTrigger,
@@ -29,6 +22,8 @@ import {
   FieldGroup,
   HeaderField,
   LabeledValue,
+  ReadOnlyRadio,
+  ProfileDialog,
 } from "../../router-shared/router-dialog/field-display"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -40,7 +35,6 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import type { PanwZoneProtectionProfile } from "@/lib/panw-parser/network-profiles"
-import { Button } from "@/components/ui/button"
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TAB 1: FLOOD PROTECTION
@@ -304,17 +298,10 @@ function PacketBasedAttackTab({ profile }: { profile: PanwZoneProtectionProfile 
 function ProtocolProtectionTab({ profile }: { profile: PanwZoneProtectionProfile }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <span className="text-xs text-muted-foreground">Rule Type</span>
-        <label className="flex items-center gap-1.5 text-xs">
-          <input type="radio" checked={profile.ppListType === "exclude"} readOnly className="accent-primary" />
-          Exclude List
-        </label>
-        <label className="flex items-center gap-1.5 text-xs">
-          <input type="radio" checked={profile.ppListType === "include"} readOnly className="accent-primary" />
-          Include List
-        </label>
-      </div>
+      <ReadOnlyRadio label="Rule Type" value={profile.ppListType} labelWidth="w-auto" options={[
+        { value: "exclude", label: "Exclude List" },
+        { value: "include", label: "Include List" },
+      ]} />
 
       {profile.ppNonIpProtocols.length === 0 ? (
         <span className="text-xs text-muted-foreground">No protocols configured</span>
@@ -404,62 +391,49 @@ export function ZoneProtectionDialog({
   if (!profile) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="sm:max-w-[85vw] h-[min(85vh,700px)] flex flex-col gap-0 p-0 overflow-hidden"
-      >
-        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
-          <DialogTitle>Zone Protection Profile</DialogTitle>
-        </DialogHeader>
+    <ProfileDialog title="Zone Protection Profile" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-[85vw]" height="h-[min(85vh,700px)]" noPadding>
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* Name + Description */}
+        <div className="shrink-0 space-y-2 px-5 pt-4 pb-2">
+          <HeaderField label="Name" value={profile.name} />
+          <HeaderField label="Description" value={profile.description ?? ""} />
+        </div>
 
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {/* Name + Description */}
-          <div className="shrink-0 space-y-2 px-5 pt-4 pb-2">
-            <HeaderField label="Name" value={profile.name} />
-            <HeaderField label="Description" value={profile.description ?? ""} />
+        {/* Tabs */}
+        <Tabs defaultValue="flood" className="flex-1 flex flex-col min-h-0">
+          <div className="shrink-0 border-b px-5">
+            <TabsList variant="line">
+              <TabsTrigger value="flood">Flood Protection</TabsTrigger>
+              <TabsTrigger value="recon">Reconnaissance Protection</TabsTrigger>
+              <TabsTrigger value="packet">Packet Based Attack Protection</TabsTrigger>
+              <TabsTrigger value="protocol">Protocol Protection</TabsTrigger>
+              <TabsTrigger value="sgt">Ethernet SGT Protection</TabsTrigger>
+              <TabsTrigger value="l3l4">L3 & L4 Header Inspection</TabsTrigger>
+            </TabsList>
           </div>
 
-          {/* Tabs */}
-          <Tabs defaultValue="flood" className="flex-1 flex flex-col min-h-0">
-            <div className="shrink-0 border-b px-5">
-              <TabsList variant="line">
-                <TabsTrigger value="flood">Flood Protection</TabsTrigger>
-                <TabsTrigger value="recon">Reconnaissance Protection</TabsTrigger>
-                <TabsTrigger value="packet">Packet Based Attack Protection</TabsTrigger>
-                <TabsTrigger value="protocol">Protocol Protection</TabsTrigger>
-                <TabsTrigger value="sgt">Ethernet SGT Protection</TabsTrigger>
-                <TabsTrigger value="l3l4">L3 & L4 Header Inspection</TabsTrigger>
-              </TabsList>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-5">
-              <TabsContent value="flood">
-                <FloodProtectionTab profile={profile} />
-              </TabsContent>
-              <TabsContent value="recon">
-                <ReconProtectionTab profile={profile} />
-              </TabsContent>
-              <TabsContent value="packet">
-                <PacketBasedAttackTab profile={profile} />
-              </TabsContent>
-              <TabsContent value="protocol">
-                <ProtocolProtectionTab profile={profile} />
-              </TabsContent>
-              <TabsContent value="sgt">
-                <SgtProtectionTab profile={profile} />
-              </TabsContent>
-              <TabsContent value="l3l4">
-                <L3L4InspectionTab profile={profile} />
-              </TabsContent>
-            </div>
-          </Tabs>
-        </div>
-
-        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
-          <DialogClose render={<Button variant="outline">Close</Button>} />
-        </div>
-      </DialogContent>
-    </Dialog>
+          <div className="flex-1 overflow-y-auto p-5">
+            <TabsContent value="flood">
+              <FloodProtectionTab profile={profile} />
+            </TabsContent>
+            <TabsContent value="recon">
+              <ReconProtectionTab profile={profile} />
+            </TabsContent>
+            <TabsContent value="packet">
+              <PacketBasedAttackTab profile={profile} />
+            </TabsContent>
+            <TabsContent value="protocol">
+              <ProtocolProtectionTab profile={profile} />
+            </TabsContent>
+            <TabsContent value="sgt">
+              <SgtProtectionTab profile={profile} />
+            </TabsContent>
+            <TabsContent value="l3l4">
+              <L3L4InspectionTab profile={profile} />
+            </TabsContent>
+          </div>
+        </Tabs>
+      </div>
+    </ProfileDialog>
   )
 }

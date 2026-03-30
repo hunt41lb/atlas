@@ -26,6 +26,7 @@ import { DataTable } from "@/components/ui/data-table"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
+import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 import { ReadOnlyCheckbox, FieldGroup } from "../../router-shared/router-dialog/field-display"
 import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network-profiles"
 
@@ -173,15 +174,7 @@ function buildColumns(
       },
     },
 
-    ...(isPanorama ? [{
-      id: "template",
-      header: "Template",
-      enableSorting: true,
-      accessorFn: (row: PanwInterfaceMgmtProfile) => row.templateName ?? "",
-      cell: ({ row }: { row: { original: PanwInterfaceMgmtProfile } }) => row.original.templateName
-        ? <span className="text-xs">{row.original.templateName}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    } as ColumnDef<PanwInterfaceMgmtProfile, unknown>] : []),
+    ...templateColumn<PanwInterfaceMgmtProfile>(isPanorama),
   ]
 }
 

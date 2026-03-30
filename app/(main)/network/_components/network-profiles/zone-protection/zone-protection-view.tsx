@@ -19,6 +19,7 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import type { PanwZoneProtectionProfile } from "@/lib/panw-parser/network-profiles"
 import { ZoneProtectionDialog } from "./zone-protection-dialog"
+import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Scan entry name → label mapping ──────────────────────────────────────────
 
@@ -140,15 +141,7 @@ function buildColumns(isPanorama: boolean, onNameClick: (p: PanwZoneProtectionPr
       ],
     },
 
-    ...(isPanorama ? [{
-      id: "template",
-      header: "Template",
-      enableSorting: true,
-      accessorFn: (row: PanwZoneProtectionProfile) => row.templateName ?? "",
-      cell: ({ row }: { row: { original: PanwZoneProtectionProfile } }) => row.original.templateName
-        ? <span className="text-xs">{row.original.templateName}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    } as ColumnDef<PanwZoneProtectionProfile, unknown>] : []),
+    ...templateColumn<PanwZoneProtectionProfile>(isPanorama),
   ]
 }
 

@@ -3,18 +3,12 @@
 "use client"
 
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import {
   FieldGroup,
   HeaderField,
   LabeledValue,
   ReadOnlyCheckbox,
+  ReadOnlyRadio,
+  ProfileDialog,
 } from "../../router-shared/router-dialog/field-display"
 import type { PanwNetworkBfdProfile } from "@/lib/panw-parser/network-profiles"
 
@@ -30,26 +24,15 @@ export function BfdDialog({
   if (!profile) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="sm:max-w-lg flex flex-col gap-0 p-0 overflow-hidden">
-        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
-          <DialogTitle>BFD Profile</DialogTitle>
-        </DialogHeader>
+    <ProfileDialog title="BFD Profile" open={open} onOpenChange={onOpenChange}>
 
-        <div className="p-5 space-y-3">
+        <div className="space-y-4">
           <HeaderField label="Name" value={profile.name} />
 
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground w-36 shrink-0 text-right">Mode</span>
-            <label className="flex items-center gap-1.5 text-xs">
-              <input type="radio" checked={profile.mode === "active"} readOnly className="accent-primary" />
-              Active
-            </label>
-            <label className="flex items-center gap-1.5 text-xs">
-              <input type="radio" checked={profile.mode === "passive"} readOnly className="accent-primary" />
-              Passive
-            </label>
-          </div>
+          <ReadOnlyRadio label="Mode" value={profile.mode} options={[
+            { value: "active", label: "Active" },
+            { value: "passive", label: "Passive" },
+          ]} />
 
           <HeaderField label="Desired Minimum Tx Interval (ms)" value={String(profile.minTxInterval)} labelWidth="w-64" />
           <HeaderField label="Required Minimum Rx Interval (ms)" value={String(profile.minRxInterval)} labelWidth="w-64" />
@@ -63,11 +46,6 @@ export function BfdDialog({
             )}
           </FieldGroup>
         </div>
-
-        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
-          <DialogClose render={<Button variant="outline">Close</Button>} />
-        </div>
-      </DialogContent>
-    </Dialog>
+    </ProfileDialog>
   )
 }

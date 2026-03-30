@@ -20,6 +20,7 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { MacsecDialog } from "./macsec-dialog"
 import type { PanwMacsecProfile } from "@/lib/panw-parser/network-profiles"
+import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -90,15 +91,7 @@ function buildColumns(
       cell: ({ row }) => <span className="text-xs tabular-nums">{row.original.rekeyInterval}</span>,
     },
 
-    ...(isPanorama ? [{
-      id: "template",
-      header: "Template",
-      enableSorting: true,
-      accessorFn: (row: PanwMacsecProfile) => row.templateName ?? "",
-      cell: ({ row }: { row: { original: PanwMacsecProfile } }) => row.original.templateName
-        ? <span className="text-xs">{row.original.templateName}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    } as ColumnDef<PanwMacsecProfile, unknown>] : []),
+    ...templateColumn<PanwMacsecProfile>(isPanorama),
   ]
 }
 

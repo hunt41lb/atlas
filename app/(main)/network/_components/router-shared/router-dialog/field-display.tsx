@@ -156,3 +156,68 @@ export function DetailDialog({
     </Dialog>
   )
 }
+
+// ─── ReadOnlyRadio: disabled radio group with label ───────────────────────────
+
+export function ReadOnlyRadio({
+  label,
+  value,
+  options,
+  labelWidth = "w-36",
+}: {
+  label: string
+  value: string | null
+  options: { value: string; label: string }[]
+  labelWidth?: string
+}) {
+  return (
+    <div className="flex items-center gap-4">
+      <span className={cn("text-xs text-muted-foreground shrink-0 text-right", labelWidth)}>{label}</span>
+      {options.map((opt) => (
+        <label key={opt.value} className="flex items-center gap-1.5 text-xs">
+          <input type="radio" checked={value === opt.value} readOnly className="accent-primary" />
+          {opt.label}
+        </label>
+      ))}
+    </div>
+  )
+}
+
+// ─── ProfileDialog: reusable shell for network/routing profile dialogs ────────
+
+export function ProfileDialog({
+  title,
+  open,
+  onOpenChange,
+  children,
+  maxWidth = "sm:max-w-lg",
+  height,
+  noPadding = false,
+}: {
+  title: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  children: React.ReactNode
+  maxWidth?: string
+  height?: string
+  noPadding?: boolean
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className={`${maxWidth} ${height ?? ""} flex flex-col gap-0 p-0 overflow-hidden`}
+      >
+        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className={cn("flex-1 overflow-y-auto", !noPadding && "p-5")}>
+          {children}
+        </div>
+        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
+          <DialogClose render={<Button variant="outline">Close</Button>} />
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

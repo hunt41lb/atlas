@@ -13,20 +13,13 @@ import {
   type SortingState,
 } from "@tanstack/react-table"
 
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import { FieldGroup, HeaderField } from "../../router-shared/router-dialog/field-display"
+import { FieldGroup, HeaderField, ProfileDialog } from "../../router-shared/router-dialog/field-display"
 import type { PanwGpIpsecCryptoProfile } from "@/lib/panw-parser/network-profiles"
+import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Dialog ───────────────────────────────────────────────────────────────────
 
@@ -42,35 +35,25 @@ function GpIpsecCryptoDialog({
   if (!profile) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="sm:max-w-lg flex flex-col gap-0 p-0 overflow-hidden">
-        <DialogHeader className="shrink-0 border-b px-5 pt-4 pb-3">
-          <DialogTitle>GlobalProtect IPSec Crypto Profile</DialogTitle>
-        </DialogHeader>
+    <ProfileDialog title="GlobalProtect IPSec Crypto Profile" open={open} onOpenChange={onOpenChange}>
+      <div className="space-y-4">
+        <HeaderField label="Name" value={profile.name} />
 
-        <div className="p-5 space-y-4">
-          <HeaderField label="Name" value={profile.name} />
+        <FieldGroup title="Encryption">
+          {profile.encryption.length === 0 ? (
+            <span className="text-xs text-muted-foreground">None</span>
+          ) : (
+            <div className="space-y-0.5">
+              {profile.encryption.map((e) => (
+                <div key={e} className="text-xs">{e}</div>
+              ))}
+            </div>
+          )}
+        </FieldGroup>
 
-          <FieldGroup title="Encryption">
-            {profile.encryption.length === 0 ? (
-              <span className="text-xs text-muted-foreground">None</span>
-            ) : (
-              <div className="space-y-0.5">
-                {profile.encryption.map((e) => (
-                  <div key={e} className="text-xs">{e}</div>
-                ))}
-              </div>
-            )}
-          </FieldGroup>
-
-          <HeaderField label="Authentication" value={profile.authentication.join(", ") || "None"} />
-        </div>
-
-        <div className="shrink-0 border-t bg-muted/50 rounded-b-xl px-5 py-3 flex justify-end">
-          <DialogClose render={<Button variant="outline">Close</Button>} />
-        </div>
-      </DialogContent>
-    </Dialog>
+        <HeaderField label="Authentication" value={profile.authentication.join(", ") || "None"} />
+      </div>
+    </ProfileDialog>
   )
 }
 
@@ -106,15 +89,7 @@ function buildColumns(
       ),
     },
 
-    ...(isPanorama ? [{
-      id: "template",
-      header: "Template",
-      enableSorting: true,
-      accessorFn: (row: PanwGpIpsecCryptoProfile) => row.templateName ?? "",
-      cell: ({ row }: { row: { original: PanwGpIpsecCryptoProfile } }) => row.original.templateName
-        ? <span className="text-xs">{row.original.templateName}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    } as ColumnDef<PanwGpIpsecCryptoProfile, unknown>] : []),
+    ...templateColumn<PanwGpIpsecCryptoProfile>(isPanorama),
   ]
 }
 
