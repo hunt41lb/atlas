@@ -1,6 +1,7 @@
 // @/lib/panw-parser/types.ts
 
 import type { PanwBfdProfile, PanwBgpRoutingProfiles, PanwMulticastRoutingProfiles, PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles, PanwRipRoutingProfiles, PanwRoutingFilters } from "./routing-profiles"
+import type { PanwInterfaceMgmtProfile, PanwMonitorProfile, PanwZoneProtectionProfile, PanwIkeCryptoProfile } from "./network-profiles"
 
 // ─── Color ──────────────────────────────────────────────────────────────────
 
@@ -773,6 +774,10 @@ export interface PanwTemplate {
   ripRoutingProfiles: PanwRipRoutingProfiles
   multicastRoutingProfiles: PanwMulticastRoutingProfiles
   routingFilters: PanwRoutingFilters
+  interfaceMgmtProfiles: PanwInterfaceMgmtProfile[]
+  monitorProfiles: PanwMonitorProfile[]
+  zoneProtectionProfiles: PanwZoneProtectionProfile[]
+  ikeCryptoProfiles: PanwIkeCryptoProfile[]
   ipsecTunnels: number
   greTunnels: number
   dhcpInterfaces: number

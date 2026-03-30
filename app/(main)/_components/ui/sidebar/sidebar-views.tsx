@@ -62,6 +62,7 @@ function SubItemRenderer({
         <SidebarMenuSubButton
           isActive={isActive}
           render={<Link href={item.url} />}
+          size="sm"
         >
           <span>{item.title}</span>
         </SidebarMenuSubButton>
@@ -77,6 +78,7 @@ function SubItemRenderer({
             isActive={isActive}
             render={<Link href={item.url} />}
             className="flex-1"
+            size="sm"
           >
             <span>{item.title}</span>
           </SidebarMenuSubButton>
@@ -119,6 +121,7 @@ export function SidebarViews({ items }: { items: SidebarNavGroup[] }) {
                   tooltip={item.title}
                   isActive={isGroupActive}
                   render={<Link href={item.url} />}
+                  size="sm"
                 >
                   <item.icon />
                   <span>{item.title}</span>

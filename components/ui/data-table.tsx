@@ -53,6 +53,7 @@ import {
 import { SortHeader } from "@/components/ui/sort-header"
 import { ColumnVisibilityToggle } from "@/components/ui/column-visibility"
 import { CategoryShell } from "@/app/(main)/_components/ui/category-shell"
+import { cn } from "@/lib/utils"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,10 +112,13 @@ export function DataTable<TData>({
         <TableHeader>
           {table.getHeaderGroups().map((hg) => (
             <TableRow key={hg.id} className="hover:bg-transparent border-b border-border">
-              {hg.headers.map((header) => (
+              {hg.headers.map((header) => {
+                const meta = header.column.columnDef.meta as { headerClassName?: string } | undefined
+                return (
                 <TableHead
                   key={header.id}
-                  className="text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9"
+                  colSpan={header.colSpan}
+                  className={cn("text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9", meta?.headerClassName)}
                   style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
                 >
                   {header.isPlaceholder
@@ -124,7 +128,7 @@ export function DataTable<TData>({
                       : flexRender(header.column.columnDef.header, header.getContext())
                   }
                 </TableHead>
-              ))}
+              )})}
             </TableRow>
           ))}
         </TableHeader>

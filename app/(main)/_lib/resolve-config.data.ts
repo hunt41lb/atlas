@@ -12,7 +12,7 @@ import type {
   PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles,PanwRipRoutingProfiles,
   PanwMulticastRoutingProfiles,
 } from "@/lib/panw-parser/routing-profiles"
-import type { PanwInterfaceMgmtProfile, PanwMonitorProfile, PanwZoneProtectionProfile, PanwIkeCryptoProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwInterfaceMgmtProfile, PanwMonitorProfile, PanwZoneProtectionProfile } from "@/lib/panw-parser/network-profiles"
 
 // ─── Template resolution (Network scope) ─────────────────────────────────────
 
@@ -54,7 +54,6 @@ export interface ResolvedNetworkData {
   interfaceMgmtProfiles: PanwInterfaceMgmtProfile[]
   monitorProfiles: PanwMonitorProfile[]
   zoneProtectionProfiles: PanwZoneProtectionProfile[]
-  ikeCryptoProfiles: PanwIkeCryptoProfile[]
 }
 
 const EMPTY_OSPF: PanwOspfRoutingProfiles = { spfTimerProfiles: [], authProfiles: [], ifTimerProfiles: [], redistributionProfiles: [] }
@@ -100,7 +99,6 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       interfaceMgmtProfiles: [],
       monitorProfiles: [],
       zoneProtectionProfiles: [],
-      ikeCryptoProfiles: [],
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -168,7 +166,6 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     interfaceMgmtProfiles: templates.flatMap(t => t.interfaceMgmtProfiles ?? []),
     monitorProfiles: templates.flatMap(t => t.monitorProfiles ?? []),
     zoneProtectionProfiles: templates.flatMap(t => t.zoneProtectionProfiles ?? []),
-    ikeCryptoProfiles: templates.flatMap(t => t.ikeCryptoProfiles ?? []),
   }
 }
 

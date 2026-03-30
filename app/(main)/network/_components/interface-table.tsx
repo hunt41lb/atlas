@@ -22,7 +22,7 @@ import {
 
 import { DataTable } from "@/components/ui/data-table"
 import { IpAddressCell, type VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
-import { RouterCell, ZoneCell, FeaturesList } from "./interface-helpers"
+import { RouterCell, ZoneCell, MgmtProfileCell, FeaturesList } from "./interface-helpers"
 import type { PanwInterface, InterfaceType } from "@/lib/panw-parser/types"
 
 // ─── Column builder ──────────────────────────────────────────────────────────
@@ -36,6 +36,7 @@ function buildColumns(
   zoneColorMap: Map<string, string> | undefined,
   dhcpRelaySet: Set<string>,
   variableMap?: VariableMap,
+  onMgmtProfileClick?: (name: string) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     columnHelper.accessor("name", {
@@ -46,9 +47,7 @@ function buildColumns(
 
     columnHelper.accessor("managementProfile", {
       header: "Mgmt Profile",
-      cell: (info) => info.getValue()
-        ? <span className="text-xs">{info.getValue()}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
+      cell: (info) => <MgmtProfileCell name={info.getValue()} onClick={onMgmtProfileClick} />,
     }) as ColumnDef<PanwInterface, unknown>,
 
     {
@@ -144,6 +143,7 @@ export function InterfaceTable({
   zoneColorMap,
   dhcpRelaySet,
   variableMap,
+  onMgmtProfileClick,
 }: {
   type: InterfaceType
   title: string
@@ -154,6 +154,7 @@ export function InterfaceTable({
   zoneColorMap?: Map<string, string>
   dhcpRelaySet: Set<string>
   variableMap?: VariableMap
+  onMgmtProfileClick?: (name: string) => void
 }) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
@@ -164,8 +165,8 @@ export function InterfaceTable({
   )
 
   const columns = React.useMemo(
-    () => buildColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap),
-    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap]
+    () => buildColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick),
+    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library

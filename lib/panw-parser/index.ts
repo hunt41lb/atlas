@@ -19,6 +19,12 @@ import {
   extractOspfRoutingProfiles, extractOspfv3RoutingProfiles,
   extractRipRoutingProfiles, extractMulticastRoutingProfiles,
 } from "./routing-profiles"
+import {
+  extractInterfaceMgmtProfiles,
+  extractMonitorProfiles,
+  extractZoneProtectionProfiles,
+  extractIkeCryptoProfiles,
+} from "./network-profiles"
 
 // ─── XML Parser config ───────────────────────────────────────────────────────
 
@@ -319,6 +325,10 @@ function parsePanorama(
       ospfv3RoutingProfiles:    extractOspfv3RoutingProfiles(networkEl, tmplName),
       ripRoutingProfiles:       extractRipRoutingProfiles(networkEl, tmplName),
       multicastRoutingProfiles: extractMulticastRoutingProfiles(networkEl, tmplName),
+      interfaceMgmtProfiles:    extractInterfaceMgmtProfiles(networkEl, tmplName),
+      monitorProfiles:          extractMonitorProfiles(networkEl, tmplName),
+      zoneProtectionProfiles:   extractZoneProtectionProfiles(networkEl, tmplName),
+      ikeCryptoProfiles:        extractIkeCryptoProfiles(networkEl, tmplName),
       ...extractNetworkCounts(networkEl),
     }
   })
@@ -416,4 +426,3 @@ export function deriveConfigName(
   if (config.hostname) return config.hostname
   return fileName.replace(/\.(xml|cfg|conf)$/i, "").replace(/^\d{2}-\d{2}-\d{4}-/, "")
 }
-

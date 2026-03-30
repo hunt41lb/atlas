@@ -29,7 +29,10 @@ import { OspfProfilesView } from "@/app/(main)/network/_components/routing-profi
 import { Ospfv3ProfilesView } from "@/app/(main)/network/_components/routing-profiles/ospfv3/ospfv3-profiles-view"
 import { RipProfilesView } from "@/app/(main)/network/_components/routing-profiles/rip/rip-profiles-view"
 import { MulticastProfilesView } from "@/app/(main)/network/_components/routing-profiles/multicast/multicast-profiles-view"
-
+import { InterfaceMgmtView } from "@/app/(main)/network/_components/network-profiles/interface-mgmt/interface-mgmt-view"
+import { MonitorView } from "@/app/(main)/network/_components/network-profiles/monitor/monitor-view"
+import { ZoneProtectionView } from "@/app/(main)/network/_components/network-profiles/zone-protection/zone-protection-view"
+import { IkeCryptoView } from "@/app/(main)/network/_components/network-profiles/ike-crypto/ike-crypto-view"
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
 
@@ -139,7 +142,18 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "global-protect":               { title: "GlobalProtect" },
   "qos":                          { title: "QoS" },
   "lldp":                         { title: "LLDP" },
-  "network-profiles":             { title: "Network Profiles" },
+  "network-profiles":                   { title: "Network Profiles" },
+  "network-profiles-gp-ipsec-crypto":   { title: "GlobalProtect IPSec Crypto" },
+  "network-profiles-ike-gateways":      { title: "IKE Gateways" },
+  "network-profiles-ipsec-crypto":      { title: "IPSec Crypto" },
+  "network-profiles-ike-crypto":         { title: "IKE Crypto",                 component: IkeCryptoView },
+  "network-profiles-monitor":            { title: "Monitor",                    component: MonitorView },
+  "network-profiles-interface-mgmt":    { title: "Interface Management",        component: InterfaceMgmtView },
+  "network-profiles-zone-protection":    { title: "Zone Protection",            component: ZoneProtectionView },
+  "network-profiles-qos":               { title: "QoS Profile" },
+  "network-profiles-lldp":              { title: "LLDP Profile" },
+  "network-profiles-bfd":               { title: "BFD Profile" },
+  "network-profiles-macsec":            { title: "MACsec Profile" },
   "sd-wan-interface":             { title: "SD-WAN Interface Profile" },
 }
 

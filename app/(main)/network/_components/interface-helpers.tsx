@@ -77,6 +77,21 @@ export function ZoneCell({ name, color }: { name?: string; color?: string }) {
   return <ZoneBadge name={name} color={color} />
 }
 
+/** Clickable management profile name, or dash if unset */
+export function MgmtProfileCell({ name, onClick }: { name: string | null; onClick?: (name: string) => void }) {
+  if (!name) return <span className="text-muted-foreground text-xs">—</span>
+  if (!onClick) return <span className="text-xs">{name}</span>
+  return (
+    <button
+      type="button"
+      className="text-xs text-foreground hover:underline cursor-pointer"
+      onClick={() => onClick(name)}
+    >
+      {name}
+    </button>
+  )
+}
+
 /** Sorted list of feature labels */
 export function FeaturesList({ features }: { features: string[] }) {
   if (features.length === 0) return <span className="text-muted-foreground text-xs">—</span>
@@ -103,6 +118,7 @@ export function SubInterfaceRows({
   visibleColumns,
   variableMap,
   zoneColorMap,
+  onMgmtProfileClick,
 }: {
   subs: PanwSubInterface[]
   isPanorama: boolean
@@ -114,6 +130,7 @@ export function SubInterfaceRows({
   visibleColumns?: Set<string>
   variableMap?: VariableMap
   zoneColorMap?: Map<string, string>
+  onMgmtProfileClick?: (name: string) => void
 }) {
   const show = (colId: string) => !visibleColumns || visibleColumns.has(colId)
 
@@ -136,9 +153,7 @@ export function SubInterfaceRows({
           {showMemberPorts && show("members") && <TableCell />}
           {show("managementProfile") && (
             <TableCell>
-              {sub.managementProfile
-                ? <span className="text-xs">{sub.managementProfile}</span>
-                : <span className="text-muted-foreground text-xs">—</span>}
+              <MgmtProfileCell name={sub.managementProfile} onClick={onMgmtProfileClick} />
             </TableCell>
           )}
           {show("ipAddresses") && (

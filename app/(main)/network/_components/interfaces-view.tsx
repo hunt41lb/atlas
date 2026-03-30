@@ -24,6 +24,7 @@ import {
   TagCell,
   RouterCell,
   ZoneCell,
+  MgmtProfileCell,
   FeaturesList,
   SubInterfaceRows,
 } from "./interface-helpers"
@@ -36,6 +37,8 @@ import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { ComingSoonView, MonoValue, MembersList } from "@/app/(main)/_components/ui/category-shell"
 import { cn } from "@/lib/utils"
 import type { PanwInterface, PanwVirtualRouter, PanwZone, ParsedPanoramaConfig } from "@/lib/panw-parser/types"
+import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network-profiles"
+import { InterfaceMgmtDialog } from "./network-profiles/interface-mgmt/interface-mgmt-dialog"
 import { TableCell, TableRow } from "@/components/ui/table"
 
 // ─── Tab definitions ─────────────────────────────────────────────────────────
@@ -87,6 +90,7 @@ function buildEthernetColumns(
   zoneColorMap: Map<string, string>,
   dhcpRelaySet: Set<string>,
   variableMap?: VariableMap,
+  onMgmtProfileClick?: (name: string) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
@@ -111,9 +115,7 @@ function buildEthernetColumns(
 
     ethernetColumnHelper.accessor("managementProfile", {
       header: "Mgmt Profile",
-      cell: (info) => info.getValue()
-        ? <span className="text-xs">{info.getValue()}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
+      cell: (info) => <MgmtProfileCell name={info.getValue()} onClick={onMgmtProfileClick} />,
     }) as ColumnDef<PanwInterface, unknown>,
 
     {
@@ -227,6 +229,7 @@ function EthernetTab({
   zoneColorMap,
   dhcpRelaySet,
   variableMap,
+  onMgmtProfileClick,
 }: {
   interfaces: PanwInterface[]
   isPanorama: boolean
@@ -235,6 +238,7 @@ function EthernetTab({
   zoneColorMap: Map<string, string>
   dhcpRelaySet: Set<string>
   variableMap?: VariableMap
+  onMgmtProfileClick?: (name: string) => void
 }) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
@@ -251,8 +255,8 @@ function EthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildEthernetColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap),
-    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap]
+    () => buildEthernetColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick),
+    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -303,6 +307,7 @@ function EthernetTab({
                 visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
                 variableMap={variableMap}
                 zoneColorMap={zoneColorMap}
+                onMgmtProfileClick={onMgmtProfileClick}
               />
             )}
           </React.Fragment>
@@ -326,6 +331,7 @@ function buildAeColumns(
   dhcpRelaySet: Set<string>,
   memberMap: Map<string, string[]>,
   variableMap?: VariableMap,
+  onMgmtProfileClick?: (name: string) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
@@ -356,9 +362,7 @@ function buildAeColumns(
 
     aeColumnHelper.accessor("managementProfile", {
       header: "Mgmt Profile",
-      cell: (info) => info.getValue()
-        ? <span className="text-xs">{info.getValue()}</span>
-        : <span className="text-muted-foreground text-xs">—</span>,
+      cell: (info) => <MgmtProfileCell name={info.getValue()} onClick={onMgmtProfileClick} />,
     }) as ColumnDef<PanwInterface, unknown>,
 
     {
@@ -463,6 +467,7 @@ function AggregateEthernetTab({
   zoneColorMap,
   dhcpRelaySet,
   variableMap,
+  onMgmtProfileClick,
 }: {
   interfaces: PanwInterface[]
   isPanorama: boolean
@@ -471,6 +476,7 @@ function AggregateEthernetTab({
   zoneColorMap: Map<string, string>
   dhcpRelaySet: Set<string>
   variableMap?: VariableMap
+  onMgmtProfileClick?: (name: string) => void
 }) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
@@ -503,8 +509,8 @@ function AggregateEthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildAeColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, memberMap, variableMap),
-    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, memberMap, variableMap]
+    () => buildAeColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, memberMap, variableMap, onMgmtProfileClick),
+    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, memberMap, variableMap, onMgmtProfileClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -556,6 +562,7 @@ function AggregateEthernetTab({
                 visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
                 variableMap={variableMap}
                 zoneColorMap={zoneColorMap}
+                onMgmtProfileClick={onMgmtProfileClick}
               />
             )}
           </React.Fragment>
@@ -577,8 +584,8 @@ export function InterfacesView() {
 
   const isPanorama = activeConfig?.parsedConfig.deviceType === "panorama"
 
-  const { interfaces, zones, virtualRouters, logicalRouters, dhcpRelayInterfaces } = React.useMemo(() => {
-    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [], dhcpRelayInterfaces: [] }
+  const { interfaces, zones, virtualRouters, logicalRouters, dhcpRelayInterfaces, interfaceMgmtProfiles } = React.useMemo(() => {
+    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [], dhcpRelayInterfaces: [], interfaceMgmtProfiles: [] }
     const data = resolveNetworkData(activeConfig.parsedConfig, selectedScope)
     return {
       interfaces:          data.interfaces          ?? [],
@@ -586,6 +593,7 @@ export function InterfacesView() {
       virtualRouters:      data.virtualRouters      ?? [],
       logicalRouters:      data.logicalRouters      ?? [],
       dhcpRelayInterfaces: data.dhcpRelayInterfaces ?? [],
+      interfaceMgmtProfiles: data.interfaceMgmtProfiles ?? [],
     }
   }, [activeConfig, selectedScope])
 
@@ -628,7 +636,20 @@ export function InterfacesView() {
     return map
   }, [activeConfig])
 
-  const sharedProps = { interfaces, isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap }
+  // Management profile lookup + dialog state
+  const mgmtProfileMap = React.useMemo(() => {
+    const map = new Map<string, PanwInterfaceMgmtProfile>()
+    for (const p of interfaceMgmtProfiles) map.set(p.name, p)
+    return map
+  }, [interfaceMgmtProfiles])
+
+  const [selectedMgmtProfile, setSelectedMgmtProfile] = React.useState<PanwInterfaceMgmtProfile | null>(null)
+  const handleMgmtProfileClick = React.useCallback(
+    (name: string) => setSelectedMgmtProfile(mgmtProfileMap.get(name) ?? null),
+    [mgmtProfileMap]
+  )
+
+  const sharedProps = { interfaces, isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick: handleMgmtProfileClick }
 
   return (
     <Tabs defaultValue="ethernet" className="flex h-full flex-col min-h-0">
@@ -677,6 +698,12 @@ export function InterfacesView() {
       <TabsContent value="fail-open" className="flex-1 min-h-0">
         <ComingSoonView title="Fail Open Interfaces" />
       </TabsContent>
+
+      <InterfaceMgmtDialog
+        profile={selectedMgmtProfile}
+        open={selectedMgmtProfile !== null}
+        onOpenChange={(open) => { if (!open) setSelectedMgmtProfile(null) }}
+      />
     </Tabs>
   )
 }

@@ -73,7 +73,23 @@ const staticData = {
         { title: "GlobalProtect",    url: "/network/global-protect" },
         { title: "QoS",              url: "/network/qos" },
         { title: "LLDP",             url: "/network/lldp" },
-        { title: "Network Profiles", url: "/network/network-profiles" },
+        {
+          title: "Network Profiles",
+          url: "/network/network-profiles",
+          items: [
+            { title: "GlobalProtect IPSec Crypto", url: "/network/network-profiles-gp-ipsec-crypto" },
+            { title: "IKE Gateways",               url: "/network/network-profiles-ike-gateways" },
+            { title: "IPSec Crypto",                url: "/network/network-profiles-ipsec-crypto" },
+            { title: "IKE Crypto",                  url: "/network/network-profiles-ike-crypto" },
+            { title: "Monitor",                     url: "/network/network-profiles-monitor" },
+            { title: "Interface Management",        url: "/network/network-profiles-interface-mgmt" },
+            { title: "Zone Protection",             url: "/network/network-profiles-zone-protection" },
+            { title: "QoS Profile",                 url: "/network/network-profiles-qos" },
+            { title: "LLDP Profile",                url: "/network/network-profiles-lldp" },
+            { title: "BFD Profile",                 url: "/network/network-profiles-bfd" },
+            { title: "MACsec Profile",              url: "/network/network-profiles-macsec" },
+          ],
+        },
         { title: "SD-WAN Interface", url: "/network/sd-wan-interface" },
       ],
     },
@@ -174,4 +190,3 @@ export function MainSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) 
     </Sidebar>
   )
 }
-
