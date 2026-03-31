@@ -8,8 +8,8 @@ import {
   LabeledValue,
   ReadOnlyCheckbox,
   ReadOnlyRadio,
-  ProfileDialog,
 } from "../../router-shared/router-dialog/field-display"
+import { DetailDialog } from "@/components/ui/detail-dialog"
 import type { PanwNetworkBfdProfile } from "@/lib/panw-parser/network-profiles"
 
 export function BfdDialog({
@@ -24,7 +24,7 @@ export function BfdDialog({
   if (!profile) return null
 
   return (
-    <ProfileDialog title="BFD Profile" open={open} onOpenChange={onOpenChange}>
+    <DetailDialog title="BFD Profile" open={open} onOpenChange={onOpenChange}>
 
         <div className="space-y-4">
           <HeaderField label="Name" value={profile.name} />
@@ -46,6 +46,6 @@ export function BfdDialog({
             )}
           </FieldGroup>
         </div>
-    </ProfileDialog>
+    </DetailDialog>
   )
 }
