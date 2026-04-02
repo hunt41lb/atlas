@@ -13,10 +13,11 @@ import {
 import {
   FieldGroup,
   HeaderField,
-  ReadOnlyRadio,
   ProfileDialog,
 } from "../../router-shared/router-dialog/field-display"
 import type { PanwQosProfile } from "@/lib/panw-parser/network-profiles"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 
 export function QosDialog({
   profile,
@@ -43,10 +44,19 @@ export function QosDialog({
 
         <FieldGroup title="Classes">
           <div className="pb-2">
-            <ReadOnlyRadio label="Class Bandwidth Type" value={profile.bandwidthType} labelWidth="w-auto" options={[
-              { value: "mbps", label: "Mbps" },
-              { value: "percentage", label: "Percentage" },
-            ]} />
+            <div className="flex items-center gap-4">
+              <span className="text-xs text-muted-foreground shrink-0 text-right w-36">Class Bandwidth Type</span>
+              <RadioGroup value={profile.bandwidthType ?? ""} disabled className="flex flex-row gap-4">
+                <Label className="flex items-center gap-1.5 text-xs">
+                  <RadioGroupItem value="mbps" />
+                  Mbps
+                </Label>
+                <Label className="flex items-center gap-1.5 text-xs">
+                  <RadioGroupItem value="percentage" />
+                  Percentage
+                </Label>
+              </RadioGroup>
+            </div>
           </div>
 
           <Table>

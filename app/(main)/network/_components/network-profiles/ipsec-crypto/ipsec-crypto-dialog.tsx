@@ -12,9 +12,11 @@ import {
   FieldGroup,
   HeaderField,
   LabeledValue,
-  ReadOnlyCheckbox,
   ProfileDialog,
 } from "../../router-shared/router-dialog/field-display"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+
 import type { PanwIpsecCryptoProfile } from "@/lib/panw-parser/network-profiles"
 
 // ─── General Tab ──────────────────────────────────────────────────────────────
@@ -61,7 +63,10 @@ function GeneralTab({ profile }: { profile: PanwIpsecCryptoProfile }) {
             value={`${profile.lifetimeUnit.charAt(0).toUpperCase() + profile.lifetimeUnit.slice(1)} — ${profile.lifetimeValue}`}
           />
           <FieldGroup title="Lifesize">
-            <ReadOnlyCheckbox checked={profile.lifesizeEnabled} label="Enable" />
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.lifesizeEnabled} disabled />
+              <span className="text-xs">Enable</span>
+            </Label>
             {profile.lifesizeEnabled && (
               <LabeledValue
                 label="Lifesize"

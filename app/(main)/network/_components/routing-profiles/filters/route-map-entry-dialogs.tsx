@@ -1,12 +1,4 @@
 // @/app/(main)/network/_components/routing-profiles/filters/route-map-entry-dialogs.tsx
-//
-// Entry-level detail dialogs for Route Map entries.
-// Shows 3 tabs: Entry | Match | Set — matching the PAN-OS GUI.
-//
-// Design principles:
-//   - All fields always rendered (shows "None" when not configured)
-//   - RadioGroup for option-set fields (Metric Type, Action)
-//   - Card grouping to separate logical sections on Set tab
 
 "use client"
 
@@ -24,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 
 import type {
   PanwBgpRouteMapEntry,
@@ -53,10 +47,10 @@ function CheckboxField({ label, checked }: { label: string; checked: boolean }) 
   return (
     <div className="flex items-center gap-2 py-1">
       <span className="w-30 shrink-0 text-right text-[13px] text-muted-foreground" />
-      <label className="flex items-center gap-2 text-[13px]">
-        <input type="checkbox" checked={checked} readOnly className="accent-primary" />
+      <Label className="flex items-center gap-2 text-[13px]">
+        <Checkbox checked={checked} disabled />
         {label}
-      </label>
+      </Label>
     </div>
   )
 }

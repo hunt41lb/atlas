@@ -3,7 +3,10 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-import { ReadOnlyCheckbox, FieldGroup, ProfileDialog } from "../../router-shared/router-dialog/field-display"
+import { FieldGroup, ProfileDialog } from "../../router-shared/router-dialog/field-display"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+
 import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network-profiles"
 
 // ─── Service definitions ──────────────────────────────────────────────────────
@@ -49,14 +52,20 @@ export function InterfaceMgmtDialog({
         <FieldGroup title="Network Services">
           <div className="grid grid-cols-2 gap-x-4">
             {NETWORK_SERVICES.map((s) => (
-              <ReadOnlyCheckbox key={s.key} checked={profile[s.key] as boolean} label={s.label} />
+              <Label key={s.key} className="flex items-center gap-2 py-1">
+                <Checkbox checked={profile[s.key] as boolean} disabled />
+                <span className="text-xs">{s.label}</span>
+              </Label>
             ))}
           </div>
         </FieldGroup>
 
         <FieldGroup title="User-ID Services">
           {USERID_SERVICES.map((s) => (
-            <ReadOnlyCheckbox key={s.key} checked={profile[s.key] as boolean} label={s.label} />
+            <Label key={s.key} className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile[s.key] as boolean} disabled />
+              <span className="text-xs">{s.label}</span>
+            </Label>
           ))}
         </FieldGroup>
 

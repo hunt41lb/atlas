@@ -5,7 +5,6 @@
 import { cn } from "@/lib/utils"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -13,37 +12,6 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog"
-
-// ─── FieldRow: label + value on a single line ────────────────────────────────
-
-export function FieldRow({
-  label,
-  value,
-  annotation,
-  highlight = false,
-}: {
-  label: string
-  value: string | number
-  annotation?: string
-  highlight?: boolean
-}) {
-  return (
-    <div className="flex items-center justify-between py-1.5">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-2">
-        {annotation && (
-          <span className="text-[10px] text-muted-foreground">{annotation}</span>
-        )}
-        <span className={cn(
-          "tabular-nums text-xs font-medium w-12 text-right",
-          highlight && "text-primary"
-        )}>
-          {value}
-        </span>
-      </div>
-    </div>
-  )
-}
 
 // ─── LabeledValue: label + value inline (no justify-between) ──────────────────
 
@@ -61,23 +29,6 @@ export function LabeledValue({
       <span className={cn("text-xs text-muted-foreground shrink-0", labelWidth)}>{label}</span>
       <span className="text-xs font-medium">{value}</span>
     </div>
-  )
-}
-
-// ─── ReadOnlyCheckbox: disabled checkbox with label ───────────────────────────
-
-export function ReadOnlyCheckbox({
-  checked,
-  label,
-}: {
-  checked: boolean
-  label: string
-}) {
-  return (
-    <label className="flex items-center gap-2 py-1">
-      <Checkbox checked={checked} disabled />
-      <span className="text-xs">{label}</span>
-    </label>
   )
 }
 
@@ -154,32 +105,6 @@ export function DetailDialog({
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
-
-// ─── ReadOnlyRadio: disabled radio group with label ───────────────────────────
-
-export function ReadOnlyRadio({
-  label,
-  value,
-  options,
-  labelWidth = "w-36",
-}: {
-  label: string
-  value: string | null
-  options: { value: string; label: string }[]
-  labelWidth?: string
-}) {
-  return (
-    <div className="flex items-center gap-4">
-      <span className={cn("text-xs text-muted-foreground shrink-0 text-right", labelWidth)}>{label}</span>
-      {options.map((opt) => (
-        <label key={opt.value} className="flex items-center gap-1.5 text-xs">
-          <input type="radio" checked={value === opt.value} readOnly className="accent-primary" />
-          {opt.label}
-        </label>
-      ))}
-    </div>
   )
 }
 

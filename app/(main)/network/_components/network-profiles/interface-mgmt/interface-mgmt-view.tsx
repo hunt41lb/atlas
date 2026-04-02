@@ -22,12 +22,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 import { DataTable } from "@/components/ui/data-table"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
-import { ReadOnlyCheckbox, FieldGroup } from "../../router-shared/router-dialog/field-display"
+import { FieldGroup } from "../../router-shared/router-dialog/field-display"
 import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network-profiles"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -78,14 +79,20 @@ function InterfaceMgmtDialog({
           <FieldGroup title="Network Services">
             <div className="grid grid-cols-2 gap-x-4">
               {NETWORK_SERVICES.map((s) => (
-                <ReadOnlyCheckbox key={s.key} checked={profile[s.key] as boolean} label={s.label} />
+                <Label key={s.key} className="flex items-center gap-2 py-1">
+                  <Checkbox checked={profile[s.key] as boolean} disabled />
+                  <span className="text-xs">{s.label}</span>
+                </Label>
               ))}
             </div>
           </FieldGroup>
 
           <FieldGroup title="User-ID Services">
             {USERID_SERVICES.map((s) => (
-              <ReadOnlyCheckbox key={s.key} checked={profile[s.key] as boolean} label={s.label} />
+              <Label key={s.key} className="flex items-center gap-2 py-1">
+                <Checkbox checked={profile[s.key] as boolean} disabled />
+                <span className="text-xs">{s.label}</span>
+              </Label>
             ))}
           </FieldGroup>
 

@@ -17,45 +17,9 @@ import { DataTable } from "@/components/ui/data-table"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import { FieldGroup, HeaderField, ProfileDialog } from "../../router-shared/router-dialog/field-display"
-import type { PanwGpIpsecCryptoProfile } from "@/lib/panw-parser/network-profiles"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
-
-// ─── Dialog ───────────────────────────────────────────────────────────────────
-
-function GpIpsecCryptoDialog({
-  profile,
-  open,
-  onOpenChange,
-}: {
-  profile: PanwGpIpsecCryptoProfile | null
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
-  if (!profile) return null
-
-  return (
-    <ProfileDialog title="GlobalProtect IPSec Crypto Profile" open={open} onOpenChange={onOpenChange}>
-      <div className="space-y-4">
-        <HeaderField label="Name" value={profile.name} />
-
-        <FieldGroup title="Encryption">
-          {profile.encryption.length === 0 ? (
-            <span className="text-xs text-muted-foreground">None</span>
-          ) : (
-            <div className="space-y-0.5">
-              {profile.encryption.map((e) => (
-                <div key={e} className="text-xs">{e}</div>
-              ))}
-            </div>
-          )}
-        </FieldGroup>
-
-        <HeaderField label="Authentication" value={profile.authentication.join(", ") || "None"} />
-      </div>
-    </ProfileDialog>
-  )
-}
+import { GpIpsecCryptoDialog } from "./gp-ipsec-crypto-dialog"
+import type { PanwGpIpsecCryptoProfile } from "@/lib/panw-parser/network-profiles"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 

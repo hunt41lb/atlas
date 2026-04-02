@@ -18,10 +18,10 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import {
-  ReadOnlyCheckbox,
   FieldGroup,
   LabeledValue,
   HeaderField,
@@ -264,18 +264,33 @@ function AdvancedTab({ router, protocol }: { router: RouterDialogPageProps["rout
   return (
     <div className="grid grid-cols-2 gap-6">
       <FieldGroup title="Graceful Restart">
-        <ReadOnlyCheckbox checked={gr?.enabled ?? false} label="Enable Graceful Restart" />
-        <ReadOnlyCheckbox checked={gr?.helperEnabled ?? false} label="Enable Helper Mode" />
-        <ReadOnlyCheckbox checked={gr?.strictLsaChecking ?? false} label="Enable Strict LSA Checking" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={gr?.enabled ?? false} disabled />
+          <span className="text-xs">Enable Graceful Restart</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={gr?.helperEnabled ?? false} disabled />
+          <span className="text-xs">Enable Helper Mode</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={gr?.strictLsaChecking ?? false} disabled />
+          <span className="text-xs">Enable Strict LSA Checking</span>
+        </Label>
         <LabeledValue label="Grace Period (sec)" value={gr?.gracePeriod ?? "—"} labelWidth="w-50" />
         <LabeledValue label="Max Neighbor Restart Time (sec)" value={gr?.maxNeighborRestartTime ?? "—"} labelWidth="w-50" />
       </FieldGroup>
       <div>
         {protocol === "ospf" && (
-          <ReadOnlyCheckbox checked={(cfg as { rfc1583?: boolean })?.rfc1583 ?? false} label="rfc-1583 compatibility" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={(cfg as { rfc1583?: boolean })?.rfc1583 ?? false} disabled />
+            <span className="text-xs">rfc-1583 compatibility</span>
+          </Label>
         )}
         {protocol === "ospfv3" && (
-          <ReadOnlyCheckbox checked={(cfg as { disableTransitTraffic?: boolean })?.disableTransitTraffic ?? false} label="Disable R-Bit and v6-Bit" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={(cfg as { disableTransitTraffic?: boolean })?.disableTransitTraffic ?? false} disabled />
+            <span className="text-xs">Disable R-Bit and v6-Bit</span>
+          </Label>
         )}
       </div>
     </div>

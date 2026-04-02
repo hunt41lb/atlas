@@ -2,17 +2,18 @@
 
 "use client"
 
+import { cn } from "@/lib/utils"
 import {
   Tabs,
   TabsList,
   TabsTrigger,
   TabsContent
 } from "@/components/ui/tabs"
+import { Field, FieldLabel, FieldContent, FieldDescription } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import {
-  FieldRow,
   LabeledValue,
-  ReadOnlyCheckbox,
   FieldGroup
 } from "./field-display"
 import {
@@ -21,6 +22,8 @@ import {
   ECMP_ALGORITHM_LABELS,
 } from "@/lib/panw-defaults"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 
 // ─── Interface Tab ────────────────────────────────────────────────────────────
 
@@ -64,12 +67,22 @@ function AdminDistanceRow({
   const isCustom = !showDefaults && value !== null && value !== defaultValue
 
   return (
-    <FieldRow
-      label={label}
-      value={displayValue}
-      annotation={isCustom ? `(default: ${defaultValue})` : undefined}
-      highlight={isCustom}
-    />
+    <Field orientation="horizontal">
+      <FieldLabel className="w-44 text-xs">{label}</FieldLabel>
+      <FieldContent>
+        <Input
+          readOnly
+          disabled
+          value={displayValue}
+          className={cn("h-7 w-20 text-xs tabular-nums text-right", isCustom && "text-primary-foreground")}
+        />
+        {isCustom && (
+          <FieldDescription className="text-[10px]">
+            default: {defaultValue}
+          </FieldDescription>
+        )}
+      </FieldContent>
+    </Field>
   )
 }
 
@@ -122,18 +135,18 @@ function EcmpTab({
   return (
     <div className="space-y-3 px-1">
       <div className="space-y-0.5">
-        <ReadOnlyCheckbox
-          checked={showDefaults ? d.enabled : ecmp.enabled}
-          label="Enable"
-        />
-        <ReadOnlyCheckbox
-          checked={showDefaults ? d.symmetricReturn : ecmp.symmetricReturn}
-          label="Symmetric Return"
-        />
-        <ReadOnlyCheckbox
-          checked={showDefaults ? d.strictSourcePath : ecmp.strictSourcePath}
-          label="Strict Source Path"
-        />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={showDefaults ? d.enabled : ecmp.enabled} disabled />
+          <span className="text-xs">Enable</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={showDefaults ? d.symmetricReturn : ecmp.symmetricReturn} disabled />
+          <span className="text-xs">Symmetric Return</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={showDefaults ? d.strictSourcePath : ecmp.strictSourcePath} disabled />
+          <span className="text-xs">Strict Source Path</span>
+        </Label>
       </div>
       <div className="border-t pt-2 space-y-0">
         <LabeledValue label="Max Path" labelWidth="w-44" value={showDefaults ? d.maxPath : (ecmp.maxPath ?? 2)} />
@@ -143,8 +156,14 @@ function EcmpTab({
       {/* IP Hash sub-options */}
       {!showDefaults && ecmp.ipHash && (
         <FieldGroup title="IP Hash Options">
-          <ReadOnlyCheckbox checked={ecmp.ipHash.srcOnly} label="Source Only" />
-          <ReadOnlyCheckbox checked={ecmp.ipHash.usePort} label="Use Port" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={ecmp.ipHash.srcOnly} disabled />
+            <span className="text-xs">Source Only</span>
+          </Label>
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={ecmp.ipHash.usePort} disabled />
+            <span className="text-xs">Use Port</span>
+          </Label>
           <LabeledValue label="Hash Seed" value={ecmp.ipHash.hashSeed ?? "—"} />
         </FieldGroup>
       )}

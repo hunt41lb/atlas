@@ -25,13 +25,13 @@ import type {
   PanwLrBgpAggregateRoute
 } from "@/lib/panw-parser/types"
 import {
-  ReadOnlyCheckbox,
   FieldGroup,
   LabeledValue,
   HeaderField,
   Dash,
   DetailDialog
 } from "./field-display"
+import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import type { RouterDialogPageProps } from "./router-dialog-general"
 
@@ -48,7 +48,10 @@ function GeneralTab({ router }: { router: RouterDialogPageProps["router"] }) {
       {/* Header row */}
       <div className="grid grid-cols-2 gap-x-6 gap-y-2">
         <div className="space-y-2">
-          <ReadOnlyCheckbox checked={refs?.enabled ?? cfg?.enabled ?? false} label="Enable" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={refs?.enabled ?? cfg?.enabled ?? false} disabled />
+            <span className="text-xs">Enable</span>
+          </Label>
           <HeaderField label="Router ID" value={refs?.routerId ?? cfg?.routerId ?? "None"} />
           <HeaderField label="Local AS" value={refs?.localAs ?? cfg?.localAs ?? "None"} />
           <HeaderField label="Global BFD Profile" value={refs?.globalBfdProfile ?? (cfg as { globalBfdProfile?: string | null })?.globalBfdProfile ?? "None"} />
@@ -59,13 +62,28 @@ function GeneralTab({ router }: { router: RouterDialogPageProps["router"] }) {
       <FieldGroup title="Options">
         <div className="grid grid-cols-2 gap-x-6 gap-y-1">
           <div className="space-y-1">
-            <ReadOnlyCheckbox checked={(cfg as { installRoute?: boolean })?.installRoute ?? false} label="Install Route" />
-            <ReadOnlyCheckbox checked={(cfg as { fastExternalFailover?: boolean })?.fastExternalFailover ?? false} label="Fast Failover" />
-            <ReadOnlyCheckbox checked={(cfg as { gracefulShutdown?: boolean })?.gracefulShutdown ?? false} label="Graceful Shutdown" />
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={(cfg as { installRoute?: boolean })?.installRoute ?? false} disabled />
+              <span className="text-xs">Install Route</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={(cfg as { fastExternalFailover?: boolean })?.fastExternalFailover ?? false} disabled />
+              <span className="text-xs">Fast Failover</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={(cfg as { gracefulShutdown?: boolean })?.gracefulShutdown ?? false} disabled />
+              <span className="text-xs">Graceful Shutdown</span>
+            </Label>
           </div>
           <div className="space-y-1">
-            <ReadOnlyCheckbox checked={(cfg as { ecmpMultiAs?: boolean })?.ecmpMultiAs ?? false} label="ECMP Multiple AS Support" />
-            <ReadOnlyCheckbox checked={(cfg as { enforceFirstAs?: boolean })?.enforceFirstAs ?? false} label="Enforce First AS" />
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={(cfg as { ecmpMultiAs?: boolean })?.ecmpMultiAs ?? false} disabled />
+              <span className="text-xs">ECMP Multiple AS Support</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={(cfg as { enforceFirstAs?: boolean })?.enforceFirstAs ?? false} disabled />
+              <span className="text-xs">Enforce First AS</span>
+            </Label>
             <LabeledValue label="Default Local Preference" value={(cfg as { defaultLocalPreference?: number | null })?.defaultLocalPreference ?? "—"} />
           </div>
         </div>
@@ -73,7 +91,10 @@ function GeneralTab({ router }: { router: RouterDialogPageProps["router"] }) {
 
       {/* Graceful Restart */}
       <FieldGroup title="Graceful Restart">
-        <ReadOnlyCheckbox checked={gr?.enabled ?? false} label="Enable" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={gr?.enabled ?? false} disabled />
+          <span className="text-xs">Enable</span>
+        </Label>
         <LabeledValue label="Stale Route Time (sec)" value={gr?.staleRouteTime ?? "—"} />
         <LabeledValue label="Max Peer Restart Time (sec)" value={gr?.maxPeerRestartTime ?? "—"} />
         <LabeledValue label="Local Restart Time" value={gr?.localRestartTime ?? "—"} />
@@ -81,8 +102,14 @@ function GeneralTab({ router }: { router: RouterDialogPageProps["router"] }) {
 
       {/* Path Selection */}
       <FieldGroup title="Path Selection">
-        <ReadOnlyCheckbox checked={(cfg as { alwaysCompareMed?: boolean })?.alwaysCompareMed ?? false} label="Always Compare MED" />
-        <ReadOnlyCheckbox checked={(cfg as { deterministicMedComparison?: boolean })?.deterministicMedComparison ?? false} label="Deterministic MED Comparison" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={(cfg as { alwaysCompareMed?: boolean })?.alwaysCompareMed ?? false} disabled />
+          <span className="text-xs">Always Compare MED</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={(cfg as { deterministicMedComparison?: boolean })?.deterministicMedComparison ?? false} disabled />
+          <span className="text-xs">Deterministic MED Comparison</span>
+        </Label>
       </FieldGroup>
     </div>
   )
@@ -106,7 +133,10 @@ function PeerGroupDetailDialog({
       <div className="grid grid-cols-2 gap-4">
         <FieldGroup title="Peer Group">
           <LabeledValue label="Name" value={pg.name} />
-          <ReadOnlyCheckbox checked={pg.enabled} label="Enable" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={pg.enabled} disabled />
+            <span className="text-xs">Enable</span>
+          </Label>
           <LabeledValue label="Type" value={pg.type ?? "—"} />
           <LabeledValue label="IPv4 Address Family" value={pg.addressFamily.ipv4 ?? "None"} />
           <LabeledValue label="IPv6 Address Family" value={pg.addressFamily.ipv6 ?? "None"} />
@@ -241,7 +271,10 @@ function NetworkTab({ router }: { router: RouterDialogPageProps["router"] }) {
 
   return (
     <div className="space-y-3">
-      <ReadOnlyCheckbox checked={alwaysAdvertise} label="Always Advertise Network Route" />
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={alwaysAdvertise} disabled />
+        <span className="text-xs">Always Advertise Network Route</span>
+      </Label>
 
       <Tabs defaultValue="ipv4" className="flex flex-col min-h-0">
         <div className="shrink-0">
@@ -351,10 +384,22 @@ function AggregateRouteDetailDialog({
       <HeaderField label="Description" value={ar.description ?? ""} />
 
       <div className="space-y-1 pl-46">
-        <ReadOnlyCheckbox checked={ar.enabled} label="Enable" />
-        <ReadOnlyCheckbox checked={ar.summaryOnly} label="Summary Only" />
-        <ReadOnlyCheckbox checked={ar.asSet} label="AS Set" />
-        <ReadOnlyCheckbox checked={ar.sameMed} label="Aggregate Same MED Only" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={ar.enabled} disabled />
+          <span className="text-xs">Enable</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={ar.summaryOnly} disabled />
+          <span className="text-xs">Summary Only</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={ar.asSet} disabled />
+          <span className="text-xs">AS Set</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={ar.sameMed} disabled />
+          <span className="text-xs">Aggregate Same MED Only</span>
+        </Label>
       </div>
 
       <div className="flex items-center gap-4 pl-46">

@@ -40,6 +40,7 @@ export {
 // ─── IKE Gateways ─────────────────────────────────────────────────────────────
 export {
   type PanwIkeGateway,
+  type PanwIkeGatewayPpkKey,
   ID_TYPE_LABELS,
   extractIkeGateways,
 } from "./ike-gateways"
@@ -77,4 +78,3 @@ export {
   type PanwQosClass,
   extractQosProfiles,
 } from "./qos"
-

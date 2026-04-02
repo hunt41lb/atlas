@@ -1,13 +1,4 @@
 // @/app/(main)/network/_components/network-profiles/zone-protection/zone-protection-dialog.tsx
-//
-// Detail dialog for Zone Protection Profiles.
-// 6 tabs matching the PAN-OS GUI:
-//   1. Flood Protection
-//   2. Reconnaissance Protection
-//   3. Packet-Based Attack Protection (5 sub-tabs)
-//   4. Protocol Protection
-//   5. Ethernet SGT Protection
-//   6. L3 & L4 Header Inspection
 
 "use client"
 
@@ -18,14 +9,11 @@ import {
   TabsContent,
 } from "@/components/ui/tabs"
 import {
-  ReadOnlyCheckbox,
   FieldGroup,
   HeaderField,
   LabeledValue,
-  ReadOnlyRadio,
   ProfileDialog,
 } from "../../router-shared/router-dialog/field-display"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
   TableHeader,
@@ -34,6 +22,10 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+
 import type { PanwZoneProtectionProfile } from "@/lib/panw-parser/network-profiles"
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -46,7 +38,10 @@ function FloodProtectionTab({ profile }: { profile: PanwZoneProtectionProfile })
       <div className="grid grid-cols-3 gap-4">
         {/* Row 1: SYN, ICMP, Other IP */}
         <FieldGroup title="SYN">
-          <ReadOnlyCheckbox checked={profile.fpSynEnabled} label="Enable" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={profile.fpSynEnabled} disabled />
+            <span className="text-xs">Enable</span>
+          </Label>
           <LabeledValue label="Action" value={profile.fpSynAction === "syn-cookies" ? "SYN Cookies" : "Random Early Drop"} />
           <LabeledValue label="Alarm Rate (conn/sec)" value={profile.fpSynAlarmRate} />
           <LabeledValue label="Activate (conn/sec)" value={profile.fpSynActivateRate} />
@@ -54,14 +49,20 @@ function FloodProtectionTab({ profile }: { profile: PanwZoneProtectionProfile })
         </FieldGroup>
 
         <FieldGroup title="ICMP">
-          <ReadOnlyCheckbox checked={profile.fpIcmpEnabled} label="Enable" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={profile.fpIcmpEnabled} disabled />
+            <span className="text-xs">Enable</span>
+          </Label>
           <LabeledValue label="Alarm Rate (conn/sec)" value={profile.fpIcmpAlarmRate} />
           <LabeledValue label="Activate (conn/sec)" value={profile.fpIcmpActivateRate} />
           <LabeledValue label="Maximum (conn/sec)" value={profile.fpIcmpMaxRate} />
         </FieldGroup>
 
         <FieldGroup title="Other IP">
-          <ReadOnlyCheckbox checked={profile.fpOtherIpEnabled} label="Enable" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={profile.fpOtherIpEnabled} disabled />
+            <span className="text-xs">Enable</span>
+          </Label>
           <LabeledValue label="Alarm Rate (conn/sec)" value={profile.fpOtherIpAlarmRate} />
           <LabeledValue label="Activate (conn/sec)" value={profile.fpOtherIpActivateRate} />
           <LabeledValue label="Maximum (conn/sec)" value={profile.fpOtherIpMaxRate} />
@@ -69,14 +70,20 @@ function FloodProtectionTab({ profile }: { profile: PanwZoneProtectionProfile })
 
         {/* Row 2: UDP, ICMPv6 */}
         <FieldGroup title="UDP">
-          <ReadOnlyCheckbox checked={profile.fpUdpEnabled} label="Enable" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={profile.fpUdpEnabled} disabled />
+            <span className="text-xs">Enable</span>
+          </Label>
           <LabeledValue label="Alarm Rate (conn/sec)" value={profile.fpUdpAlarmRate} />
           <LabeledValue label="Activate (conn/sec)" value={profile.fpUdpActivateRate} />
           <LabeledValue label="Maximum (conn/sec)" value={profile.fpUdpMaxRate} />
         </FieldGroup>
 
         <FieldGroup title="ICMPv6">
-          <ReadOnlyCheckbox checked={profile.fpIcmpv6Enabled} label="Enable" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={profile.fpIcmpv6Enabled} disabled />
+            <span className="text-xs">Enable</span>
+          </Label>
           <LabeledValue label="Alarm Rate (conn/sec)" value={profile.fpIcmpv6AlarmRate} />
           <LabeledValue label="Activate (conn/sec)" value={profile.fpIcmpv6ActivateRate} />
           <LabeledValue label="Maximum (conn/sec)" value={profile.fpIcmpv6MaxRate} />
@@ -169,24 +176,57 @@ function IpDropSubTab({ profile }: { profile: PanwZoneProtectionProfile }) {
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <ReadOnlyCheckbox checked={profile.pbapIpDropSpoofedIpAddress} label="Spoofed IP address" />
-        <ReadOnlyCheckbox checked={profile.pbapIpDropStrictIpAddressCheck} label="Strict IP Address Check" />
-        <ReadOnlyCheckbox checked={profile.pbapIpDropFragmentedTraffic} label="Fragmented traffic" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpDropSpoofedIpAddress} disabled />
+          <span className="text-xs">Spoofed IP address</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpDropStrictIpAddressCheck} disabled />
+          <span className="text-xs">Strict IP Address Check</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpDropFragmentedTraffic} disabled />
+          <span className="text-xs">Fragmented traffic</span>
+        </Label>
       </div>
 
       <FieldGroup title="IP Option Drop">
         <div className="grid grid-cols-2 gap-x-6">
           <div className="space-y-1">
-            <ReadOnlyCheckbox checked={profile.pbapIpDropStrictSourceRouting} label="Strict Source Routing" />
-            <ReadOnlyCheckbox checked={profile.pbapIpDropLooseSourceRouting} label="Loose Source Routing" />
-            <ReadOnlyCheckbox checked={profile.pbapIpDropTimestamp} label="Timestamp" />
-            <ReadOnlyCheckbox checked={profile.pbapIpDropRecordRoute} label="Record Route" />
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.pbapIpDropStrictSourceRouting} disabled />
+              <span className="text-xs">Strict Source Routing</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.pbapIpDropLooseSourceRouting} disabled />
+              <span className="text-xs">Loose Source Routing</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.pbapIpDropTimestamp} disabled />
+              <span className="text-xs">Timestamp</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.pbapIpDropRecordRoute} disabled />
+              <span className="text-xs">Record Route</span>
+            </Label>
           </div>
           <div className="space-y-1">
-            <ReadOnlyCheckbox checked={profile.pbapIpDropSecurity} label="Security" />
-            <ReadOnlyCheckbox checked={profile.pbapIpDropStreamId} label="Stream ID" />
-            <ReadOnlyCheckbox checked={profile.pbapIpDropUnknown} label="Unknown" />
-            <ReadOnlyCheckbox checked={profile.pbapIpDropMalformed} label="Malformed" />
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.pbapIpDropSecurity} disabled />
+              <span className="text-xs">Security</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.pbapIpDropStreamId} disabled />
+              <span className="text-xs">Stream ID</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.pbapIpDropUnknown} disabled />
+              <span className="text-xs">Unknown</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.pbapIpDropMalformed} disabled />
+              <span className="text-xs">Malformed</span>
+            </Label>
           </div>
         </div>
       </FieldGroup>
@@ -198,18 +238,36 @@ function TcpDropSubTab({ profile }: { profile: PanwZoneProtectionProfile }) {
   return (
     <div className="space-y-4">
       <div className="space-y-1">
-        <ReadOnlyCheckbox checked={profile.pbapTcpDropMismatchedOverlappingSegment} label="Mismatched overlapping TCP segment" />
-        <ReadOnlyCheckbox checked={profile.pbapTcpDropSplitHandshake} label="Split Handshake" />
-        <ReadOnlyCheckbox checked={profile.pbapTcpDropSynWithData} label="TCP SYN with Data" />
-        <ReadOnlyCheckbox checked={profile.pbapTcpDropSynackWithData} label="TCP SYNACK with Data" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapTcpDropMismatchedOverlappingSegment} disabled />
+          <span className="text-xs">Mismatched overlapping TCP segment</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapTcpDropSplitHandshake} disabled />
+          <span className="text-xs">Split Handshake</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapTcpDropSynWithData} disabled />
+          <span className="text-xs">TCP SYN with Data</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapTcpDropSynackWithData} disabled />
+          <span className="text-xs">TCP SYNACK with Data</span>
+        </Label>
       </div>
 
       <LabeledValue label="Reject Non-SYN TCP" value={profile.pbapTcpDropRejectNonSyn} />
       <LabeledValue label="Asymmetric Path" value={profile.pbapTcpDropAsymmetricPath} />
 
       <FieldGroup title="Strip TCP Options">
-        <ReadOnlyCheckbox checked={profile.pbapTcpDropStripTcpTimestamp} label="TCP Timestamp" />
-        <ReadOnlyCheckbox checked={profile.pbapTcpDropStripTcpFastOpen} label="TCP Fast Open" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapTcpDropStripTcpTimestamp} disabled />
+          <span className="text-xs">TCP Timestamp</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapTcpDropStripTcpFastOpen} disabled />
+          <span className="text-xs">TCP Fast Open</span>
+        </Label>
         <LabeledValue label="Multipath TCP (MPTCP) Options" value={profile.pbapTcpDropStripMptcpOption} />
       </FieldGroup>
     </div>
@@ -219,12 +277,30 @@ function TcpDropSubTab({ profile }: { profile: PanwZoneProtectionProfile }) {
 function IcmpDropSubTab({ profile }: { profile: PanwZoneProtectionProfile }) {
   return (
     <div className="space-y-1">
-      <ReadOnlyCheckbox checked={profile.pbapIcmpDropPingZeroId} label="ICMP Ping ID 0" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpDropFragment} label="ICMP Fragment" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpDropLargePacket} label="ICMP Large Packet(>1024)" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpDropEmbeddedErrorMessage} label="Discard ICMP embedded with error message" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpDropSuppressTtlExpiredError} label="Suppress ICMP TTL Expired Error" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpDropSuppressFragNeeded} label="Suppress ICMP Frag Needed" />
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpDropPingZeroId} disabled />
+        <span className="text-xs">ICMP Ping ID 0</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpDropFragment} disabled />
+        <span className="text-xs">ICMP Fragment</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpDropLargePacket} disabled />
+        <span className="text-xs">ICMP Large Packet(&gt;1024)</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpDropEmbeddedErrorMessage} disabled />
+        <span className="text-xs">Discard ICMP embedded with error message</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpDropSuppressTtlExpiredError} disabled />
+        <span className="text-xs">Suppress ICMP TTL Expired Error</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpDropSuppressFragNeeded} disabled />
+        <span className="text-xs">Suppress ICMP Frag Needed</span>
+      </Label>
     </div>
   )
 }
@@ -233,24 +309,72 @@ function Ipv6DropSubTab({ profile }: { profile: PanwZoneProtectionProfile }) {
   return (
     <div className="grid grid-cols-2 gap-x-6">
       <div className="space-y-1">
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropRoutingHeaderType0} label="Drop packets with type 0 routing header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropRoutingHeaderType1} label="Drop packets with type 1 routing header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropRoutingHeaderType3} label="Drop packets with type 3 routing header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropRoutingHeaderType4To252} label="Drop packets with type 4 to type 252 routing header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropRoutingHeaderType253} label="Drop packets with type 253 routing header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropRoutingHeaderType254} label="Drop packets with type 254 routing header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropRoutingHeaderType255} label="Drop packets with type 255 routing header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropIpv4CompatibleAddress} label="IPv4 compatible address" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropRoutingHeaderType0} disabled />
+          <span className="text-xs">Drop packets with type 0 routing header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropRoutingHeaderType1} disabled />
+          <span className="text-xs">Drop packets with type 1 routing header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropRoutingHeaderType3} disabled />
+          <span className="text-xs">Drop packets with type 3 routing header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropRoutingHeaderType4To252} disabled />
+          <span className="text-xs">Drop packets with type 4 to type 252 routing header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropRoutingHeaderType253} disabled />
+          <span className="text-xs">Drop packets with type 253 routing header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropRoutingHeaderType254} disabled />
+          <span className="text-xs">Drop packets with type 254 routing header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropRoutingHeaderType255} disabled />
+          <span className="text-xs">Drop packets with type 255 routing header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropIpv4CompatibleAddress} disabled />
+          <span className="text-xs">IPv4 compatible address</span>
+        </Label>
       </div>
       <div className="space-y-1">
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropHopByHopExtension} label="Hop-by-Hop extension" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropRoutingExtension} label="Routing extension" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropDestinationExtension} label="Destination extension" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropInvalidIpv6OptionsInExtHeader} label="Invalid IPv6 options in extension header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropNonZeroReservedField} label="Non-zero reserved field" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropAnycastSourceAddress} label="Anycast source address" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropNeedlessFragmentHeader} label="Needless fragment header" />
-        <ReadOnlyCheckbox checked={profile.pbapIpv6DropIcmpv6PacketTooBigSmallMtu} label="MTU in ICMPv6 'Packet Too Big' less than 1280 bytes" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropHopByHopExtension} disabled />
+          <span className="text-xs">Hop-by-Hop extension</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropRoutingExtension} disabled />
+          <span className="text-xs">Routing extension</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropDestinationExtension} disabled />
+          <span className="text-xs">Destination extension</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropInvalidIpv6OptionsInExtHeader} disabled />
+          <span className="text-xs">Invalid IPv6 options in extension header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropNonZeroReservedField} disabled />
+          <span className="text-xs">Non-zero reserved field</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropAnycastSourceAddress} disabled />
+          <span className="text-xs">Anycast source address</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropNeedlessFragmentHeader} disabled />
+          <span className="text-xs">Needless fragment header</span>
+        </Label>
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.pbapIpv6DropIcmpv6PacketTooBigSmallMtu} disabled />
+          <span className="text-xs">MTU in ICMPv6 &apos;Packet Too Big&apos; less than 1280 bytes</span>
+        </Label>
       </div>
     </div>
   )
@@ -259,11 +383,26 @@ function Ipv6DropSubTab({ profile }: { profile: PanwZoneProtectionProfile }) {
 function Icmpv6DropSubTab({ profile }: { profile: PanwZoneProtectionProfile }) {
   return (
     <div className="space-y-1">
-      <ReadOnlyCheckbox checked={profile.pbapIcmpv6DropDestUnreachable} label="ICMPv6 destination unreachable - require explicit security rule match" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpv6DropPacketTooBig} label="ICMPv6 packet too big - require explicit security rule match" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpv6DropTimeExceeded} label="ICMPv6 time exceeded - require explicit security rule match" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpv6DropParamProblem} label="ICMPv6 parameter problem - require explicit security rule match" />
-      <ReadOnlyCheckbox checked={profile.pbapIcmpv6DropRedirect} label="ICMPv6 redirect - require explicit security rule match" />
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpv6DropDestUnreachable} disabled />
+        <span className="text-xs">ICMPv6 destination unreachable - require explicit security rule match</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpv6DropPacketTooBig} disabled />
+        <span className="text-xs">ICMPv6 packet too big - require explicit security rule match</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpv6DropTimeExceeded} disabled />
+        <span className="text-xs">ICMPv6 time exceeded - require explicit security rule match</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpv6DropParamProblem} disabled />
+        <span className="text-xs">ICMPv6 parameter problem - require explicit security rule match</span>
+      </Label>
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={profile.pbapIcmpv6DropRedirect} disabled />
+        <span className="text-xs">ICMPv6 redirect - require explicit security rule match</span>
+      </Label>
     </div>
   )
 }
@@ -298,10 +437,19 @@ function PacketBasedAttackTab({ profile }: { profile: PanwZoneProtectionProfile 
 function ProtocolProtectionTab({ profile }: { profile: PanwZoneProtectionProfile }) {
   return (
     <div className="space-y-4">
-      <ReadOnlyRadio label="Rule Type" value={profile.ppListType} labelWidth="w-auto" options={[
-        { value: "exclude", label: "Exclude List" },
-        { value: "include", label: "Include List" },
-      ]} />
+      <div className="flex items-center gap-4">
+        <span className="text-xs text-muted-foreground shrink-0 text-right w-36">Mode</span>
+        <RadioGroup value={profile.ppListType ?? ""} disabled className="flex flex-row gap-4">
+          <Label className="flex items-center gap-1.5 text-xs">
+            <RadioGroupItem value="exclude" />
+            Exclude List
+          </Label>
+          <Label className="flex items-center gap-1.5 text-xs">
+            <RadioGroupItem value="include" />
+            Include List
+          </Label>
+        </RadioGroup>
+      </div>
 
       {profile.ppNonIpProtocols.length === 0 ? (
         <span className="text-xs text-muted-foreground">No protocols configured</span>

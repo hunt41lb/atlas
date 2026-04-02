@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 
 import type {
   PanwBgpAddressFamilyProfile,
@@ -74,34 +75,34 @@ function AfSubConfigPanel({
     <div className="pt-3 pl-3 border-l-[3px] border-primary ml-1">
       {/* Checkboxes */}
       <div className="ml-37 space-y-0.5">
-        <label className="flex items-center gap-2 py-0.75">
+        <Label className="flex items-center gap-2 py-0.75">
           <Checkbox checked={d.enabled} disabled />
           <span className="text-[13px]">Enable</span>
-        </label>
-        <label className="flex items-center gap-2 py-0.75">
+        </Label>
+        <Label className="flex items-center gap-2 py-0.75">
           <Checkbox checked={d.softReconfiguration} disabled />
           <span className="text-[13px]">Soft reconfiguration of peer with stored routes</span>
-        </label>
-        <label className="flex items-center gap-2 py-0.75">
+        </Label>
+        <Label className="flex items-center gap-2 py-0.75">
           <Checkbox checked={d.addPathTxAllPaths} disabled />
           <span className="text-[13px]">Advertise all paths to peer</span>
-        </label>
-        <label className="flex items-center gap-2 py-0.75">
+        </Label>
+        <Label className="flex items-center gap-2 py-0.75">
           <Checkbox checked={d.addPathTxBestpathPerAs} disabled />
           <span className="text-[13px]">Advertise the bestpath per each neighboring AS</span>
-        </label>
-        <label className="flex items-center gap-2 py-0.75">
+        </Label>
+        <Label className="flex items-center gap-2 py-0.75">
           <Checkbox checked={d.asOverride} disabled />
           <span className="text-[13px]">Override ASNs in outbound updates if AS-Path equals Remote-AS</span>
-        </label>
-        <label className="flex items-center gap-2 py-0.75">
+        </Label>
+        <Label className="flex items-center gap-2 py-0.75">
           <Checkbox checked={d.routeReflectorClient} disabled />
           <span className="text-[13px]">Route Reflector Client</span>
-        </label>
-        <label className="flex items-center gap-2 py-0.75">
+        </Label>
+        <Label className="flex items-center gap-2 py-0.75">
           <Checkbox checked={d.defaultOriginate} disabled />
           <span className="text-[13px]">Originate Default Route</span>
-        </label>
+        </Label>
       </div>
 
       {/* Form fields */}

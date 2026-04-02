@@ -13,9 +13,11 @@ import {
 import {
   FieldGroup,
   HeaderField,
-  ReadOnlyCheckbox,
   ProfileDialog,
 } from "../../router-shared/router-dialog/field-display"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+
 import type { PanwLldpProfile } from "@/lib/panw-parser/network-profiles"
 
 export function LldpDialog({
@@ -34,18 +36,38 @@ export function LldpDialog({
       <div className="space-y-4">
         <HeaderField label="Name" value={profile.name} />
         <HeaderField label="Mode" value="transmit-receive" />
-
-        <ReadOnlyCheckbox checked={profile.snmpSyslogNotification} label="SNMP Syslog Notification" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={profile.snmpSyslogNotification} disabled />
+          <span className="text-xs">SNMP Syslog Notification</span>
+        </Label>
 
         <FieldGroup title="Optional TLVs">
           <div className="grid grid-cols-2 gap-x-4">
-            <ReadOnlyCheckbox checked={profile.portDescription} label="Port Description" />
-            <ReadOnlyCheckbox checked={profile.systemName} label="System Name" />
-            <ReadOnlyCheckbox checked={profile.systemDescription} label="System Description" />
-            <ReadOnlyCheckbox checked={profile.systemCapabilities} label="System Capabilities" />
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.portDescription} disabled />
+              <span className="text-xs">Port Description</span>
+            </Label>
+
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.systemName} disabled />
+              <span className="text-xs">System Name</span>
+            </Label>
+
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.systemDescription} disabled />
+              <span className="text-xs">System Description</span>
+            </Label>
+
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={profile.systemCapabilities} disabled />
+              <span className="text-xs">System Capabilities</span>
+            </Label>
           </div>
 
-          <ReadOnlyCheckbox checked={profile.managementAddressEnabled} label="Management Address" />
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={profile.managementAddressEnabled} disabled />
+            <span className="text-xs">Management Address</span>
+          </Label>
 
           {profile.managementAddressEnabled && profile.managementAddresses.length > 0 && (
             <Table>

@@ -9,7 +9,7 @@ const fontSans = Montserrat({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: "Atlas",
-  description: "Visualize Palo Alto Networks firewall security policy as an interactive network diagram",
+  description: "Visualize your backups with Atlas",
 };
 
 export default function RootLayout({

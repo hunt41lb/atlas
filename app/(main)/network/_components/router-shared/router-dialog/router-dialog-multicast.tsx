@@ -17,9 +17,10 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
+import { Label } from "@/components/ui/label"
+
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import {
-  ReadOnlyCheckbox,
   LabeledValue,
   FieldGroup,
   HeaderField,
@@ -107,7 +108,10 @@ function PimInterfaceDetailDialog({ iface, open, onOpenChange }: { iface: MCPimI
       <HeaderField label="Description" value={iface.description ?? ""} />
       <HeaderField label="DR Priority" value={String(iface.drPriority ?? "")} />
       <div className="pl-38">
-        <ReadOnlyCheckbox checked={iface.sendBsm} label="Send BSM" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={iface.sendBsm} disabled />
+          <span className="text-xs">Send BSM</span>
+        </Label>
       </div>
       <HeaderField label="Timer Profile" value={iface.ifTimer ?? "None"} />
       <HeaderField label="Neighbor Filter" value={iface.neighborFilter ?? "None"} />
@@ -138,7 +142,10 @@ function PimTab({ router }: { router: RouterDialogPageProps["router"] }) {
         <TabsContent value="general">
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <ReadOnlyCheckbox checked={pim.enabled} label="Enable" />
+              <Label className="flex items-center gap-2 py-1">
+                <Checkbox checked={pim.enabled} disabled />
+                <span className="text-xs">Enable</span>
+              </Label>
               <LabeledValue label="RPF Lookup Mode" value={pim.rpfLookupMode ?? "None"} />
               <LabeledValue label="Interface General Timer" value="None" />
               <LabeledValue label="Route Age Out Time (sec)" value={pim.routeAgeoutTime ?? "—"} />
@@ -209,7 +216,10 @@ function PimTab({ router }: { router: RouterDialogPageProps["router"] }) {
               <LabeledValue label="RP Type" value="Static RP" />
               <LabeledValue label="Interface" value={pim.localRp?.interface ?? "None"} />
               <LabeledValue label="RP Address" value={pim.localRp?.address ?? "None"} />
-              <ReadOnlyCheckbox checked={pim.localRp?.override ?? false} label="Override learned RP for the same group" />
+              <Label className="flex items-center gap-2 py-1">
+                <Checkbox checked={pim.localRp?.override ?? false} disabled />
+                <span className="text-xs">Override learned RP for the same group</span>
+              </Label>
               <LabeledValue label="Group List" value={pim.localRp?.groupList ?? "None"} />
             </div>
             <div className="rounded-md border">
@@ -261,7 +271,10 @@ function IgmpDynamicDetailDialog({ iface, open, onOpenChange }: { iface: MCIgmpD
       <HeaderField label="Max Sources" value={iface.maxSources ?? "None"} />
       <HeaderField label="Query Profile" value={iface.queryProfile ?? "None"} />
       <div className="pl-38">
-        <ReadOnlyCheckbox checked={iface.routerAlertPolicing} label="drop IGMP packets without Router Alert option" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={iface.routerAlertPolicing} disabled />
+          <span className="text-xs">drop IGMP packets without Router Alert option</span>
+        </Label>
       </div>
     </DetailDialog>
   )
@@ -322,7 +335,10 @@ function IgmpTab({ router }: { router: RouterDialogPageProps["router"] }) {
 
   return (
     <div className="space-y-3">
-      <ReadOnlyCheckbox checked={igmp.enabled} label="enable IGMP" />
+      <Label className="flex items-center gap-2 py-1">
+        <Checkbox checked={igmp.enabled} disabled />
+        <span className="text-xs">enable IGMP</span>
+      </Label>
 
       <Tabs defaultValue="dynamic" className="flex flex-col min-h-0">
         <div className="shrink-0">
@@ -421,7 +437,10 @@ function MsdpTab({ router }: { router: RouterDialogPageProps["router"] }) {
       <div className="flex-1 overflow-y-auto pt-3">
         <TabsContent value="general">
           <div className="space-y-3">
-            <ReadOnlyCheckbox checked={msdp.enabled} label="Enable" />
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={msdp.enabled} disabled />
+              <span className="text-xs">Enable</span>
+            </Label>
             <LabeledValue label="Global Timer" value={msdpRefs?.globalTimerName ?? msdp.globalTimer ?? "None"} />
             <LabeledValue label="Global Authentication" value={msdpRefs?.globalAuthName ?? msdp.globalAuth ?? "None"} />
             <FieldGroup title="Originator ID">
@@ -481,7 +500,10 @@ export function MulticastPage({ router }: RouterDialogPageProps) {
   return (
     <div className="flex h-full flex-col min-h-0">
       <div className="shrink-0 border-b px-4 py-2.5">
-        <ReadOnlyCheckbox checked={enabled} label="enable multicast protocol" />
+        <Label className="flex items-center gap-2 py-1">
+          <Checkbox checked={enabled} disabled />
+          <span className="text-xs">enable multicast protocol</span>
+        </Label>
       </div>
 
       <Tabs defaultValue="static" className="flex-1 flex flex-col min-h-0">
