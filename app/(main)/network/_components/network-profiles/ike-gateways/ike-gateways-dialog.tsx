@@ -44,7 +44,8 @@ const EXCHANGE_MODE_LABELS: Record<string, string> = {
 
 // ─── Shared label width ───────────────────────────────────────────────────────
 
-const LW = "w-40"
+const LW = "w-35"
+const GLW = "w-18"
 
 // ─── General Tab ──────────────────────────────────────────────────────────────
 
@@ -54,150 +55,159 @@ function GeneralTab({ gw }: { gw: PanwIkeGateway }) {
   return (
     <div className="space-y-3">
       {/* Name & Version */}
-      <DisplayField label="Name" value={gw.name} labelWidth={LW} />
-      <DisplayField label="Version" value={VERSION_LABELS[gw.version] ?? gw.version} labelWidth={LW} />
+      <DisplayField label="Name" value={gw.name} labelWidth={GLW} />
+      <DisplayField label="Version" value={VERSION_LABELS[gw.version] ?? gw.version} labelWidth={GLW} />
 
       {/* Address Type */}
-      <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Address Type</span>
-        <RadioGroup value={gw.addressType ?? "ipv4"} disabled className="flex flex-row gap-4">
-          <Label className="flex items-center gap-1.5 text-xs">
-            <RadioGroupItem value="ipv4" />
-            IPv4
-          </Label>
-          <Label className="flex items-center gap-1.5 text-xs">
-            <RadioGroupItem value="ipv6" />
-            IPv6
-          </Label>
-        </RadioGroup>
-      </div>
-
-      {/* Interface & Local IP */}
-      <DisplayField label="Interface" value={gw.localInterface ?? "None"} labelWidth={LW} />
-      <DisplayField label="Local IP Address" value={gw.localIp ?? "None"} labelWidth={LW} />
-
-      {/* Peer IP Address Type */}
-      <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Peer IP Address Type</span>
-        <RadioGroup value={gw.peerAddressType ?? "ip"} disabled className="flex flex-row gap-4">
-          <Label className="flex items-center gap-1.5 text-xs">
-            <RadioGroupItem value="ip" />
-            IP
-          </Label>
-          <Label className="flex items-center gap-1.5 text-xs">
-            <RadioGroupItem value="fqdn" />
-            FQDN
-          </Label>
-          <Label className="flex items-center gap-1.5 text-xs">
-            <RadioGroupItem value="dynamic" />
-            Dynamic
-          </Label>
-        </RadioGroup>
-      </div>
-
-      {/* Peer Address */}
-      <DisplayField label="Peer Address" value={gw.peerAddress ?? "None"} labelWidth={LW} />
-
-      {/* Authentication */}
-      <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Authentication</span>
-        <RadioGroup value={gw.authenticationType ?? ""} disabled className="flex flex-row gap-4">
-          <Label className="flex items-center gap-1.5 text-xs">
-            <RadioGroupItem value="pre-shared-key" />
-            Pre-Shared Key
-          </Label>
-          <Label className="flex items-center gap-1.5 text-xs">
-            <RadioGroupItem value="certificate" />
-            Certificate
-          </Label>
-        </RadioGroup>
-      </div>
-
-      {/* Pre-Shared Key auth fields */}
-      {!isCert && (
-        <DisplayField label="Pre-Shared Key" value="••••••••" labelWidth={LW} />
-      )}
-
-      {/* Certificate auth fields */}
-      {isCert && (
-        <>
-          <DisplayField label="Local Certificate" value={gw.localCertificateName ?? "None"} labelWidth={LW} />
-
-          <Fieldset disabled={!gw.hashAndUrlEnabled}>
-            <FieldsetLegend>
-              <Label className="flex items-center gap-2">
-                <Checkbox checked={gw.hashAndUrlEnabled} disabled />
-                HTTP Certificate Exchange
+      <Fieldset>
+        <FieldsetLegend>
+          <div className="flex items-center gap-3 whitespace-nowrap">
+            Address Type
+            <RadioGroup value={gw.addressType ?? "ipv4"} disabled className="flex flex-row gap-4">
+              <Label className="flex items-center gap-1.5 text-xs font-normal">
+                <RadioGroupItem value="ipv4" />
+                IPv4
               </Label>
-            </FieldsetLegend>
-            {gw.hashAndUrlEnabled && (
-              <FieldsetContent>
-                <DisplayField label="Certificate URL" value={gw.hashAndUrlBaseUrl ?? "None"} />
-              </FieldsetContent>
-            )}
-          </Fieldset>
-        </>
-      )}
-
-      {/* Local & Peer Identification */}
-      <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Local Identification</span>
-        <div className="flex h-7 w-sm items-center justify-between rounded-lg border border-input bg-transparent px-2.5 text-xs text-muted-foreground">
-          <span>{ID_TYPE_LABELS[gw.localIdType ?? ""] ?? gw.localIdType ?? "None"}</span>
-          <ChevronDownIcon className="size-3.5 shrink-0" />
-        </div>
-        <Input readOnly value={gw.localIdValue ?? "None"} size="sm" className="w-full" />
-      </div>
-
-      <div className="flex items-center gap-2">
-        <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Peer Identification</span>
-        <div className="flex h-7 w-sm items-center justify-between rounded-lg border border-input bg-transparent px-2.5 text-xs text-muted-foreground">
-          <span>{ID_TYPE_LABELS[gw.peerIdType ?? ""] ?? gw.peerIdType ?? "None"}</span>
-          <ChevronDownIcon className="size-3.5 shrink-0" />
-        </div>
-        <Input readOnly value={gw.peerIdValue ?? "None"} size="sm" className="w-full" />
-      </div>
-
-      {/* Certificate-only: Peer ID Check, payload mismatch, cert profile, strict validation */}
-      {isCert && (
-        <>
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Peer ID Check</span>
-            <RadioGroup value={gw.peerIdMatching ?? "exact"} disabled className="flex flex-row gap-4">
-              <Label className="flex items-center gap-1.5 text-xs">
-                <RadioGroupItem value="exact" />
-                Exact
-              </Label>
-              <Label className="flex items-center gap-1.5 text-xs">
-                <RadioGroupItem value="wildcard" />
-                Wildcard
+              <Label className="flex items-center gap-1.5 text-xs font-normal">
+                <RadioGroupItem value="ipv6" />
+                IPv6
               </Label>
             </RadioGroup>
           </div>
+        </FieldsetLegend>
+        <FieldsetContent>
+          <DisplayField label="Interface" value={gw.localInterface ?? "None"} labelWidth={LW} />
+          <DisplayField label="Local IP Address" value={gw.localIp ?? "None"} labelWidth={LW} />
+        </FieldsetContent>
+      </Fieldset>
 
-          <div className={`pl-[calc(theme(width.40)+0.5rem)]`}>
-            <Label className="flex items-center gap-2 py-1">
-              <Checkbox checked={gw.allowIdPayloadMismatch} disabled />
-              <span className="text-xs">Permit peer identification and certificate payload identification mismatch</span>
-            </Label>
+      {/* Peer IP Address Type */}
+      <Fieldset>
+        <FieldsetLegend>
+          <div className="flex items-center gap-3 whitespace-nowrap">
+            Peer IP Address Type
+            <RadioGroup value={gw.peerAddressType ?? "ip"} disabled className="flex flex-row gap-4">
+              <Label className="flex items-center gap-1.5 text-xs font-normal">
+                <RadioGroupItem value="ip" />
+                IP
+              </Label>
+              <Label className="flex items-center gap-1.5 text-xs font-normal">
+                <RadioGroupItem value="fqdn" />
+                FQDN
+              </Label>
+              <Label className="flex items-center gap-1.5 text-xs font-normal">
+                <RadioGroupItem value="dynamic" />
+                Dynamic
+              </Label>
+            </RadioGroup>
+          </div>
+        </FieldsetLegend>
+        <FieldsetContent>
+          <DisplayField label="Peer Address" value={gw.peerAddress ?? "None"} labelWidth={LW} />
+        </FieldsetContent>
+      </Fieldset>
+
+      {/* Authentication */}
+      <Fieldset>
+        <FieldsetLegend>
+          <div className="flex items-center gap-3">
+            Authentication
+            <RadioGroup value={gw.authenticationType ?? ""} disabled className="flex flex-row gap-4">
+              <Label className="flex items-center gap-1.5 text-xs font-normal">
+                <RadioGroupItem value="pre-shared-key" />
+                Pre-Shared Key
+              </Label>
+              <Label className="flex items-center gap-1.5 text-xs font-normal">
+                <RadioGroupItem value="certificate" />
+                Certificate
+              </Label>
+            </RadioGroup>
+          </div>
+        </FieldsetLegend>
+        <FieldsetContent>
+          {!isCert ? (
+            <DisplayField label="Pre-Shared Key" value="••••••••" labelWidth={LW} />
+          ) : (
+            <div className="space-y-1.5">
+              <DisplayField label="Local Certificate" value={gw.localCertificateName ?? "None"} labelWidth={LW} />
+
+              <Fieldset disabled={!gw.hashAndUrlEnabled}>
+                <FieldsetLegend>
+                  <Label className="flex items-center gap-2">
+                    <Checkbox checked={gw.hashAndUrlEnabled} disabled />
+                    HTTP Certificate Exchange
+                  </Label>
+                </FieldsetLegend>
+                {gw.hashAndUrlEnabled && (
+                  <FieldsetContent>
+                    <DisplayField label="Certificate URL" value={gw.hashAndUrlBaseUrl ?? "None"} labelWidth={LW} />
+                  </FieldsetContent>
+                )}
+              </Fieldset>
+            </div>
+          )}
+        </FieldsetContent>
+      </Fieldset>
+
+      {/* Identification */}
+      <Fieldset>
+        <FieldsetLegend>Identification</FieldsetLegend>
+        <FieldsetContent>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Local Identification</span>
+            <div className="flex h-7 w-sm items-center justify-between rounded-lg border border-input bg-transparent px-2.5 text-xs text-muted-foreground">
+              <span>{ID_TYPE_LABELS[gw.localIdType ?? ""] ?? gw.localIdType ?? "None"}</span>
+              <ChevronDownIcon className="size-3.5 shrink-0" />
+            </div>
+            <Input readOnly value={gw.localIdValue ?? "None"} size="sm" className="w-full" />
           </div>
 
-          <DisplayField label="Certificate Profile" value={gw.certificateProfile ?? "None"} labelWidth={LW} />
-
-          <div className={`pl-[calc(theme(width.40)+0.5rem)]`}>
-            <Label className="flex items-center gap-2 py-1">
-              <Checkbox checked={gw.strictValidationRevocation} disabled />
-              <span className="text-xs">Enable strict validation of peer&apos;s extended key use</span>
-            </Label>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Peer Identification</span>
+            <div className="flex h-7 w-sm items-center justify-between rounded-lg border border-input bg-transparent px-2.5 text-xs text-muted-foreground">
+              <span>{ID_TYPE_LABELS[gw.peerIdType ?? ""] ?? gw.peerIdType ?? "None"}</span>
+              <ChevronDownIcon className="size-3.5 shrink-0" />
+            </div>
+            <Input readOnly value={gw.peerIdValue ?? "None"} size="sm" className="w-full" />
           </div>
-        </>
-      )}
+
+          {isCert && (
+            <>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium text-foreground shrink-0 ${LW}`}>Peer ID Check</span>
+                <RadioGroup value={gw.peerIdMatching ?? "exact"} disabled className="flex flex-row gap-4">
+                  <Label className="flex items-center gap-1.5 text-xs">
+                    <RadioGroupItem value="exact" />
+                    Exact
+                  </Label>
+                  <Label className="flex items-center gap-1.5 text-xs">
+                    <RadioGroupItem value="wildcard" />
+                    Wildcard
+                  </Label>
+                </RadioGroup>
+              </div>
+
+              <Label className="flex items-center gap-2 py-1 pl-1">
+                <Checkbox checked={gw.allowIdPayloadMismatch} disabled />
+                <span className="text-xs">Permit peer identification and certificate payload identification mismatch</span>
+              </Label>
+
+              <DisplayField label="Certificate Profile" value={gw.certificateProfile ?? "None"} labelWidth={LW} />
+
+              <Label className="flex items-center gap-2 py-1 pl-1">
+                <Checkbox checked={gw.strictValidationRevocation} disabled />
+                <span className="text-xs">Enable strict validation of peer&apos;s extended key use</span>
+              </Label>
+            </>
+          )}
+        </FieldsetContent>
+      </Fieldset>
 
       {/* Comment */}
       <DisplayField
         label="Comment"
         value={gw.comment ?? ""}
-        labelWidth={LW}
+        labelWidth={GLW}
         className={!gw.comment ? "opacity-50" : ""}
       />
     </div>
@@ -209,8 +219,8 @@ function GeneralTab({ gw }: { gw: PanwIkeGateway }) {
 function Ikev1SubTab({ gw }: { gw: PanwIkeGateway }) {
   return (
     <div className="space-y-3">
-      <DisplayField label="Exchange Mode" value={EXCHANGE_MODE_LABELS[gw.ikev1ExchangeMode ?? ""] ?? gw.ikev1ExchangeMode ?? "Auto"} />
-      <DisplayField label="IKE Crypto Profile" value={gw.ikev1CryptoProfile ?? "None"} />
+      <DisplayField label="Exchange Mode" value={EXCHANGE_MODE_LABELS[gw.ikev1ExchangeMode ?? ""] ?? gw.ikev1ExchangeMode ?? "Auto"} labelWidth={LW} />
+      <DisplayField label="IKE Crypto Profile" value={gw.ikev1CryptoProfile ?? "None"} labelWidth={LW} />
 
       <Fieldset disabled={!gw.ikev1DpdEnabled}>
         <FieldsetLegend>
@@ -221,8 +231,8 @@ function Ikev1SubTab({ gw }: { gw: PanwIkeGateway }) {
         </FieldsetLegend>
         {gw.ikev1DpdEnabled && (
           <FieldsetContent>
-            <DisplayField label="Interval" value={String(gw.ikev1DpdInterval ?? 5)} />
-            <DisplayField label="Retry" value={String(gw.ikev1DpdRetry ?? 5)} />
+            <DisplayField label="Interval" value={String(gw.ikev1DpdInterval ?? 5)} labelWidth={LW} />
+            <DisplayField label="Retry" value={String(gw.ikev1DpdRetry ?? 5)} labelWidth={LW} />
           </FieldsetContent>
         )}
       </Fieldset>
@@ -253,7 +263,7 @@ function Ikev2GeneralSubTab({ gw }: { gw: PanwIkeGateway }) {
         </FieldsetLegend>
         {gw.ikev2Fragmentation && (
           <FieldsetContent>
-            <DisplayField label="MTU" value={String(gw.ikev2FragmentationSize ?? "—")} />
+            <DisplayField label="MTU" value={String(gw.ikev2FragmentationSize ?? "—")} labelWidth={LW} />
           </FieldsetContent>
         )}
       </Fieldset>
@@ -267,7 +277,7 @@ function Ikev2GeneralSubTab({ gw }: { gw: PanwIkeGateway }) {
         </FieldsetLegend>
         {gw.ikev2DpdEnabled && (
           <FieldsetContent>
-            <DisplayField label="Interval (sec)" value={String(gw.ikev2DpdInterval ?? 5)} />
+            <DisplayField label="Interval (sec)" value={String(gw.ikev2DpdInterval ?? 5)} labelWidth={LW} />
           </FieldsetContent>
         )}
       </Fieldset>
@@ -396,35 +406,42 @@ function AdvancedOptionsTab({ gw }: { gw: PanwIkeGateway }) {
         </FieldsetContent>
       </Fieldset>
 
-      <Tabs defaultValue={showIkev1 && !showIkev2 ? "ikev1" : showIkev1 ? "ikev1" : "ikev2-general"} className="flex-1 flex flex-col min-h-0">
+      {/* Top-level: IKEv1 / IKEv2 */}
+      <Tabs defaultValue={showIkev2 ? "ikev2" : "ikev1"} className="flex-1 flex flex-col min-h-0">
         <div className="shrink-0 border-b">
           <TabsList variant="line">
-            {showIkev1 && (
-              <TabsTrigger value="ikev1">IKEv1</TabsTrigger>
-            )}
-            {showIkev2 && (
-              <>
-                <TabsTrigger value="ikev2-general">IKEv2</TabsTrigger>
-                <TabsTrigger value="pq-ppk">PQ PPK</TabsTrigger>
-                <TabsTrigger value="pq-kem">PQ KEM</TabsTrigger>
-                <TabsTrigger value="pq-qkd">PQ QKD</TabsTrigger>
-              </>
-            )}
+            {showIkev1 && <TabsTrigger value="ikev1">IKEv1</TabsTrigger>}
+            {showIkev2 && <TabsTrigger value="ikev2">IKEv2</TabsTrigger>}
           </TabsList>
         </div>
-        <div className="pt-4">
-          {showIkev1 && (
-            <TabsContent value="ikev1"><Ikev1SubTab gw={gw} /></TabsContent>
-          )}
-          {showIkev2 && (
-            <>
-              <TabsContent value="ikev2-general"><Ikev2GeneralSubTab gw={gw} /></TabsContent>
-              <TabsContent value="pq-ppk"><PqPpkSubTab gw={gw} /></TabsContent>
-              <TabsContent value="pq-kem"><PqKemSubTab gw={gw} /></TabsContent>
-              <TabsContent value="pq-qkd"><PqQkdSubTab gw={gw} /></TabsContent>
-            </>
-          )}
-        </div>
+
+        {showIkev1 && (
+          <TabsContent value="ikev1" className="pt-4">
+            <Ikev1SubTab gw={gw} />
+          </TabsContent>
+        )}
+
+        {showIkev2 && (
+          <TabsContent value="ikev2" className="pt-4">
+            {/* Nested sub-tabs: General / PQ PPK / PQ KEM / PQ QKD */}
+            <Tabs defaultValue="general" className="flex-1 flex flex-col min-h-0">
+              <div className="shrink-0 border-b">
+                <TabsList variant="line">
+                  <TabsTrigger value="general">General</TabsTrigger>
+                  <TabsTrigger value="pq-ppk">PQ PPK</TabsTrigger>
+                  <TabsTrigger value="pq-kem">PQ KEM</TabsTrigger>
+                  <TabsTrigger value="pq-qkd">PQ QKD</TabsTrigger>
+                </TabsList>
+              </div>
+              <div className="pt-4">
+                <TabsContent value="general"><Ikev2GeneralSubTab gw={gw} /></TabsContent>
+                <TabsContent value="pq-ppk"><PqPpkSubTab gw={gw} /></TabsContent>
+                <TabsContent value="pq-kem"><PqKemSubTab gw={gw} /></TabsContent>
+                <TabsContent value="pq-qkd"><PqQkdSubTab gw={gw} /></TabsContent>
+              </div>
+            </Tabs>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )
@@ -444,7 +461,7 @@ export function IkeGatewayDialog({
   if (!gateway) return null
 
   return (
-    <DetailDialog title="IKE Gateway" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-[75vw]" height="h-[min(90vh,850px)]" noPadding>
+    <DetailDialog title="IKE Gateway" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-[75vw]" height="h-[min(94vh,875px)]" noPadding>
       <Tabs defaultValue="general" className="flex-1 flex flex-col min-h-0">
         <div className="shrink-0 border-b px-5">
           <TabsList variant="line">

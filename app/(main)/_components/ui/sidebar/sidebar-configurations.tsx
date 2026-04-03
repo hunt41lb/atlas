@@ -3,7 +3,7 @@
 "use client"
 
 import * as React from "react"
-import { ArchiveX, MoreHorizontal, Trash2 } from "lucide-react"
+import { ArchiveX, MoreHorizontal, Trash2, ChevronRight } from "lucide-react"
 
 import {
   AlertDialog,
@@ -33,6 +33,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
+
 import { useConfig } from "@/app/(main)/_context/config-context"
 import {
   archiveConfiguration,
@@ -119,73 +125,83 @@ export function SidebarConfigurations({
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Configurations</SidebarGroupLabel>
-        <SidebarMenu>
-          {loading ? (
-            <>
-              {[1, 2].map((i) => (
-                <SidebarMenuItem key={i}>
-                  <div className="flex items-center gap-2 px-2 py-1.5">
-                    <Skeleton className="size-4 rounded" />
-                    <Skeleton className="h-4 w-24 rounded" />
+        <Collapsible defaultOpen className="group/collapsible">
+          <SidebarGroupLabel>
+            Configurations
+            <CollapsibleTrigger className="ml-auto transition-transform group-aria-expanded/collapsible:rotate-90">
+              <ChevronRight className="size-4" />
+            </CollapsibleTrigger>
+          </SidebarGroupLabel>
+          <CollapsibleContent>
+            <SidebarMenu>
+              {loading ? (
+                <>
+                  {[1, 2].map((i) => (
+                    <SidebarMenuItem key={i}>
+                      <div className="flex text-xs items-center gap-2 px-2 py-1.5">
+                        <Skeleton className="size-4 rounded" />
+                        <Skeleton className="h-4 w-24 rounded" />
+                      </div>
+                    </SidebarMenuItem>
+                  ))}
+                </>
+              ) : projects.length === 0 ? (
+                <SidebarMenuItem>
+                  <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                    No configurations — upload one to get started.
                   </div>
                 </SidebarMenuItem>
-              ))}
-            </>
-          ) : projects.length === 0 ? (
-            <SidebarMenuItem>
-              <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                No configurations — upload one to get started.
-              </div>
-            </SidebarMenuItem>
-          ) : (
-            projects.map((item) => (
-              <SidebarMenuItem key={item.id}>
-                <SidebarMenuButton
-                  onClick={item.onClick}
-                  isActive={item.isActive}
-                  className="cursor-pointer"
-                >
-                  <item.icon />
-                  <span>{item.name}</span>
-                </SidebarMenuButton>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger render={<SidebarMenuAction showOnHover />}>
-                    <MoreHorizontal />
-                    <span className="sr-only">More</span>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-52"
-                    side={isMobile ? "bottom" : "right"}
-                    align={isMobile ? "end" : "start"}
-                  >
-                    <DropdownMenuItem
-                      onClick={() =>
-                        setPendingAction({ type: "archive", id: item.id, name: item.name })
-                      }
+              ) : (
+                projects.map((item) => (
+                  <SidebarMenuItem className="text-xs" key={item.id}>
+                    <SidebarMenuButton
+                      onClick={item.onClick}
+                      isActive={item.isActive}
+                      className="cursor-pointer"
+                      size="sm"
                     >
-                      <ArchiveX className="text-muted-foreground" />
-                      <span>Archive…</span>
-                    </DropdownMenuItem>
+                      <item.icon />
+                      <span>{item.name}</span>
+                    </SidebarMenuButton>
 
-                    <DropdownMenuSeparator />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger render={<SidebarMenuAction showOnHover />}>
+                        <MoreHorizontal />
+                        <span className="sr-only">More</span>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="w-52"
+                        side={isMobile ? "bottom" : "right"}
+                        align={isMobile ? "end" : "start"}
+                      >
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setPendingAction({ type: "archive", id: item.id, name: item.name })
+                          }
+                        >
+                          <ArchiveX className="text-muted-foreground" />
+                          <span>Archive…</span>
+                        </DropdownMenuItem>
 
-                    <DropdownMenuItem
-                      onClick={() =>
-                        setPendingAction({ type: "delete", id: item.id, name: item.name })
-                      }
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="text-destructive" />
-                      <span>Permanently Delete…</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-            ))
-          )}
-        </SidebarMenu>
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setPendingAction({ type: "delete", id: item.id, name: item.name })
+                          }
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="text-destructive" />
+                          <span>Permanently Delete…</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </SidebarMenuItem>
+                ))
+              )}
+            </SidebarMenu>
+          </CollapsibleContent>
+        </Collapsible>
       </SidebarGroup>
 
       {/* ── Archive Dialog ────────────────────────────────────────────────── */}

@@ -165,7 +165,7 @@ export function extractIkeGateways(
       // Authentication
       authenticationType,
       certificateProfile: str(certEl?.["certificate-profile"]) ?? null,
-      localCertificateName: str(localCertEl?.["n"]) ?? null,
+      localCertificateName: str(localCertEl?.["name"]) ?? null,
       hashAndUrlEnabled: yesNo(hashUrlEl?.["enable"]),
       hashAndUrlBaseUrl: str(hashUrlEl?.["base-url"]) ?? null,
       allowIdPayloadMismatch: yesNo(certEl?.["allow-id-payload-mismatch"]),
@@ -187,7 +187,11 @@ export function extractIkeGateways(
       ikev2CryptoProfile: str(ikev2El?.["ike-crypto-profile"]) ?? null,
       ikev2RequireCookie: yesNo(ikev2El?.["require-cookie"]),
       ikev2Fragmentation: yesNo(ikev2FragEl?.["enable"]),
-      ikev2FragmentationSize: ikev2FragEl?.["size"] !== undefined ? Number(ikev2FragEl["size"]) : null,
+      ikev2FragmentationSize: ikev2FragEl?.["size"] !== undefined
+        ? Number(ikev2FragEl["size"])
+        : yesNo(ikev2FragEl?.["enable"])
+          ? 576   // PAN-OS default when fragmentation enabled but no explicit size
+          : null,
       ikev2DpdEnabled: yesNo(ikev2DpdEl?.["enable"]),
       ikev2DpdInterval: ikev2DpdEl?.["interval"] !== undefined ? Number(ikev2DpdEl["interval"]) : null,
 
