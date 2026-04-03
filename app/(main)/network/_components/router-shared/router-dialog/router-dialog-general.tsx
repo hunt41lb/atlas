@@ -9,42 +9,46 @@ import {
   TabsTrigger,
   TabsContent
 } from "@/components/ui/tabs"
-import { Field, FieldLabel, FieldContent, FieldDescription } from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import {
-  LabeledValue,
-  FieldGroup
-} from "./field-display"
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from "@/components/ui/table"
+import { Field, FieldLabel, FieldContent, FieldDescription } from "@/components/ui/field"
+import { DisplayField } from "@/components/ui/display-field"
+import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
+import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import {
   DEFAULT_ADMIN_DISTANCES,
   DEFAULT_ECMP,
   ECMP_ALGORITHM_LABELS,
 } from "@/lib/panw-defaults"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 
 // ─── Interface Tab ────────────────────────────────────────────────────────────
 
 function InterfaceTab({ router }: { router: PanwVirtualRouter }) {
   return (
-    <div className="space-y-2">
-      <div className="rounded-md border">
-        <div className="bg-muted/50 border-b px-3 py-1.5">
-          <span className="text-xs font-medium uppercase tracking-wide">Interface</span>
-        </div>
-        <div className="divide-y">
-          {router.interfaces.length === 0 ? (
-            <div className="px-3 py-4 text-center text-xs text-muted-foreground">No interfaces assigned</div>
-          ) : (
-            router.interfaces.map((iface) => (
-              <div key={iface} className="px-3 py-1.5">
-                <MonoValue className="text-xs">{iface}</MonoValue>
-              </div>
-            ))
-          )}
-        </div>
+    <div className="rounded-lg border overflow-hidden">
+      <div className="bg-muted/50 border-b px-3 py-1.5">
+        <span className="text-xs font-medium uppercase tracking-wide">Interface</span>
+      </div>
+      <div className="divide-y">
+        {router.interfaces.length === 0 ? (
+          <div className="px-3 py-4 text-center text-xs text-muted-foreground">No interfaces assigned</div>
+        ) : (
+          router.interfaces.map((iface) => (
+            <div key={iface} className="px-3 py-1.5">
+              <MonoValue className="text-xs">{iface}</MonoValue>
+            </div>
+          ))
+        )}
       </div>
     </div>
   )
@@ -148,48 +152,55 @@ function EcmpTab({
           <span className="text-xs">Strict Source Path</span>
         </Label>
       </div>
-      <div className="border-t pt-2 space-y-0">
-        <LabeledValue label="Max Path" labelWidth="w-44" value={showDefaults ? d.maxPath : (ecmp.maxPath ?? 2)} />
-        <LabeledValue label="Load-Balancing Method" labelWidth="w-44" value={lbMethod} />
+
+      <div className="border-t pt-2 space-y-2">
+        <DisplayField label="Max Path" value={String(showDefaults ? d.maxPath : (ecmp.maxPath ?? 2))} />
+        <DisplayField label="Load-Balancing Method" value={lbMethod} />
       </div>
 
       {/* IP Hash sub-options */}
       {!showDefaults && ecmp.ipHash && (
-        <FieldGroup title="IP Hash Options">
-          <Label className="flex items-center gap-2 py-1">
-            <Checkbox checked={ecmp.ipHash.srcOnly} disabled />
-            <span className="text-xs">Source Only</span>
-          </Label>
-          <Label className="flex items-center gap-2 py-1">
-            <Checkbox checked={ecmp.ipHash.usePort} disabled />
-            <span className="text-xs">Use Port</span>
-          </Label>
-          <LabeledValue label="Hash Seed" value={ecmp.ipHash.hashSeed ?? "—"} />
-        </FieldGroup>
+        <Fieldset>
+          <FieldsetLegend>IP Hash Options</FieldsetLegend>
+          <FieldsetContent>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={ecmp.ipHash.srcOnly} disabled />
+              <span className="text-xs">Source Only</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={ecmp.ipHash.usePort} disabled />
+              <span className="text-xs">Use Port</span>
+            </Label>
+            <DisplayField label="Hash Seed" value={String(ecmp.ipHash.hashSeed ?? "—")} />
+          </FieldsetContent>
+        </Fieldset>
       )}
 
       {/* Weighted Round Robin interfaces */}
       {!showDefaults && ecmp.weightedInterfaces.length > 0 && (
-        <FieldGroup title="Weighted Round Robin">
-          <div className="rounded-md border">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b">
-                  <th className="px-3 py-1.5 text-left text-[11px] font-semibold text-muted-foreground">INTERFACE</th>
-                  <th className="px-3 py-1.5 text-left text-[11px] font-semibold text-muted-foreground">WEIGHT</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ecmp.weightedInterfaces.map((wi) => (
-                  <tr key={wi.name} className="border-b last:border-0">
-                    <td className="px-3 py-1.5 font-mono">{wi.name}</td>
-                    <td className="px-3 py-1.5 tabular-nums font-medium">{wi.weight ?? "—"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </FieldGroup>
+        <Fieldset>
+          <FieldsetLegend>Weighted Round Robin</FieldsetLegend>
+          <FieldsetContent>
+            <div className="rounded-lg border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-[11px]">INTERFACE</TableHead>
+                    <TableHead className="text-[11px]">WEIGHT</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {ecmp.weightedInterfaces.map((wi) => (
+                    <TableRow key={wi.name}>
+                      <TableCell className="text-xs font-mono">{wi.name}</TableCell>
+                      <TableCell className="text-xs tabular-nums font-medium">{wi.weight ?? "—"}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </FieldsetContent>
+        </Fieldset>
       )}
     </div>
   )
@@ -202,17 +213,23 @@ function RibFilterTab({ router }: { router: PanwVirtualRouter }) {
 
   return (
     <div className="grid grid-cols-2 gap-4 px-1">
-      <FieldGroup title="IPv4">
-      <LabeledValue label="BGP Route-Map"    value={rf?.ipv4.bgp ?? "None"} />
-      <LabeledValue label="OSPF Route-Map"   value={rf?.ipv4.ospf ?? "None"} />
-      <LabeledValue label="Static Route-Map" value={rf?.ipv4.static ?? "None"} />
-      <LabeledValue label="RIP Route-Map"    value={rf?.ipv4.rip ?? "None"} />
-    </FieldGroup>
-    <FieldGroup title="IPv6">
-      <LabeledValue label="BGP Route-Map"    value={rf?.ipv6.bgp ?? "None"} />
-      <LabeledValue label="OSPFv3 Route-Map" value={rf?.ipv6.ospfv3 ?? "None"} />
-      <LabeledValue label="Static Route-Map" value={rf?.ipv6.static ?? "None"} />
-    </FieldGroup>
+      <Fieldset className="h-full">
+        <FieldsetLegend>IPv4</FieldsetLegend>
+        <FieldsetContent>
+          <DisplayField label="BGP Route-Map" value={rf?.ipv4.bgp ?? "None"} />
+          <DisplayField label="OSPF Route-Map" value={rf?.ipv4.ospf ?? "None"} />
+          <DisplayField label="Static Route-Map" value={rf?.ipv4.static ?? "None"} />
+          <DisplayField label="RIP Route-Map" value={rf?.ipv4.rip ?? "None"} />
+        </FieldsetContent>
+      </Fieldset>
+      <Fieldset className="h-full">
+        <FieldsetLegend>IPv6</FieldsetLegend>
+        <FieldsetContent>
+          <DisplayField label="BGP Route-Map" value={rf?.ipv6.bgp ?? "None"} />
+          <DisplayField label="OSPFv3 Route-Map" value={rf?.ipv6.ospfv3 ?? "None"} />
+          <DisplayField label="Static Route-Map" value={rf?.ipv6.static ?? "None"} />
+        </FieldsetContent>
+      </Fieldset>
     </div>
   )
 }
@@ -229,8 +246,8 @@ export function GeneralPage({ router, showDefaults }: RouterDialogPageProps) {
     <div className="flex h-full flex-col min-h-0">
       {/* Name field */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b">
-        <span className="text-xs text-muted-foreground shrink-0">Name</span>
-        <span className="text-sm font-medium">{router.name}</span>
+        <span className="text-sm font-medium text-foreground shrink-0">Name</span>
+        <span className="text-sm">{router.name}</span>
       </div>
 
       {/* Tabs */}

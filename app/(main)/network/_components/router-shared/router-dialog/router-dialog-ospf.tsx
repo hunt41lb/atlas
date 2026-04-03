@@ -18,15 +18,11 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
+import { DetailDialog } from "@/components/ui/detail-dialog"
+import { DisplayField } from "@/components/ui/display-field"
+import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
 import { Label } from "@/components/ui/label"
-
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import {
-  FieldGroup,
-  LabeledValue,
-  HeaderField,
-  DetailDialog,
-} from "./field-display"
 import type { RouterDialogPageProps } from "./router-dialog-general"
 import type { PanwOspfArea } from "@/lib/panw-parser/types"
 
@@ -49,7 +45,7 @@ function AreaDetailDialog({
 
   return (
     <DetailDialog title={`${protocol} - Area`} open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-4xl">
-      <HeaderField label="Area ID" value={area.id} />
+      <DisplayField label="Area ID" value={area.id} />
 
       <Tabs defaultValue="type" className="flex-1 flex flex-col min-h-0">
         <div className="shrink-0 border-b">
@@ -64,14 +60,17 @@ function AreaDetailDialog({
         <div className="flex-1 overflow-y-auto pt-3">
           <TabsContent value="type">
             <div className="space-y-3">
-              <LabeledValue label="Authentication" value={areaRef?.authProfile ?? "None"} />
-              <LabeledValue label="Type" value={area.type ?? "Normal"} />
-              <FieldGroup title="ABR">
-                <LabeledValue label="Import-list" value={areaRef?.abrImportList ?? "None"} />
-                <LabeledValue label="Export-list" value={areaRef?.abrExportList ?? "None"} />
-                <LabeledValue label="Inbound Filter List" value={areaRef?.abrInboundFilterList ?? "None"} />
-                <LabeledValue label="Outbound Filter List" value={areaRef?.abrOutboundFilterList ?? "None"} />
-              </FieldGroup>
+              <DisplayField label="Authentication" value={areaRef?.authProfile ?? "None"} />
+              <DisplayField label="Type" value={area.type ?? "Normal"} />
+              <Fieldset>
+                <FieldsetLegend>ABR</FieldsetLegend>
+                <FieldsetContent>
+                  <DisplayField label="Import-list" value={areaRef?.abrImportList ?? "None"} />
+                  <DisplayField label="Export-list" value={areaRef?.abrExportList ?? "None"} />
+                  <DisplayField label="Inbound Filter List" value={areaRef?.abrInboundFilterList ?? "None"} />
+                  <DisplayField label="Outbound Filter List" value={areaRef?.abrOutboundFilterList ?? "None"} />
+                </FieldsetContent>
+              </Fieldset>
             </div>
           </TabsContent>
 
@@ -79,7 +78,7 @@ function AreaDetailDialog({
             {(area.ranges ?? []).length === 0 ? (
               <p className="py-4 text-xs text-muted-foreground text-center">No range entries configured.</p>
             ) : (
-              <div className="rounded-md border">
+              <div className="rounded-lg border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -93,7 +92,7 @@ function AreaDetailDialog({
                       <TableRow key={r.prefix}>
                         <TableCell><MonoValue className="text-xs">{r.prefix}</MonoValue></TableCell>
                         <TableCell><span className="text-xs">{r.substitute ?? "—"}</span></TableCell>
-                        <TableCell>{r.advertise ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                        <TableCell><Checkbox checked={r.advertise} disabled /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -103,7 +102,7 @@ function AreaDetailDialog({
           </TabsContent>
 
           <TabsContent value="interface">
-            <div className="rounded-md border">
+            <div className="rounded-lg border overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -127,15 +126,15 @@ function AreaDetailDialog({
                   ) : area.interfaces.map((iface) => (
                     <TableRow key={iface.name}>
                       <TableCell><MonoValue className="text-xs">{iface.name}</MonoValue></TableCell>
-                      <TableCell>{iface.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                      <TableCell>{iface.passive ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                      <TableCell><Checkbox checked={iface.enabled} disabled /></TableCell>
+                      <TableCell><Checkbox checked={iface.passive} disabled /></TableCell>
                       <TableCell><span className="text-xs">{iface.linkType ?? "—"}</span></TableCell>
                       <TableCell><span className="tabular-nums text-xs">{iface.metric ?? "—"}</span></TableCell>
                       <TableCell><span className="tabular-nums text-xs">{iface.priority ?? "—"}</span></TableCell>
                       <TableCell><span className="text-xs">{iface.authProfile ?? "—"}</span></TableCell>
                       <TableCell><span className="text-xs">{iface.timingProfile ?? "—"}</span></TableCell>
                       <TableCell><span className="text-xs">{iface.bfdProfile ?? "—"}</span></TableCell>
-                      <TableCell>{iface.mtuIgnore ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                      <TableCell><Checkbox checked={iface.mtuIgnore} disabled /></TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -147,7 +146,7 @@ function AreaDetailDialog({
             {(area.virtualLinks ?? []).length === 0 ? (
               <p className="py-4 text-xs text-muted-foreground text-center">No virtual links configured.</p>
             ) : (
-              <div className="rounded-md border">
+              <div className="rounded-lg border overflow-hidden">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -163,7 +162,7 @@ function AreaDetailDialog({
                     {area.virtualLinks.map((vl) => (
                       <TableRow key={vl.name}>
                         <TableCell><span className="text-xs font-medium">{vl.name}</span></TableCell>
-                        <TableCell>{vl.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                        <TableCell><Checkbox checked={vl.enabled} disabled /></TableCell>
                         <TableCell><MonoValue className="text-xs">{vl.neighborId ?? "—"}</MonoValue></TableCell>
                         <TableCell><MonoValue className="text-xs">{vl.transitAreaId ?? "—"}</MonoValue></TableCell>
                         <TableCell><span className="text-xs">{vl.authProfile ?? "—"}</span></TableCell>
@@ -194,16 +193,14 @@ function AreaTab({
 }) {
   const [selectedArea, setSelectedArea] = React.useState<PanwOspfArea | null>(null)
 
-  // Match area refs by ID
   const getRef = (areaId: string) => areaRefs.find(r => r.id === areaId) ?? null
 
-  // Get first interface name for display
   const firstInterface = (area: PanwOspfArea) =>
     area.interfaces?.[0]?.name ?? "—"
 
   return (
     <>
-      <div className="rounded-md border">
+      <div className="rounded-lg border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -263,22 +260,28 @@ function AdvancedTab({ router, protocol }: { router: RouterDialogPageProps["rout
 
   return (
     <div className="grid grid-cols-2 gap-6">
-      <FieldGroup title="Graceful Restart">
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={gr?.enabled ?? false} disabled />
-          <span className="text-xs">Enable Graceful Restart</span>
-        </Label>
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={gr?.helperEnabled ?? false} disabled />
-          <span className="text-xs">Enable Helper Mode</span>
-        </Label>
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={gr?.strictLsaChecking ?? false} disabled />
-          <span className="text-xs">Enable Strict LSA Checking</span>
-        </Label>
-        <LabeledValue label="Grace Period (sec)" value={gr?.gracePeriod ?? "—"} labelWidth="w-50" />
-        <LabeledValue label="Max Neighbor Restart Time (sec)" value={gr?.maxNeighborRestartTime ?? "—"} labelWidth="w-50" />
-      </FieldGroup>
+      <Fieldset disabled={!gr?.enabled} className="h-full">
+        <FieldsetLegend>
+          <Label className="flex items-center gap-2">
+            <Checkbox checked={gr?.enabled ?? false} disabled />
+            Graceful Restart
+          </Label>
+        </FieldsetLegend>
+        {gr?.enabled && (
+          <FieldsetContent>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={gr?.helperEnabled ?? false} disabled />
+              <span className="text-xs">Enable Helper Mode</span>
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={gr?.strictLsaChecking ?? false} disabled />
+              <span className="text-xs">Enable Strict LSA Checking</span>
+            </Label>
+            <DisplayField label="Grace Period (sec)" value={String(gr?.gracePeriod ?? "—")} />
+            <DisplayField label="Max Neighbor Restart Time (sec)" value={String(gr?.maxNeighborRestartTime ?? "—")} />
+          </FieldsetContent>
+        )}
+      </Fieldset>
       <div>
         {protocol === "ospf" && (
           <Label className="flex items-center gap-2 py-1">
@@ -321,21 +324,21 @@ function OspfPageInner({
 
   return (
     <div className="flex h-full flex-col min-h-0">
-      {/* Header fields — matching PAN-OS layout */}
+      {/* Header fields */}
       <div className="shrink-0 border-b px-4 py-3">
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 pl-38">
+            <Label className="flex items-center gap-2 py-1">
               <Checkbox checked={refs?.enabled ?? cfg?.enabled ?? false} disabled />
               <span className="text-xs">Enable</span>
-            </div>
-            <HeaderField label="Router ID" value={refs?.routerId ?? cfg?.routerId ?? "None"} />
-            <HeaderField label="BFD Profile" value={refs?.globalBfdProfile ?? cfg?.globalBfdProfile ?? "None"} />
+            </Label>
+            <DisplayField label="Router ID" value={refs?.routerId ?? cfg?.routerId ?? "None"} />
+            <DisplayField label="BFD Profile" value={refs?.globalBfdProfile ?? cfg?.globalBfdProfile ?? "None"} />
           </div>
           <div className="space-y-2">
-            <HeaderField label="Global General Timer" value={refs?.spfTimerName ?? "None"} />
-            <HeaderField label="Global Interface Timer" value={refs?.globalIfTimerName ?? "None"} />
-            <HeaderField label="Redistribution Profile" value={refs?.redistProfileName ?? "None"} />
+            <DisplayField label="Global General Timer" value={refs?.spfTimerName ?? "None"} />
+            <DisplayField label="Global Interface Timer" value={refs?.globalIfTimerName ?? "None"} />
+            <DisplayField label="Redistribution Profile" value={refs?.redistProfileName ?? "None"} />
           </div>
         </div>
       </div>

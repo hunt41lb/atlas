@@ -9,8 +9,6 @@ import {
   TabsTrigger,
   TabsContent
 } from "@/components/ui/tabs"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
 import {
   Table,
   TableHeader,
@@ -19,21 +17,20 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-
-import type {
-  PanwLrBgpPeerGroup,
-  PanwLrBgpAggregateRoute
-} from "@/lib/panw-parser/types"
-import {
-  FieldGroup,
-  LabeledValue,
-  HeaderField,
-  Dash,
-  DetailDialog
-} from "./field-display"
+import { Checkbox } from "@/components/ui/checkbox"
+import { DetailDialog } from "@/components/ui/detail-dialog"
+import { DisplayField } from "@/components/ui/display-field"
+import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
+import type { PanwLrBgpPeerGroup, PanwLrBgpAggregateRoute } from "@/lib/panw-parser/types"
 import type { RouterDialogPageProps } from "./router-dialog-general"
+
+// ─── Shared label width ───────────────────────────────────────────────────────
+
+const LW = "w-50"
+const GLW = "w-35"
 
 // ─── General Tab ──────────────────────────────────────────────────────────────
 
@@ -52,65 +49,77 @@ function GeneralTab({ router }: { router: RouterDialogPageProps["router"] }) {
             <Checkbox checked={refs?.enabled ?? cfg?.enabled ?? false} disabled />
             <span className="text-xs">Enable</span>
           </Label>
-          <HeaderField label="Router ID" value={refs?.routerId ?? cfg?.routerId ?? "None"} />
-          <HeaderField label="Local AS" value={refs?.localAs ?? cfg?.localAs ?? "None"} />
-          <HeaderField label="Global BFD Profile" value={refs?.globalBfdProfile ?? (cfg as { globalBfdProfile?: string | null })?.globalBfdProfile ?? "None"} />
+          <DisplayField label="Router ID" value={refs?.routerId ?? cfg?.routerId ?? "None"} labelWidth={GLW} />
+          <DisplayField label="Local AS" value={refs?.localAs ?? cfg?.localAs ?? "None"} labelWidth={GLW} />
+          <DisplayField label="Global BFD Profile" value={refs?.globalBfdProfile ?? (cfg as { globalBfdProfile?: string | null })?.globalBfdProfile ?? "None"} labelWidth={GLW} />
         </div>
       </div>
 
       {/* Options */}
-      <FieldGroup title="Options">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-1">
-          <div className="space-y-1">
-            <Label className="flex items-center gap-2 py-1">
-              <Checkbox checked={(cfg as { installRoute?: boolean })?.installRoute ?? false} disabled />
-              <span className="text-xs">Install Route</span>
-            </Label>
-            <Label className="flex items-center gap-2 py-1">
-              <Checkbox checked={(cfg as { fastExternalFailover?: boolean })?.fastExternalFailover ?? false} disabled />
-              <span className="text-xs">Fast Failover</span>
-            </Label>
-            <Label className="flex items-center gap-2 py-1">
-              <Checkbox checked={(cfg as { gracefulShutdown?: boolean })?.gracefulShutdown ?? false} disabled />
-              <span className="text-xs">Graceful Shutdown</span>
-            </Label>
+      <Fieldset>
+        <FieldsetLegend>Options</FieldsetLegend>
+        <FieldsetContent>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+            <div className="space-y-1">
+              <Label className="flex items-center gap-2 py-1">
+                <Checkbox checked={(cfg as { installRoute?: boolean })?.installRoute ?? false} disabled />
+                <span className="text-xs">Install Route</span>
+              </Label>
+              <Label className="flex items-center gap-2 py-1">
+                <Checkbox checked={(cfg as { fastExternalFailover?: boolean })?.fastExternalFailover ?? false} disabled />
+                <span className="text-xs">Fast Failover</span>
+              </Label>
+              <Label className="flex items-center gap-2 py-1">
+                <Checkbox checked={(cfg as { gracefulShutdown?: boolean })?.gracefulShutdown ?? false} disabled />
+                <span className="text-xs">Graceful Shutdown</span>
+              </Label>
+            </div>
+            <div className="space-y-1">
+              <Label className="flex items-center gap-2 py-1">
+                <Checkbox checked={(cfg as { ecmpMultiAs?: boolean })?.ecmpMultiAs ?? false} disabled />
+                <span className="text-xs">ECMP Multiple AS Support</span>
+              </Label>
+              <Label className="flex items-center gap-2 py-1">
+                <Checkbox checked={(cfg as { enforceFirstAs?: boolean })?.enforceFirstAs ?? false} disabled />
+                <span className="text-xs">Enforce First AS</span>
+              </Label>
+              <DisplayField label="Default Local Preference" value={String((cfg as { defaultLocalPreference?: number | null })?.defaultLocalPreference ?? "—")} />
+            </div>
           </div>
-          <div className="space-y-1">
-            <Label className="flex items-center gap-2 py-1">
-              <Checkbox checked={(cfg as { ecmpMultiAs?: boolean })?.ecmpMultiAs ?? false} disabled />
-              <span className="text-xs">ECMP Multiple AS Support</span>
-            </Label>
-            <Label className="flex items-center gap-2 py-1">
-              <Checkbox checked={(cfg as { enforceFirstAs?: boolean })?.enforceFirstAs ?? false} disabled />
-              <span className="text-xs">Enforce First AS</span>
-            </Label>
-            <LabeledValue label="Default Local Preference" value={(cfg as { defaultLocalPreference?: number | null })?.defaultLocalPreference ?? "—"} />
-          </div>
-        </div>
-      </FieldGroup>
+        </FieldsetContent>
+      </Fieldset>
 
       {/* Graceful Restart */}
-      <FieldGroup title="Graceful Restart">
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={gr?.enabled ?? false} disabled />
-          <span className="text-xs">Enable</span>
-        </Label>
-        <LabeledValue label="Stale Route Time (sec)" value={gr?.staleRouteTime ?? "—"} />
-        <LabeledValue label="Max Peer Restart Time (sec)" value={gr?.maxPeerRestartTime ?? "—"} />
-        <LabeledValue label="Local Restart Time" value={gr?.localRestartTime ?? "—"} />
-      </FieldGroup>
+      <Fieldset disabled={!gr?.enabled}>
+        <FieldsetLegend>
+          <Label className="flex items-center gap-2">
+            <Checkbox checked={gr?.enabled ?? false} disabled />
+            Graceful Restart
+          </Label>
+        </FieldsetLegend>
+        {gr?.enabled && (
+          <FieldsetContent>
+            <DisplayField label="Stale Route Time (sec)" value={String(gr?.staleRouteTime ?? "—")} labelWidth={LW} />
+            <DisplayField label="Max Peer Restart Time (sec)" value={String(gr?.maxPeerRestartTime ?? "—")} labelWidth={LW} />
+            <DisplayField label="Local Restart Time" value={String(gr?.localRestartTime ?? "—")} labelWidth={LW} />
+          </FieldsetContent>
+        )}
+      </Fieldset>
 
       {/* Path Selection */}
-      <FieldGroup title="Path Selection">
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={(cfg as { alwaysCompareMed?: boolean })?.alwaysCompareMed ?? false} disabled />
-          <span className="text-xs">Always Compare MED</span>
-        </Label>
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={(cfg as { deterministicMedComparison?: boolean })?.deterministicMedComparison ?? false} disabled />
-          <span className="text-xs">Deterministic MED Comparison</span>
-        </Label>
-      </FieldGroup>
+      <Fieldset>
+        <FieldsetLegend>Path Selection</FieldsetLegend>
+        <FieldsetContent>
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={(cfg as { alwaysCompareMed?: boolean })?.alwaysCompareMed ?? false} disabled />
+            <span className="text-xs">Always Compare MED</span>
+          </Label>
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={(cfg as { deterministicMedComparison?: boolean })?.deterministicMedComparison ?? false} disabled />
+            <span className="text-xs">Deterministic MED Comparison</span>
+          </Label>
+        </FieldsetContent>
+      </Fieldset>
     </div>
   )
 }
@@ -131,27 +140,33 @@ function PeerGroupDetailDialog({
   return (
     <DetailDialog title="BGP - Peer Group" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-4xl">
       <div className="grid grid-cols-2 gap-4">
-        <FieldGroup title="Peer Group">
-          <LabeledValue label="Name" value={pg.name} />
-          <Label className="flex items-center gap-2 py-1">
-            <Checkbox checked={pg.enabled} disabled />
-            <span className="text-xs">Enable</span>
-          </Label>
-          <LabeledValue label="Type" value={pg.type ?? "—"} />
-          <LabeledValue label="IPv4 Address Family" value={pg.addressFamily.ipv4 ?? "None"} />
-          <LabeledValue label="IPv6 Address Family" value={pg.addressFamily.ipv6 ?? "None"} />
-          <LabeledValue label="IPv4 Filtering Profile" value={pg.filteringProfile.ipv4 ?? "None"} />
-          <LabeledValue label="IPv6 Filtering Profile" value={pg.filteringProfile.ipv6 ?? "None"} />
-        </FieldGroup>
-        <FieldGroup title="Connection Options">
-          <LabeledValue label="Auth Profile" value={pg.connectionOptions.auth ?? "None"} />
-          <LabeledValue label="Timer Profile" value={pg.connectionOptions.timers ?? "None"} />
-          <LabeledValue label="Multi Hop" value={pg.connectionOptions.multihop ?? "None"} />
-          <LabeledValue label="Dampening Profile" value={pg.connectionOptions.dampening ?? "None"} />
-        </FieldGroup>
+        <Fieldset className="h-full">
+          <FieldsetLegend>Peer Group</FieldsetLegend>
+          <FieldsetContent>
+            <DisplayField label="Name" value={pg.name} />
+            <Label className="flex items-center gap-2 py-1">
+              <Checkbox checked={pg.enabled} disabled />
+              <span className="text-xs">Enable</span>
+            </Label>
+            <DisplayField label="Type" value={pg.type ?? "—"} />
+            <DisplayField label="IPv4 Address Family" value={pg.addressFamily.ipv4 ?? "None"} />
+            <DisplayField label="IPv6 Address Family" value={pg.addressFamily.ipv6 ?? "None"} />
+            <DisplayField label="IPv4 Filtering Profile" value={pg.filteringProfile.ipv4 ?? "None"} />
+            <DisplayField label="IPv6 Filtering Profile" value={pg.filteringProfile.ipv6 ?? "None"} />
+          </FieldsetContent>
+        </Fieldset>
+        <Fieldset className="h-full">
+          <FieldsetLegend>Connection Options</FieldsetLegend>
+          <FieldsetContent>
+            <DisplayField label="Auth Profile" value={pg.connectionOptions.auth ?? "None"} />
+            <DisplayField label="Timer Profile" value={pg.connectionOptions.timers ?? "None"} />
+            <DisplayField label="Multi Hop" value={pg.connectionOptions.multihop ?? "None"} />
+            <DisplayField label="Dampening Profile" value={pg.connectionOptions.dampening ?? "None"} />
+          </FieldsetContent>
+        </Fieldset>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-lg border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -173,13 +188,13 @@ function PeerGroupDetailDialog({
             ) : pg.peers.map((peer) => (
               <TableRow key={peer.name}>
                 <TableCell><span className="text-xs font-medium">{peer.name}</span></TableCell>
-                <TableCell>{peer.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                <TableCell><span className="text-xs">{peer.peerAs ?? <Dash />}</span></TableCell>
+                <TableCell><Checkbox checked={peer.enabled} disabled /></TableCell>
+                <TableCell><span className="text-xs">{peer.peerAs ?? "—"}</span></TableCell>
                 <TableCell><span className="text-xs">{peer.inherit ? "yes" : "no"}</span></TableCell>
                 <TableCell><MonoValue className="text-xs">{peer.localAddress ?? "—"}</MonoValue></TableCell>
                 <TableCell><MonoValue className="text-xs">{peer.peerAddress ?? "—"}</MonoValue></TableCell>
-                <TableCell>{peer.passive ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                <TableCell>{peer.senderSideLoopDetection ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                <TableCell><Checkbox checked={peer.passive} disabled /></TableCell>
+                <TableCell><Checkbox checked={peer.senderSideLoopDetection} disabled /></TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -197,7 +212,6 @@ function PeerGroupTab({ router }: { router: RouterDialogPageProps["router"] }) {
 
   const peerGroups = refs?.peerGroups ?? []
 
-  // Count enabled peers
   const peerSummary = (pg: PanwLrBgpPeerGroup) => {
     const enabled = pg.peers.filter(p => p.enabled).length
     return `${enabled} enabled/ ${pg.peers.length}`
@@ -205,22 +219,22 @@ function PeerGroupTab({ router }: { router: RouterDialogPageProps["router"] }) {
 
   return (
     <>
-      <div className="rounded-md border">
+      <div className="rounded-lg border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="text-[11px]">NAME</TableHead>
               <TableHead className="text-[11px]">ENABLE</TableHead>
               <TableHead className="text-[11px]">TYPE</TableHead>
-              <TableHead className="text-[11px]">IPV4 ADDRESS FAMILY</TableHead>
-              <TableHead className="text-[11px]">IPV6 ADDRESS FAMILY</TableHead>
-              <TableHead className="text-[11px]">IPV4 FILTERING PROFILE</TableHead>
-              <TableHead className="text-[11px]">IPV6 FILTERING PROFILE</TableHead>
-              <TableHead className="text-[11px]">AUTH PROFILE</TableHead>
-              <TableHead className="text-[11px]">TIMER PROFILE</TableHead>
+              <TableHead className="text-[11px]">IPV4 AF</TableHead>
+              <TableHead className="text-[11px]">IPV6 AF</TableHead>
+              <TableHead className="text-[11px]">IPV4 FILTER</TableHead>
+              <TableHead className="text-[11px]">IPV6 FILTER</TableHead>
+              <TableHead className="text-[11px]">AUTH</TableHead>
+              <TableHead className="text-[11px]">TIMERS</TableHead>
               <TableHead className="text-[11px]">MULTI HOP</TableHead>
-              <TableHead className="text-[11px]">DAMPENING PROFILE</TableHead>
-              <TableHead className="text-[11px]">PEER</TableHead>
+              <TableHead className="text-[11px]">DAMPENING</TableHead>
+              <TableHead className="text-[11px]">PEERS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -235,16 +249,16 @@ function PeerGroupTab({ router }: { router: RouterDialogPageProps["router"] }) {
                 onClick={() => setSelectedPg(pg)}
               >
                 <TableCell><span className="text-xs font-medium">{pg.name}</span></TableCell>
-                <TableCell>{pg.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                <TableCell><span className="text-xs">{pg.type ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs truncate max-w-24 block">{pg.addressFamily.ipv4 ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs truncate max-w-24 block">{pg.addressFamily.ipv6 ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs truncate max-w-24 block">{pg.filteringProfile.ipv4 ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs truncate max-w-24 block">{pg.filteringProfile.ipv6 ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs truncate max-w-20 block">{pg.connectionOptions.auth ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs truncate max-w-20 block">{pg.connectionOptions.timers ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs">{pg.connectionOptions.multihop ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs truncate max-w-24 block">{pg.connectionOptions.dampening ?? <Dash />}</span></TableCell>
+                <TableCell><Checkbox checked={pg.enabled} disabled /></TableCell>
+                <TableCell><span className="text-xs">{pg.type ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs truncate max-w-24 block">{pg.addressFamily.ipv4 ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs truncate max-w-24 block">{pg.addressFamily.ipv6 ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs truncate max-w-24 block">{pg.filteringProfile.ipv4 ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs truncate max-w-24 block">{pg.filteringProfile.ipv6 ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs truncate max-w-20 block">{pg.connectionOptions.auth ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs truncate max-w-20 block">{pg.connectionOptions.timers ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs">{pg.connectionOptions.multihop ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs truncate max-w-24 block">{pg.connectionOptions.dampening ?? "—"}</span></TableCell>
                 <TableCell><span className="text-xs">{peerSummary(pg)}</span></TableCell>
               </TableRow>
             ))}
@@ -285,59 +299,59 @@ function NetworkTab({ router }: { router: RouterDialogPageProps["router"] }) {
         </div>
 
         <div className="flex-1 overflow-y-auto pt-3">
-        <TabsContent value="ipv4">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[11px]">NETWORK</TableHead>
-                  <TableHead className="text-[11px]">UNICAST</TableHead>
-                  <TableHead className="text-[11px]">MULTICAST</TableHead>
-                  <TableHead className="text-[11px]">BACKDOOR</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ipv4.length === 0 ? (
+          <TabsContent value="ipv4">
+            <div className="rounded-lg border overflow-hidden">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={4} className="py-6 text-center text-xs text-muted-foreground">No IPv4 networks configured.</TableCell>
+                    <TableHead className="text-[11px]">NETWORK</TableHead>
+                    <TableHead className="text-[11px]">UNICAST</TableHead>
+                    <TableHead className="text-[11px]">MULTICAST</TableHead>
+                    <TableHead className="text-[11px]">BACKDOOR</TableHead>
                   </TableRow>
-                ) : ipv4.map((n) => (
-                  <TableRow key={n.network}>
-                    <TableCell><MonoValue className="text-xs">{n.network}</MonoValue></TableCell>
-                    <TableCell>{n.unicast ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                    <TableCell>{n.multicast ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                    <TableCell>{n.backdoor ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
+                </TableHeader>
+                <TableBody>
+                  {ipv4.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="py-6 text-center text-xs text-muted-foreground">No IPv4 networks configured.</TableCell>
+                    </TableRow>
+                  ) : ipv4.map((n) => (
+                    <TableRow key={n.network}>
+                      <TableCell><MonoValue className="text-xs">{n.network}</MonoValue></TableCell>
+                      <TableCell><Checkbox checked={n.unicast} disabled /></TableCell>
+                      <TableCell><Checkbox checked={n.multicast} disabled /></TableCell>
+                      <TableCell><Checkbox checked={n.backdoor} disabled /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
 
-        <TabsContent value="ipv6">
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-[11px]">NETWORK</TableHead>
-                  <TableHead className="text-[11px]">UNICAST</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ipv6.length === 0 ? (
+          <TabsContent value="ipv6">
+            <div className="rounded-lg border overflow-hidden">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={2} className="py-6 text-center text-xs text-muted-foreground">No IPv6 networks configured.</TableCell>
+                    <TableHead className="text-[11px]">NETWORK</TableHead>
+                    <TableHead className="text-[11px]">UNICAST</TableHead>
                   </TableRow>
-                ) : ipv6.map((n) => (
-                  <TableRow key={n.network}>
-                    <TableCell><MonoValue className="text-xs">{n.network}</MonoValue></TableCell>
-                    <TableCell>{n.unicast ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
+                </TableHeader>
+                <TableBody>
+                  {ipv6.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={2} className="py-6 text-center text-xs text-muted-foreground">No IPv6 networks configured.</TableCell>
+                    </TableRow>
+                  ) : ipv6.map((n) => (
+                    <TableRow key={n.network}>
+                      <TableCell><MonoValue className="text-xs">{n.network}</MonoValue></TableCell>
+                      <TableCell><Checkbox checked={n.unicast} disabled /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
         </div>
       </Tabs>
     </div>
@@ -351,15 +365,15 @@ function RedistributionTab({ router }: { router: RouterDialogPageProps["router"]
 
   return (
     <div className="space-y-3 px-1">
-      <div className="flex items-center gap-4">
-        <span className="text-xs text-muted-foreground w-44 text-right">IPv4 Redistribution Profile</span>
-        <span className="text-xs">Unicast</span>
-        <Input readOnly value={refs?.redistProfile.ipv4Unicast ?? "None"} className="h-7 flex-1 text-xs" />
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-foreground shrink-0 w-50">IPv4 Redistribution Profile</span>
+        <span className="text-xs shrink-0">Unicast</span>
+        <Input readOnly value={refs?.redistProfile.ipv4Unicast ?? "None"} size="sm" className="w-full" />
       </div>
-      <div className="flex items-center gap-4">
-        <span className="text-xs text-muted-foreground w-44 text-right">IPv6 Redistribution Profile</span>
-        <span className="text-xs">Unicast</span>
-        <Input readOnly value={refs?.redistProfile.ipv6Unicast ?? "None"} className="h-7 flex-1 text-xs" />
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium text-foreground shrink-0 w-50">IPv6 Redistribution Profile</span>
+        <span className="text-xs shrink-0">Unicast</span>
+        <Input readOnly value={refs?.redistProfile.ipv6Unicast ?? "None"} size="sm" className="w-full" />
       </div>
     </div>
   )
@@ -380,36 +394,35 @@ function AggregateRouteDetailDialog({
 
   return (
     <DetailDialog title="BGP - Aggregate Routes" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-2xl">
-      <HeaderField label="Name" value={ar.name} />
-      <HeaderField label="Description" value={ar.description ?? ""} />
+      <DisplayField label="Name" value={ar.name} />
+      <DisplayField label="Description" value={ar.description ?? ""} className={!ar.description ? "opacity-50" : ""} />
 
-      <div className="space-y-1 pl-46">
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={ar.enabled} disabled />
-          <span className="text-xs">Enable</span>
-        </Label>
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={ar.summaryOnly} disabled />
-          <span className="text-xs">Summary Only</span>
-        </Label>
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={ar.asSet} disabled />
-          <span className="text-xs">AS Set</span>
-        </Label>
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked={ar.sameMed} disabled />
-          <span className="text-xs">Aggregate Same MED Only</span>
-        </Label>
-      </div>
+      <Fieldset>
+        <FieldsetLegend>Options</FieldsetLegend>
+        <FieldsetContent>
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={ar.enabled} disabled />
+            <span className="text-xs">Enable</span>
+          </Label>
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={ar.summaryOnly} disabled />
+            <span className="text-xs">Summary Only</span>
+          </Label>
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={ar.asSet} disabled />
+            <span className="text-xs">AS Set</span>
+          </Label>
+          <Label className="flex items-center gap-2 py-1">
+            <Checkbox checked={ar.sameMed} disabled />
+            <span className="text-xs">Aggregate Same MED Only</span>
+          </Label>
+          <DisplayField label="Type" value={ar.type === "ipv4" ? "IPv4" : ar.type === "ipv6" ? "IPv6" : "—"} />
+        </FieldsetContent>
+      </Fieldset>
 
-      <div className="flex items-center gap-4 pl-46">
-        <span className="text-xs text-muted-foreground">Type</span>
-        <span className="text-xs font-medium">{ar.type === "ipv4" ? "IPv4" : ar.type === "ipv6" ? "IPv6" : "—"}</span>
-      </div>
-
-      <HeaderField label="Summary Prefix" value={ar.summaryPrefix ?? "None"} />
-      <HeaderField label="Suppress Map" value={ar.suppressMap ?? "None"} />
-      <HeaderField label="Attribute Map" value={ar.attributeMap ?? "None"} />
+      <DisplayField label="Summary Prefix" value={ar.summaryPrefix ?? "None"} />
+      <DisplayField label="Suppress Map" value={ar.suppressMap ?? "None"} />
+      <DisplayField label="Attribute Map" value={ar.attributeMap ?? "None"} />
     </DetailDialog>
   )
 }
@@ -424,7 +437,7 @@ function AggregateRouteTab({ router }: { router: RouterDialogPageProps["router"]
 
   return (
     <>
-      <div className="rounded-md border">
+      <div className="rounded-lg border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -434,7 +447,7 @@ function AggregateRouteTab({ router }: { router: RouterDialogPageProps["router"]
               <TableHead className="text-[11px]">ATTRIBUTE MAP</TableHead>
               <TableHead className="text-[11px]">AS SET</TableHead>
               <TableHead className="text-[11px]">SUMMARY ONLY</TableHead>
-              <TableHead className="text-[11px]">AGGREGATE SAME MED</TableHead>
+              <TableHead className="text-[11px]">SAME MED</TableHead>
               <TableHead className="text-[11px]">ENABLE</TableHead>
             </TableRow>
           </TableHeader>
@@ -450,13 +463,13 @@ function AggregateRouteTab({ router }: { router: RouterDialogPageProps["router"]
                 onClick={() => setSelectedAr(ar)}
               >
                 <TableCell><span className="text-xs font-medium">{ar.name}</span></TableCell>
-                <TableCell><MonoValue className="text-xs">{ar.summaryPrefix ?? <Dash />}</MonoValue></TableCell>
-                <TableCell><span className="text-xs">{ar.suppressMap ?? <Dash />}</span></TableCell>
-                <TableCell><span className="text-xs">{ar.attributeMap ?? <Dash />}</span></TableCell>
-                <TableCell>{ar.asSet ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                <TableCell>{ar.summaryOnly ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
-                <TableCell><span className="text-xs">{ar.sameMed ? "true" : "false"}</span></TableCell>
-                <TableCell>{ar.enabled ? <Checkbox checked disabled /> : <Checkbox disabled />}</TableCell>
+                <TableCell><MonoValue className="text-xs">{ar.summaryPrefix ?? "—"}</MonoValue></TableCell>
+                <TableCell><span className="text-xs">{ar.suppressMap ?? "—"}</span></TableCell>
+                <TableCell><span className="text-xs">{ar.attributeMap ?? "—"}</span></TableCell>
+                <TableCell><Checkbox checked={ar.asSet} disabled /></TableCell>
+                <TableCell><Checkbox checked={ar.summaryOnly} disabled /></TableCell>
+                <TableCell><Checkbox checked={ar.sameMed} disabled /></TableCell>
+                <TableCell><Checkbox checked={ar.enabled} disabled /></TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -12,16 +12,17 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table"
-
+import { DetailDialog } from "@/components/ui/detail-dialog"
+import { DisplayField } from "@/components/ui/display-field"
+import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
+import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import {
-  LabeledValue,
-  FieldGroup,
-  HeaderField,
-  DetailDialog
-} from "./field-display"
 import type { RouterDialogPageProps } from "./router-dialog-general"
 import type { PanwRipInterface } from "@/lib/panw-parser/types"
+
+// ─── Shared label width ───────────────────────────────────────────────────────
+
+const LW = "w-48"
 
 // ─── Interface Detail Dialog ──────────────────────────────────────────────────
 
@@ -45,27 +46,33 @@ function InterfaceDetailDialog({
 
   return (
     <DetailDialog title="Interface" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-3xl">
-      <HeaderField labelWidth="w-44" label="Interface" value={iface.name} />
+      <DisplayField label="Interface" value={iface.name} />
 
-      <div className="flex items-center gap-2 pl-46">
+      <Label className="flex items-center gap-2 py-1 pl-1">
         <Checkbox checked={iface.enabled} disabled />
         <span className="text-xs">Enable</span>
-      </div>
+      </Label>
 
-      <LabeledValue label="Split Horizon" value={(iface as { splitHorizon?: string | null }).splitHorizon ?? "None"} />
-      <LabeledValue label="Mode" value={iface.mode ?? "None"} />
-      <LabeledValue label="Authentication" value={iface.authProfile ?? "None"} />
-      <LabeledValue label="BFD Profile" value={iface.bfdProfile ?? "None"} />
+      <DisplayField label="Split Horizon" value={(iface as { splitHorizon?: string | null }).splitHorizon ?? "None"} />
+      <DisplayField label="Mode" value={iface.mode ?? "None"} />
+      <DisplayField label="Authentication" value={iface.authProfile ?? "None"} />
+      <DisplayField label="BFD Profile" value={iface.bfdProfile ?? "None"} />
 
       <div className="grid grid-cols-2 gap-4 pt-2">
-        <FieldGroup title="Interface Inbound Distribute List">
-          <LabeledValue label="Access List" value={ifaceRef?.inboundDistList ?? "None"} />
-          <LabeledValue label="Metric" value={ifaceRef?.inboundDistMetric ?? "—"} />
-        </FieldGroup>
-        <FieldGroup title="Interface Outbound Distribute List">
-          <LabeledValue label="Access List" value={ifaceRef?.outboundDistList ?? "None"} />
-          <LabeledValue label="Metric" value={ifaceRef?.outboundDistMetric ?? "—"} />
-        </FieldGroup>
+        <Fieldset className="h-full">
+          <FieldsetLegend>Interface Inbound Distribute List</FieldsetLegend>
+          <FieldsetContent>
+            <DisplayField label="Access List" value={ifaceRef?.inboundDistList ?? "None"} />
+            <DisplayField label="Metric" value={String(ifaceRef?.inboundDistMetric ?? "—")} />
+          </FieldsetContent>
+        </Fieldset>
+        <Fieldset className="h-full">
+          <FieldsetLegend>Interface Outbound Distribute List</FieldsetLegend>
+          <FieldsetContent>
+            <DisplayField label="Access List" value={ifaceRef?.outboundDistList ?? "None"} />
+            <DisplayField label="Metric" value={String(ifaceRef?.outboundDistMetric ?? "—")} />
+          </FieldsetContent>
+        </Fieldset>
       </div>
     </DetailDialog>
   )
@@ -79,39 +86,38 @@ export function RipPage({ router }: RouterDialogPageProps) {
 
   const [selectedIface, setSelectedIface] = React.useState<PanwRipInterface | null>(null)
 
-  // Match interface refs by name
   const getIfaceRef = (name: string) =>
     refs?.interfaces?.find(r => r.name === name) ?? null
 
   return (
     <div className="flex h-full flex-col min-h-0">
-      {/* Header fields — matching PAN-OS layout */}
+      {/* Header fields */}
       <div className="shrink-0 border-b px-4 py-3">
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 pl-46">
+            <Label className="flex items-center gap-2 py-1">
               <Checkbox checked={refs?.enabled ?? cfg?.enabled ?? false} disabled />
               <span className="text-xs">Enable</span>
-            </div>
-            <div className="flex items-center gap-2 pl-46">
+            </Label>
+            <Label className="flex items-center gap-2 py-1">
               <Checkbox checked={(cfg as { defaultInformationOriginate?: boolean })?.defaultInformationOriginate ?? false} disabled />
               <span className="text-xs">default-information originate</span>
-            </div>
-            <HeaderField labelWidth="w-48" label="BFD Profile" value={refs?.globalBfdProfile ?? cfg?.globalBfdProfile ?? "None"} />
-            <HeaderField labelWidth="w-48" label="Global Inbound Distribute List" value={refs?.globalInboundDistList ?? "None"} />
+            </Label>
+            <DisplayField labelWidth={LW} label="BFD Profile" value={refs?.globalBfdProfile ?? cfg?.globalBfdProfile ?? "None"} />
+            <DisplayField labelWidth={LW} label="Global Inbound Distribute List" value={refs?.globalInboundDistList ?? "None"} />
           </div>
           <div className="space-y-2">
-            <HeaderField labelWidth="w-48" label="Global General Timer" value={refs?.globalTimerName ?? "None"} />
-            <HeaderField labelWidth="w-48" label="Auth Profile" value={refs?.authProfileName ?? "None"} />
-            <HeaderField labelWidth="w-48" label="Redistribution Profile" value={refs?.redistProfileName ?? "None"} />
-            <HeaderField labelWidth="w-48" label="Global Outbound Distribute List" value={refs?.globalOutboundDistList ?? "None"} />
+            <DisplayField labelWidth={LW} label="Global General Timer" value={refs?.globalTimerName ?? "None"} />
+            <DisplayField labelWidth={LW} label="Auth Profile" value={refs?.authProfileName ?? "None"} />
+            <DisplayField labelWidth={LW} label="Redistribution Profile" value={refs?.redistProfileName ?? "None"} />
+            <DisplayField labelWidth={LW} label="Global Outbound Distribute List" value={refs?.globalOutboundDistList ?? "None"} />
           </div>
         </div>
       </div>
 
       {/* Interface table */}
       <div className="flex-1 overflow-y-auto p-4">
-        <div className="rounded-md border">
+        <div className="rounded-lg border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -136,7 +142,7 @@ export function RipPage({ router }: RouterDialogPageProps) {
                   onClick={() => setSelectedIface(iface)}
                 >
                   <TableCell><MonoValue className="text-xs">{iface.name}</MonoValue></TableCell>
-                  <TableCell><span className="text-xs">{iface.enabled ? "true" : "false"}</span></TableCell>
+                  <TableCell><Checkbox checked={iface.enabled} disabled /></TableCell>
                   <TableCell><span className="text-xs">{iface.authProfile ?? "—"}</span></TableCell>
                   <TableCell><span className="text-xs">{iface.bfdProfile ?? "—"}</span></TableCell>
                   <TableCell><span className="text-xs">{iface.mode ?? "—"}</span></TableCell>
@@ -147,7 +153,6 @@ export function RipPage({ router }: RouterDialogPageProps) {
         </div>
       </div>
 
-      {/* Interface detail dialog */}
       <InterfaceDetailDialog
         iface={selectedIface}
         ifaceRef={selectedIface ? getIfaceRef(selectedIface.name) : null}
