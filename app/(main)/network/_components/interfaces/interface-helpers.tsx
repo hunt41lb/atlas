@@ -1,9 +1,7 @@
-// @/app/(main)/network/_components/interface-helpers.tsx
+// @/app/(main)/network/_components/interfaces/interface-helpers.tsx
 //
-// Shared cell renderers and helper components used across interface tabs
+// Shared cell renderers, helper components, and types used across interface tabs
 // (Ethernet, Aggregate Ethernet, Unit interfaces, PoE, etc.)
-//
-// Extracted from interfaces-view.tsx for reuse across table components.
 
 "use client"
 
@@ -16,6 +14,19 @@ import { IpAddressCell, type VariableMap } from "@/app/(main)/_components/ui/ip-
 import { INTERFACE_MODE_COLORS } from "@/lib/colors"
 import { ZoneBadge } from "@/app/(main)/_components/ui/category-shell"
 import type { PanwInterface, PanwSubInterface } from "@/lib/panw-parser/types"
+
+// ─── Shared tab props type ────────────────────────────────────────────────────
+
+export interface SharedInterfaceTabProps {
+  interfaces: PanwInterface[]
+  isPanorama: boolean
+  ifaceToRouter: Map<string, string>
+  ifaceToZone: Map<string, string>
+  zoneColorMap: Map<string, string>
+  dhcpRelaySet: Set<string>
+  variableMap?: VariableMap
+  onMgmtProfileClick?: (name: string) => void
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

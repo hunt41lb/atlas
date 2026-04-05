@@ -1,11 +1,4 @@
-// @/app/(main)/network/_components/interface-table.tsx
-//
-// Reusable TanStack Table for unit-based interface types (Tunnel, Loopback, VLAN).
-// These interface types share the same XML structure: entries nested inside <units>,
-// no mode wrapper (layer3/layer2), no sub-interfaces, no aggregate groups.
-//
-// Used by InterfacesView as:
-//   <InterfaceTable type="tunnel" title="Tunnel Interfaces" {...sharedProps} />
+// @/app/(main)/network/_components/interfaces/ethernet-tab.tsx
 
 "use client"
 
@@ -15,35 +8,64 @@ import {
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  flexRender,
   createColumnHelper,
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table"
 
 import { DataTable } from "@/components/ui/data-table"
-import { IpAddressCell, type VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
-import { RouterCell, ZoneCell, MgmtProfileCell, FeaturesList } from "./interface-helpers"
-import type { PanwInterface, InterfaceType } from "@/lib/panw-parser/types"
+import { TableCell, TableRow } from "@/components/ui/table"
+import { useExpandableRows, ExpandToggle } from "@/components/ui/expandable-row"
+import { IpAddressCell } from "@/app/(main)/_components/ui/ip-address-cell"
+import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
+import { cn } from "@/lib/utils"
+import type { PanwInterface } from "@/lib/panw-parser/types"
+import {
+  MODE_LABELS,
+  InterfaceTypeBadge,
+  TagCell,
+  RouterCell,
+  ZoneCell,
+  MgmtProfileCell,
+  FeaturesList,
+  SubInterfaceRows,
+  type SharedInterfaceTabProps,
+} from "./interface-helpers"
 
 // ─── Column builder ──────────────────────────────────────────────────────────
 
 const columnHelper = createColumnHelper<PanwInterface>()
 
-function buildColumns(
+function buildEthernetColumns(
   isPanorama: boolean,
   ifaceToRouter: Map<string, string>,
   ifaceToZone: Map<string, string>,
-  zoneColorMap: Map<string, string> | undefined,
+  zoneColorMap: Map<string, string>,
   dhcpRelaySet: Set<string>,
-  variableMap?: VariableMap,
+  variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
+    { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
+
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
       cell: (info) => <span className="font-medium">{info.getValue()}</span>,
     }) as ColumnDef<PanwInterface, unknown>,
+
+    {
+      id: "interfaceType",
+      header: "Interface Type",
+      enableSorting: true,
+      accessorFn: (row) => row.aggregateGroup
+        ? `Aggregate (${row.aggregateGroup})`
+        : row.mode !== "none"
+          ? (MODE_LABELS[row.mode] ?? row.mode)
+          : row.type,
+      cell: ({ row }) => <InterfaceTypeBadge iface={row.original} />,
+    },
 
     columnHelper.accessor("managementProfile", {
       header: "Mgmt Profile",
@@ -65,13 +87,33 @@ function buildColumns(
     },
 
     {
-      id: "mtu",
-      header: "MTU",
+      id: "subIfCount",
+      header: "Sub Interfaces",
       enableSorting: true,
-      accessorFn: (row) => row.mtu ?? 0,
-      cell: ({ row }) => row.original.mtu
-        ? <span className="tabular-nums text-xs font-medium">{row.original.mtu}</span>
+      accessorFn: (row) => row.subInterfaces.length,
+      cell: ({ row }) => {
+        const count = row.original.subInterfaces.length
+        return count > 0
+          ? <span className="tabular-nums text-xs font-medium">{count}</span>
+          : <span className="text-muted-foreground text-xs">—</span>
+      },
+    },
+
+    {
+      id: "aggregateGroup",
+      header: "Aggregate Group",
+      enableSorting: true,
+      accessorFn: (row) => row.aggregateGroup ?? "",
+      cell: ({ row }) => row.original.aggregateGroup
+        ? <MonoValue className="text-xs">{row.original.aggregateGroup}</MonoValue>
         : <span className="text-muted-foreground text-xs">—</span>,
+    },
+
+    {
+      id: "tag",
+      header: "Tag",
+      enableSorting: false,
+      cell: () => <TagCell />,
     },
 
     {
@@ -89,7 +131,7 @@ function buildColumns(
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
       cell: ({ row }) => {
         const zoneName = ifaceToZone.get(row.original.name)
-        return <ZoneCell name={zoneName} color={zoneColorMap?.get(zoneName ?? "")} />
+        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} />
       },
     },
 
@@ -101,12 +143,14 @@ function buildColumns(
         const iface = row.original
         const features: string[] = []
 
-        if (iface.adjustTcpMss) features.push("TCP MSS")
-        if (iface.ddnsEnabled) features.push("DDNS")
         if (dhcpRelaySet.has(iface.name)) features.push("DHCP Relay")
+
+        if (iface.lldpEnabled) features.push("LLDP")
         if (iface.ndpProxy) features.push("NDP Proxy")
-        if (iface.netflowProfile) features.push("Netflow")
         if (iface.sdwanEnabled) features.push("SD-WAN")
+        if (iface.adjustTcpMss) features.push("TCP MSS")
+        if (iface.netflowProfile) features.push("Netflow")
+        if (iface.poeEnabled) features.push("PoE")
 
         return <FeaturesList features={features} />
       },
@@ -133,9 +177,7 @@ function buildColumns(
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function InterfaceTable({
-  type,
-  title,
+export function EthernetTab({
   interfaces,
   isPanorama,
   ifaceToRouter,
@@ -144,34 +186,29 @@ export function InterfaceTable({
   dhcpRelaySet,
   variableMap,
   onMgmtProfileClick,
-}: {
-  type: InterfaceType
-  title: string
-  interfaces: PanwInterface[]
-  isPanorama: boolean
-  ifaceToRouter: Map<string, string>
-  ifaceToZone: Map<string, string>
-  zoneColorMap?: Map<string, string>
-  dhcpRelaySet: Set<string>
-  variableMap?: VariableMap
-  onMgmtProfileClick?: (name: string) => void
-}) {
+}: SharedInterfaceTabProps) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
 
-  const filtered = React.useMemo(
-    () => interfaces.filter((i) => i.type === type),
-    [interfaces, type]
+  const ethernetInterfaces = React.useMemo(
+    () => interfaces.filter((i) => i.type === "ethernet"),
+    [interfaces]
   )
 
+  const { isExpanded, toggleRow } = useExpandableRows({
+    items: ethernetInterfaces,
+    getRowKey: (i) => `${i.templateName ?? "fw"}-${i.name}`,
+    isExpandable: (i) => i.subInterfaces.length > 0,
+  })
+
   const columns = React.useMemo(
-    () => buildColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick),
+    () => buildEthernetColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick),
     [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: filtered,
+    data: ethernetInterfaces,
     columns,
     state: { sorting, globalFilter: search },
     onSortingChange: setSorting,
@@ -185,9 +222,44 @@ export function InterfaceTable({
   return (
     <DataTable
       table={table}
-      title={title}
+      title="Ethernet"
       search={search}
       onSearch={setSearch}
+      renderRow={(row) => {
+        const iface = row.original
+        const rowKey = `${iface.templateName ?? "fw"}-${iface.name}`
+        const hasSubIfs = iface.subInterfaces.length > 0
+        const expanded = isExpanded(rowKey)
+
+        return (
+          <React.Fragment key={rowKey}>
+            <TableRow className={cn("transition-colors", hasSubIfs && expanded && "border-b-0")}>
+              <TableCell className="w-8 px-2">
+                <ExpandToggle expandable={hasSubIfs} expanded={expanded} onToggle={() => toggleRow(rowKey)} />
+              </TableCell>
+              {row.getVisibleCells().slice(1).map((cell) => (
+                <TableCell key={cell.id} className="px-3 py-2 align-middle">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+            {hasSubIfs && expanded && (
+              <SubInterfaceRows
+                subs={iface.subInterfaces}
+                isPanorama={isPanorama}
+                templateName={iface.templateName}
+                ifaceToZone={ifaceToZone}
+                ifaceToRouter={ifaceToRouter}
+                dhcpRelaySet={dhcpRelaySet}
+                visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
+                variableMap={variableMap}
+                zoneColorMap={zoneColorMap}
+                onMgmtProfileClick={onMgmtProfileClick}
+              />
+            )}
+          </React.Fragment>
+        )
+      }}
     />
   )
 }

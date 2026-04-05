@@ -13,7 +13,7 @@ import {
   DataTable, DataThead, DataTh, DataTbody, DataTr, DataTd, TableEmpty,
   MonoValue, MembersList,
 } from "@/app/(main)/_components/ui/category-shell"
-import { InterfacesView } from "@/app/(main)/network/_components/interfaces-view"
+import { InterfacesView } from "@/app/(main)/network/_components/interfaces"
 import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
 
 // Table Imports

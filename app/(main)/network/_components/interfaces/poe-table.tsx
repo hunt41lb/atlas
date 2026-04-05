@@ -1,4 +1,4 @@
-// @/app/(main)/network/_components/poe-table.tsx
+// @/app/(main)/network/_components/interfaces/poe-table.tsx
 //
 // PoE tab — a filtered view over ethernet interfaces that have PoE configured.
 // Unlike the unit-based tabs (Tunnel, Loopback, VLAN), PoE is not its own
@@ -19,9 +19,9 @@ import {
 } from "@tanstack/react-table"
 
 import { Badge } from "@/components/ui/badge"
+import { DataTable } from "@/components/ui/data-table"
 import { InterfaceTypeBadge } from "./interface-helpers"
 import type { PanwInterface } from "@/lib/panw-parser/types"
-import { DataTable } from "@/components/ui/data-table"
 
 // ─── Column builder ──────────────────────────────────────────────────────────
 
