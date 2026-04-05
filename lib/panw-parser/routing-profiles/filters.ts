@@ -1,4 +1,4 @@
-// @/src/parser/routing-profiles/filters.ts
+// @/lib/panw-parser/routing-profiles/filters.ts
 //
 // Routing filter types and extractors for Logical Routers.
 // XML path: <network><routing-profile><filters>
@@ -147,6 +147,7 @@ export interface PanwBgpRouteMapSet {
   largeCommunity: string[]
   ipv4SourceAddress: string | null
   ipv4NextHop: string | null
+  ipv6SourceAddress: string | null
   ipv6NextHop: string | null
   ipv6NextHopPreferGlobal: boolean
   atomicAggregate: boolean
@@ -540,7 +541,7 @@ function extractBgpRouteMapSet(setEl: unknown): PanwBgpRouteMapSet {
   const empty: PanwBgpRouteMapSet = {
     aspathPrepend: [], aspathExclude: [], aggregator: null, metric: null,
     regularCommunity: [], largeCommunity: [], ipv4SourceAddress: null,
-    ipv4NextHop: null, ipv6NextHop: null, ipv6NextHopPreferGlobal: false,
+    ipv4NextHop: null, ipv6SourceAddress: null, ipv6NextHop: null, ipv6NextHopPreferGlobal: false,
     atomicAggregate: false, removeRegularCommunity: null,
     overwriteRegularCommunity: false, overwriteLargeCommunity: false,
     removeLargeCommunity: null, tag: null, localPreference: null,
@@ -561,6 +562,7 @@ function extractBgpRouteMapSet(setEl: unknown): PanwBgpRouteMapSet {
     largeCommunity: members(s["large-community"]),
     ipv4SourceAddress: ipv4El ? (str(ipv4El["source-address"]) ?? null) : null,
     ipv4NextHop: ipv4El ? (str(ipv4El["next-hop"]) ?? null) : null,
+    ipv6SourceAddress: ipv6El ? (str(ipv6El["source-address"]) ?? null) : null,
     ipv6NextHop: ipv6El ? (str(ipv6El["next-hop"]) ?? null) : null,
     ipv6NextHopPreferGlobal: str(s["ipv6-nexthop-prefer-global"]) === "yes",
     atomicAggregate: str(s["atomic-aggregate"]) === "yes",

@@ -1,10 +1,4 @@
 // @/app/(main)/network/_components/routing-profiles/filters/filters-view.tsx
-//
-// Routing Filters page — 6 sections (accordion layout).
-// Sections 1-4: building blocks (Access Lists, Prefix Lists, AS Path, Community)
-// Sections 5-6: Route Maps (BGP, Redistribution)
-//
-// Section order and column labels match the PAN-OS Panorama GUI.
 
 "use client"
 
@@ -28,16 +22,13 @@ import type {
 } from "@/lib/panw-parser/routing-profiles"
 
 import { ProfileSection, useSectionTable } from "../_shared"
-import {
-  AccessListDialog,
-  PrefixListDialog,
-  CommunityListDialog,
-  AsPathAccessListDialog,
-} from "./filter-dialogs"
-import {
-  BgpRouteMapDialog,
-  RedistRouteMapDialog,
-} from "./route-map-dialogs"
+
+import { PrefixListDialog } from "./prefix-list/prefix-list-dialog"
+import { CommunityListDialog } from "./community-list/community-list-dialog"
+import { AsPathAccessListDialog } from "./as-path-access-list/as-path-access-list-dialog"
+import { AccessListDialog } from "./access-list/access-list-dialog"
+import { RedistRouteMapDialog } from "./route-maps-redistribution/route-maps-redist-dialog"
+import { BgpRouteMapDialog } from "./route-maps-bgp/route-maps-bgp-dialog"
 
 // ─── Color maps ───────────────────────────────────────────────────────────────
 
