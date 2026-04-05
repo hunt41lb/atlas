@@ -1,7 +1,4 @@
-// @/app/(main)/network/_components/logical-routers-view.tsx
-//
-// Overview table for Logical Routers with clickable names that open
-// a detail dialog mimicking the PAN-OS GUI layout.
+// @/app/(main)/network/_components/routers/logical-routers/logical-routers-view.tsx
 
 "use client"
 
@@ -9,8 +6,8 @@ import * as React from "react"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import { RouterSettingsTab } from "./router-shared/router-settings-tab"
-import { RouterDialog } from "./router-shared/router-dialog"
+import { RouterSettingsTab } from "../_shared/router-settings-tab"
+import { RouterDialog } from "../_shared/router-dialog"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
 
 export function LogicalRoutersView() {

@@ -1,4 +1,4 @@
-// @/app/(main)/network/_components/router-shared/router-settings-tab.tsx
+// @/app/(main)/network/_components/routers/_shared/router-settings-tab.tsx
 
 "use client"
 

@@ -1,4 +1,4 @@
-// @/app/(main)/network/_components/router-shared/router-dialog/router-dialog-ospf.tsx
+// @/app/(main)/network/_components/routers/_shared/dialog-ospf.tsx
 
 "use client"
 
@@ -23,7 +23,7 @@ import { DisplayField } from "@/components/ui/display-field"
 import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
 import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import type { RouterDialogPageProps } from "./router-dialog-general"
+import type { RouterDialogPageProps } from "./dialog-general"
 import type { PanwOspfArea } from "@/lib/panw-parser/types"
 
 // ─── Area Detail Dialog ───────────────────────────────────────────────────────

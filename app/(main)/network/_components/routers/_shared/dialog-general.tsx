@@ -1,4 +1,4 @@
-// @/app/(main)/network/_components/router-shared/router-dialog/router-dialog-general.tsx
+// @/app/(main)/network/_components/routers/_shared/dialog-general.tsx
 
 "use client"
 

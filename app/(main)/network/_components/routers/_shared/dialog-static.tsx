@@ -1,4 +1,4 @@
-// @/app/(main)/network/_components/router-shared/router-dialog/router-dialog-static.tsx
+// @/app/(main)/network/_components/routers/_shared/dialog-static.tsx
 //
 // Static Routes page for the RouterDialog — shows IPv4 and IPv6
 // static routes in separate tabs with sortable columns matching
@@ -29,7 +29,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import type { RouterDialogPageProps } from "./router-dialog-general"
+import type { RouterDialogPageProps } from "./dialog-general"
 import type { PanwStaticRoute } from "@/lib/panw-parser/types"
 
 // ─── Nexthop type labels ──────────────────────────────────────────────────────

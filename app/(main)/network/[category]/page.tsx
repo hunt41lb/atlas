@@ -23,14 +23,14 @@ import {
 } from "@/app/(main)/_components/ui/category-shell"
 
 import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
-import { VirtualRoutersView } from "@/app/(main)/network/_components/virtual-routers-view"
-import { LogicalRoutersView } from "@/app/(main)/network/_components/logical-routers-view"
 
 // Pages
 import { InterfacesView } from "@/app/(main)/network/_components/interfaces"
 import { ZonesView } from "@/app/(main)/network/_components/zones"
 import { VlansView } from "@/app/(main)/network/_components/vlans"
 import { VirtualWiresView } from "@/app/(main)/network/_components/virtual-wires"
+import { VirtualRoutersView } from "@/app/(main)/network/_components/routers/virtual-routers"
+import { LogicalRoutersView } from "@/app/(main)/network/_components/routers/logical-routers"
 import {
   BfdProfilesView,
   BgpProfilesView,

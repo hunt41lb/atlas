@@ -1,4 +1,4 @@
-// @/app/(main)/network/_components/router-shared/router-dialog.tsx
+// @/app/(main)/network/_components/routers/_shared/router-dialog.tsx
 
 "use client"
 
@@ -13,13 +13,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { ButtonGroup } from "@/components/ui/button-group"
 import { DialogSidebar, type DialogSidebarItem } from "@/components/ui/dialog-sidebar"
-import { GeneralPage, type RouterDialogPageProps } from "./router-dialog/router-dialog-general"
-import { StaticPage } from "./router-dialog/router-dialog-static"
+import { GeneralPage, type RouterDialogPageProps } from "./dialog-general"
+import { StaticPage } from "./dialog-static"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
-import { OspfPage, Ospfv3Page } from "./router-dialog/router-dialog-ospf"
-import { RipPage } from "./router-dialog/router-dialog-rip"
-import { BgpPage } from "./router-dialog/router-dialog-bgp"
-import { MulticastPage } from "./router-dialog/router-dialog-multicast"
+import { OspfPage, Ospfv3Page } from "./dialog-ospf"
+import { RipPage } from "./dialog-rip"
+import { BgpPage } from "./dialog-bgp"
+import { MulticastPage } from "./dialog-multicast"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

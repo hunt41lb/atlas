@@ -1,4 +1,4 @@
-// @/app/(main)/network/_components/router-shared/router-dialog/router-dialog-bgp.tsx
+// @/app/(main)/network/_components/routers/_shared/dialog-bgp.tsx
 
 "use client"
 
@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import type { PanwLrBgpPeerGroup, PanwLrBgpAggregateRoute } from "@/lib/panw-parser/types"
-import type { RouterDialogPageProps } from "./router-dialog-general"
+import type { RouterDialogPageProps } from "./dialog-general"
 
 // ─── Shared label width ───────────────────────────────────────────────────────
 
