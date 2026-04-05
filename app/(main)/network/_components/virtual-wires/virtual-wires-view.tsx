@@ -1,8 +1,7 @@
-// @/app/(main)/network/_components/virtual-wires-table.tsx
+// @/app/(main)/network/_components/virtual-wires/virtual-wires-view.tsx
 //
 // TanStack Table view for Virtual Wire objects. Virtual wires bind two
-// interfaces together in a bump-in-the-wire configuration with optional
-// VLAN tag filtering and multicast firewalling.
+// interfaces together in a bump-in-the-wire configuration.
 
 "use client"
 
@@ -24,8 +23,6 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import type { PanwVirtualWire } from "@/lib/panw-parser/types"
-
-// ─── Column builder ──────────────────────────────────────────────────────────
 
 const columnHelper = createColumnHelper<PanwVirtualWire>()
 
@@ -89,9 +86,7 @@ function buildColumns(isPanorama: boolean): ColumnDef<PanwVirtualWire, unknown>[
   ]
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-export function VirtualWiresTable() {
+export function VirtualWiresView() {
   const { activeConfig } = useConfig()
   const { selectedScope } = useScope()
   const [search, setSearch] = React.useState("")

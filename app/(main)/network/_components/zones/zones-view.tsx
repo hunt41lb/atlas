@@ -1,8 +1,6 @@
-// @/app/(main)/network/_components/zones-table.tsx
+// @/app/(main)/network/_components/zones/zones-view.tsx
 //
 // TanStack Table view for Zones with sorting, search, and column visibility.
-// Displays zone type, interfaces, protection profile, log setting, User-ID,
-// Device-ID, and ACL members.
 
 "use client"
 
@@ -27,8 +25,6 @@ import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { ZONE_TYPE_COLORS } from "@/lib/colors"
 import type { PanwZone } from "@/lib/panw-parser/types"
 
-// ─── Zone type labels ─────────────────────────────────────────────────────────
-
 const ZONE_TYPE_LABELS: Record<string, string> = {
   layer3: "Layer3",
   layer2: "Layer2",
@@ -38,8 +34,6 @@ const ZONE_TYPE_LABELS: Record<string, string> = {
   external: "External",
   unknown: "Unknown",
 }
-
-// ─── Column builder ──────────────────────────────────────────────────────────
 
 const columnHelper = createColumnHelper<PanwZone>()
 
@@ -184,9 +178,7 @@ function buildColumns(): ColumnDef<PanwZone, unknown>[] {
   ]
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-export function ZonesTable() {
+export function ZonesView() {
   const { activeConfig } = useConfig()
   const { selectedScope } = useScope()
   const [search, setSearch] = React.useState("")

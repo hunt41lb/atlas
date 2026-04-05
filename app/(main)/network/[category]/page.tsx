@@ -9,29 +9,49 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { EmptyState } from "@/app/(main)/_components/ui/empty-state"
 import {
-  CategoryShell, ComingSoonView,
-  DataTable, DataThead, DataTh, DataTbody, DataTr, DataTd, TableEmpty,
-  MonoValue, MembersList,
+  CategoryShell,
+  ComingSoonView,
+  DataTable,
+  DataThead,
+  DataTh,
+  DataTbody,
+  DataTr,
+  DataTd,
+  TableEmpty,
+  MonoValue,
+  MembersList,
 } from "@/app/(main)/_components/ui/category-shell"
-import { InterfacesView } from "@/app/(main)/network/_components/interfaces"
-import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
 
-// Table Imports
-import { ZonesTable } from "@/app/(main)/network/_components/zones-table"
-import { VlansTable } from "../_components/vlans-table"
-import { VirtualWiresTable } from "../_components/virtual-wires-table"
+import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
 import { VirtualRoutersView } from "@/app/(main)/network/_components/virtual-routers-view"
 import { LogicalRoutersView } from "@/app/(main)/network/_components/logical-routers-view"
+
+// Pages
+import { InterfacesView } from "@/app/(main)/network/_components/interfaces"
+import { ZonesView } from "@/app/(main)/network/_components/zones"
+import { VlansView } from "@/app/(main)/network/_components/vlans"
+import { VirtualWiresView } from "@/app/(main)/network/_components/virtual-wires"
 import {
-  BfdProfilesView, BgpProfilesView, FiltersView,
-  OspfProfilesView, Ospfv3ProfilesView, RipProfilesView,
+  BfdProfilesView,
+  BgpProfilesView,
+  FiltersView,
+  OspfProfilesView,
+  Ospfv3ProfilesView,
+  RipProfilesView,
   MulticastProfilesView,
 } from "@/app/(main)/network/_components/routing-profiles"
 import {
-  InterfaceMgmtView, MonitorView, ZoneProtectionView,
-  IkeCryptoView, IpsecCryptoView, IkeGatewaysView,
-  GpIpsecCryptoView, NetworkBfdView, LldpProfileView,
-  MacsecView, QosView,
+  InterfaceMgmtView,
+  MonitorView,
+  ZoneProtectionView,
+  IkeCryptoView,
+  IpsecCryptoView,
+  IkeGatewaysView,
+  GpIpsecCryptoView,
+  NetworkBfdView,
+  LldpProfileView,
+  MacsecView,
+  QosView,
 } from "@/app/(main)/network/_components/network-profiles"
 
 // ─── Routing view ─────────────────────────────────────────────────────────────
@@ -121,9 +141,9 @@ function RoutingView() {
 
 const NETWORK_VIEWS: Record<string, { title: string; component?: React.ComponentType; countKey?: string }> = {
   "interfaces":                          { title: "Interfaces",                 component: InterfacesView },
-  "zones":                               { title: "Zones",                      component: ZonesTable },
-  "vlans":                               { title: "VLANs",                      component: VlansTable },
-  "virtual-wires":                       { title: "Virtual Wires",              component: VirtualWiresTable },
+  "zones":                               { title: "Zones",                      component: ZonesView },
+  "vlans":                               { title: "VLANs",                      component: VlansView },
+  "virtual-wires":                       { title: "Virtual Wires",              component: VirtualWiresView },
   "routing":                             { title: "Routing",                    component: RoutingView },
   "virtual-routers":                     { title: "Virtual Routers",            component: VirtualRoutersView },
   "logical-routers":                     { title: "Logical Routers",            component: LogicalRoutersView },

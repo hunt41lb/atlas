@@ -1,8 +1,7 @@
-// @/app/(main)/network/_components/vlans-table.tsx
+// @/app/(main)/network/_components/vlans/vlans-view.tsx
 //
 // TanStack Table view for VLAN objects (network-level entities that map
-// a virtual interface to physical member ports). Not to be confused with
-// VLAN *interfaces* (vlan.X), which are shown in the Interfaces → VLAN tab.
+// a virtual interface to physical member ports).
 
 "use client"
 
@@ -23,8 +22,6 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import type { PanwVlan } from "@/lib/panw-parser/types"
-
-// ─── Column builder ──────────────────────────────────────────────────────────
 
 const columnHelper = createColumnHelper<PanwVlan>()
 
@@ -85,9 +82,7 @@ function buildColumns(isPanorama: boolean): ColumnDef<PanwVlan, unknown>[] {
   ]
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
-export function VlansTable() {
+export function VlansView() {
   const { activeConfig } = useConfig()
   const { selectedScope } = useScope()
   const [search, setSearch] = React.useState("")
