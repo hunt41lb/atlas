@@ -18,7 +18,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import type { PanwDnsProxy } from "@/lib/panw-parser/dns-proxy"
 
-const LW = "w-32"
+const LW = "w-36"
+const GLW = "w-28"
 
 // ─── DNS Proxy Rules Tab ──────────────────────────────────────────────────────
 
@@ -210,31 +211,39 @@ function AdvancedTab({ proxy }: { proxy: PanwDnsProxy }) {
 function DialogHeader({ proxy }: { proxy: PanwDnsProxy }) {
   return (
     <div className="grid grid-cols-[1fr_auto] gap-x-8 gap-y-3 px-5 pt-5 pb-3">
-      <div className="space-y-3">
-        <Label className="flex items-center gap-2 py-1">
-          <Checkbox checked disabled />
-          <span className="text-xs">Enable</span>
-        </Label>
-        <DisplayField label="Name" value={proxy.name} labelWidth="w-28" />
-        <DisplayField label="Location" value="vsys1" labelWidth="w-28" />
-        <DisplayField label="Server Profile" value={proxy.serverProfile ?? "None"} labelWidth="w-28" />
-      </div>
-      <div className="space-y-1">
-        <div className="rounded-lg border overflow-hidden min-w-48">
-          <Table>
-            <TableHeader>
-              <TableRow><TableHead className="text-[11px]">Interface</TableHead></TableRow>
-            </TableHeader>
-            <TableBody>
-              {proxy.interfaces.length === 0 ? (
-                <TableRow><TableCell className="text-xs text-muted-foreground">None</TableCell></TableRow>
-              ) : proxy.interfaces.map((iface) => (
-                <TableRow key={iface}><TableCell className="text-xs">{iface}</TableCell></TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+      <Fieldset>
+        <FieldsetLegend>
+          <Label className="flex items-center gap-2">
+            <Checkbox checked disabled />
+            Enable
+          </Label>
+        </FieldsetLegend>
+        <FieldsetContent>
+          <DisplayField label="Name" value={proxy.name} labelWidth={GLW} />
+          <DisplayField label="Location" value="vsys1" labelWidth={GLW} />
+          <DisplayField label="Server Profile" value={proxy.serverProfile ?? "None"} labelWidth={GLW} />
+        </FieldsetContent>
+      </Fieldset>
+
+      <Fieldset>
+        <FieldsetLegend>Interface</FieldsetLegend>
+        <FieldsetContent>
+          <div className="rounded-lg border overflow-hidden min-w-48">
+            <Table>
+              <TableHeader>
+                <TableRow><TableHead className="text-[11px]">Interface</TableHead></TableRow>
+              </TableHeader>
+              <TableBody>
+                {proxy.interfaces.length === 0 ? (
+                  <TableRow><TableCell className="text-xs text-muted-foreground">None</TableCell></TableRow>
+                ) : proxy.interfaces.map((iface) => (
+                  <TableRow key={iface}><TableCell className="text-xs">{iface}</TableCell></TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </FieldsetContent>
+      </Fieldset>
     </div>
   )
 }

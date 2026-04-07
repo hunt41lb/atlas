@@ -70,7 +70,19 @@ const staticData = {
         { title: "GRE Tunnels",      url: "/network/gre-tunnels" },
         { title: "DHCP",             url: "/network/dhcp" },
         { title: "DNS Proxy",        url: "/network/dns-proxy" },
-        { title: "GlobalProtect",    url: "/network/global-protect" },
+        { title: "Proxy",            url: "/network/proxy" },
+        {
+          title: "GlobalProtect",
+          url: "/network/global-protect",
+          items: [
+            { title: "Portals",               url: "/network/global-protect-portals" },
+            { title: "Gateways",              url: "/network/global-protect-gateways" },
+            { title: "MDM",                   url: "/network/global-protect-mdm" },
+            { title: "Clientless Apps",       url: "/network/global-protect-clientless-apps" },
+            { title: "Clientless App Groups", url: "/network/global-protect-clientless-app-groups" },
+            { title: "DHCP Profile",          url: "/network/global-protect-dhcp-profile" },
+          ],
+        },
         { title: "QoS",              url: "/network/qos" },
         { title: "LLDP",             url: "/network/lldp" },
         {

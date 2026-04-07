@@ -140,10 +140,6 @@ export function DnsProxyView() {
     return Array.isArray(proxies) ? proxies : []
   }, [activeConfig, selectedScope])
 
-  if (data.length === 0) {
-    return <NotConfiguredState title="DNS Proxy" />
-  }
-
   const columns = buildColumns(isPanorama, setSelected)
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -158,6 +154,10 @@ export function DnsProxyView() {
     getSortedRowModel: getSortedRowModel(),
     globalFilterFn: "includesString",
   })
+
+  if (data.length === 0) {
+    return <NotConfiguredState title="DNS Proxy" />
+  }
 
   return (
     <>

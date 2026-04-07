@@ -128,7 +128,7 @@ export function SidebarConfigurations({
         <Collapsible defaultOpen className="group/collapsible">
           <SidebarGroupLabel>
             Configurations
-            <CollapsibleTrigger className="ml-auto transition-transform group-aria-expanded/collapsible:rotate-90">
+            <CollapsibleTrigger className="ml-auto transition-transform group-data-open/collapsible:rotate-90">
               <ChevronRight className="size-4" />
             </CollapsibleTrigger>
           </SidebarGroupLabel>
