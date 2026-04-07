@@ -25,6 +25,10 @@ import {
   RipProfilesView,
   MulticastProfilesView,
 } from "@/app/(main)/network/_components/routing-profiles"
+import { IpsecTunnelsView } from "../_components/ipsec-tunnels"
+import { GreTunnelsView } from "../_components/gre-tunnels"
+import { DhcpView } from "../_components/dhcp"
+import { DnsProxyView } from "../_components/dns-proxy"
 import {
   InterfaceMgmtView,
   MonitorView,
@@ -57,10 +61,10 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "routing-profiles-ripv2":              { title: "RIPv2",                      component: RipProfilesView },
   "routing-profiles-filters":            { title: "Filters",                    component: FiltersView },
   "routing-profiles-multicast":          { title: "Multicast",                  component: MulticastProfilesView },
-  "ipsec-tunnels":                       { title: "IPSec Tunnels" },
-  "gre-tunnels":                         { title: "GRE Tunnels" },
-  "dhcp":                                { title: "DHCP" },
-  "dns-proxy":                           { title: "DNS Proxy" },
+  "ipsec-tunnels":                       { title: "IPSec Tunnels",              component: IpsecTunnelsView },
+  "gre-tunnels":                         { title: "GRE Tunnels",                component: GreTunnelsView },
+  "dhcp":                                { title: "DHCP",                       component: DhcpView },
+  "dns-proxy":                           { title: "DNS Proxy",                  component: DnsProxyView },
   "global-protect":                      { title: "GlobalProtect" },
   "qos":                                 { title: "QoS" },
   "lldp":                                { title: "LLDP" },

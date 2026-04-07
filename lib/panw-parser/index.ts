@@ -6,7 +6,7 @@ import {
   extractServices, extractServiceGroups, extractApplicationGroups,
   extractApplicationFilters, extractProfileGroups, extractZones,
   extractInterfaces, extractVirtualRouters, extractLogicalRouters,
-  extractSecurityRules, extractNatRules, extractDhcpRelayInterfaces,
+  extractSecurityRules, extractNatRules,
   extractTemplateVariables, extractVlans, extractVirtualWires,
 } from "./extractors"
 import { str, entries, entryName, dig, toArray, members } from "./xml-helpers"
@@ -14,6 +14,10 @@ import type {
   ParseResult, ParsedFirewallConfig, ParsedPanoramaConfig,
   PanwDeviceGroup, PanwTemplate,
 } from "./types"
+import { extractIpsecTunnels } from "./ipsec-tunnels"
+import { extractGreTunnels } from "./gre-tunnels"
+import { extractDhcpServers, extractDhcpRelays } from "./dhcp"
+import { extractDnsProxies } from "./dns-proxy"
 import {
   extractBfdProfiles, extractBgpRoutingProfiles, extractRoutingFilters,
   extractOspfRoutingProfiles, extractOspfv3RoutingProfiles,
@@ -100,17 +104,6 @@ function extractSystemInfo(config: Record<string, unknown>) {
   }
 }
 
-// ─── Network counts ───────────────────────────────────────────────────────────
-
-function extractNetworkCounts(networkEl: unknown) {
-  return {
-    ipsecTunnels:   countEntries(networkEl, "tunnel", "ipsec", "entry"),
-    greTunnels:     countEntries(networkEl, "tunnel", "gre", "entry"),
-    dhcpInterfaces: countEntries(networkEl, "dhcp", "interface", "entry"),
-    dnsProxies:     countEntries(networkEl, "dns-proxy", "entry"),
-  }
-}
-
 // ─── Policy counts ────────────────────────────────────────────────────────────
 
 function extractPolicyCounts(rulebaseEl: unknown) {
@@ -186,7 +179,6 @@ function parseFirewall(
   const vlans           = extractVlans(networkEl, null)
   const virtualWires    = extractVirtualWires(networkEl, null)
   const zones           = extractZones(vsysEntry["zone"], tagColorMap)
-  const networkCounts   = extractNetworkCounts(networkEl)
 
   const rulebaseEl    = vsysEntry["rulebase"]
   const securityRules = extractSecurityRules(
@@ -220,11 +212,15 @@ function parseFirewall(
     logicalRouters,
     vlans,
     virtualWires,
+    ipsecTunnels: extractIpsecTunnels(networkEl, null),
+    greTunnels: extractGreTunnels(networkEl, null),
+    dhcpServers: extractDhcpServers(networkEl, null),
+    dhcpRelays:  extractDhcpRelays(networkEl, null),
+    dnsProxies: extractDnsProxies(networkEl, null, vsysEntry),
     securityRules,
     natRules,
     ...policyCounts,
     ...objectCounts,
-    ...networkCounts,
   }
 }
 
@@ -317,17 +313,18 @@ function parsePanorama(
     return {
       name: tmplName,
       description: str(tmplEntry["description"]),
-      variables:      extractTemplateVariables(tmplEntry["variable"]),
-      interfaces:     extractInterfaces(networkEl, tmplName),
-      virtualRouters: extractVirtualRouters(networkEl, tmplName),
-      logicalRouters: extractLogicalRouters(networkEl, tmplName),
-      zones:          extractZones(vsysEntry["zone"], tagColorMap),
-      dhcpRelayInterfaces: extractDhcpRelayInterfaces(networkEl),
-      vlans:          extractVlans(networkEl, tmplName),
-      virtualWires:   extractVirtualWires(networkEl, tmplName),
-      bfdProfiles:    extractBfdProfiles(networkEl, tmplName),
-      routingFilters:       extractRoutingFilters(networkEl, tmplName),
-      bgpRoutingProfiles:   extractBgpRoutingProfiles(networkEl, tmplName),
+      variables:                extractTemplateVariables(tmplEntry["variable"]),
+      interfaces:               extractInterfaces(networkEl, tmplName),
+      virtualRouters:           extractVirtualRouters(networkEl, tmplName),
+      logicalRouters:           extractLogicalRouters(networkEl, tmplName),
+      zones:                    extractZones(vsysEntry["zone"], tagColorMap),
+      dhcpServers:              extractDhcpServers(networkEl, tmplName),
+      dhcpRelays:               extractDhcpRelays(networkEl, tmplName),
+      vlans:                    extractVlans(networkEl, tmplName),
+      virtualWires:             extractVirtualWires(networkEl, tmplName),
+      bfdProfiles:              extractBfdProfiles(networkEl, tmplName),
+      routingFilters:           extractRoutingFilters(networkEl, tmplName),
+      bgpRoutingProfiles:       extractBgpRoutingProfiles(networkEl, tmplName),
       ospfRoutingProfiles:      extractOspfRoutingProfiles(networkEl, tmplName),
       ospfv3RoutingProfiles:    extractOspfv3RoutingProfiles(networkEl, tmplName),
       ripRoutingProfiles:       extractRipRoutingProfiles(networkEl, tmplName),
@@ -343,7 +340,9 @@ function parsePanorama(
       lldpProfiles:             extractLldpProfiles(networkEl, tmplName),
       macsecProfiles:           extractMacsecProfiles(networkEl, tmplName),
       qosProfiles:              extractQosProfiles(networkEl, tmplName),
-      ...extractNetworkCounts(networkEl),
+      ipsecTunnels:             extractIpsecTunnels(networkEl, tmplName),
+      greTunnels:               extractGreTunnels(networkEl, tmplName),
+      dnsProxies:               extractDnsProxies(networkEl, tmplName, vsysEntry),
     }
   })
 

@@ -2,7 +2,7 @@
 
 "use client"
 
-import { FolderOpen, Upload, FileCode2, Shield } from "lucide-react"
+import { FolderOpen, Upload, FileCode2, Shield, CircleOff } from "lucide-react"
 import {
   Empty,
   EmptyContent,
@@ -52,6 +52,25 @@ export function EmptyState() {
           </div>
         </div>
       </EmptyContent>
+    </Empty>
+  )
+}
+
+export function NotConfiguredState({ title }: { title: string }) {
+  return (
+    <Empty className="h-full border-0">
+      <EmptyHeader>
+        <EmptyMedia>
+          <div className="relative flex size-16 items-center justify-center">
+            <div className="absolute inset-0 rounded-2xl bg-muted" />
+            <CircleOff className="relative size-7 text-muted-foreground" />
+          </div>
+        </EmptyMedia>
+        <EmptyTitle className="text-base">No {title} Configured</EmptyTitle>
+        <EmptyDescription>
+          There are no {title.toLowerCase()} in this configuration.
+        </EmptyDescription>
+      </EmptyHeader>
     </Empty>
   )
 }

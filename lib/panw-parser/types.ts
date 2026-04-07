@@ -1,5 +1,9 @@
 // @/lib/panw-parser/types.ts
 
+import type { PanwIpsecTunnel } from "./ipsec-tunnels"
+import type { PanwGreTunnel } from "./gre-tunnels"
+import type { PanwDhcpServer, PanwDhcpRelay } from "./dhcp"
+import type { PanwDnsProxy } from "./dns-proxy"
 import type {
   PanwBfdProfile,
   PanwBgpRoutingProfiles,
@@ -782,7 +786,8 @@ export interface PanwTemplate {
   virtualRouters: PanwVirtualRouter[]
   logicalRouters: PanwVirtualRouter[]
   zones: PanwZone[]
-  dhcpRelayInterfaces: string[]
+  dhcpServers: PanwDhcpServer[]
+  dhcpRelays: PanwDhcpRelay[]
   variables: PanwTemplateVariable[]
   // Network counts from template
   vlans: PanwVlan[]
@@ -805,10 +810,9 @@ export interface PanwTemplate {
   lldpProfiles: PanwLldpProfile[]
   macsecProfiles: PanwMacsecProfile[]
   qosProfiles: PanwQosProfile[]
-  ipsecTunnels: number
-  greTunnels: number
-  dhcpInterfaces: number
-  dnsProxies: number
+  ipsecTunnels: PanwIpsecTunnel[]
+  greTunnels: PanwGreTunnel[]
+  dnsProxies: PanwDnsProxy[]
 }
 
 export interface PanwTemplateVariable {
@@ -887,6 +891,8 @@ export interface ParsedFirewallConfig {
   // Network (deeply parsed)
   interfaces: PanwInterface[]
   zones: PanwZone[]
+  dhcpServers: PanwDhcpServer[]
+  dhcpRelays: PanwDhcpRelay[]
   virtualRouters: PanwVirtualRouter[]
   logicalRouters: PanwVirtualRouter[]
   // Policies (deeply parsed)
@@ -912,10 +918,9 @@ export interface ParsedFirewallConfig {
   // Additional network counts
   vlans: PanwVlan[]
   virtualWires: PanwVirtualWire[]
-  ipsecTunnels: number
-  greTunnels: number
-  dhcpInterfaces: number
-  dnsProxies: number
+  ipsecTunnels: PanwIpsecTunnel[]
+  greTunnels: PanwGreTunnel[]
+  dnsProxies: PanwDnsProxy[]
 }
 
 export interface ParsedPanoramaConfig {

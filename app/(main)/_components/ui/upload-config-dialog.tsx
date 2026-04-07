@@ -95,10 +95,10 @@ function getSummarySections(parsed: ParsedConfig): StatSection[] {
           { label: "Virtual Routers",   value: parsed.virtualRouters.length },
           { label: "VLANs",             value: parsed.vlans.length },
           { label: "Virtual Wires",     value: parsed.virtualWires.length },
-          { label: "IPSec Tunnels",     value: parsed.ipsecTunnels },
-          { label: "GRE Tunnels",       value: parsed.greTunnels },
-          { label: "DHCP",              value: parsed.dhcpInterfaces },
-          { label: "DNS Proxy",         value: parsed.dnsProxies },
+          { label: "IPSec Tunnels",     value: parsed.ipsecTunnels.length },
+          { label: "GRE Tunnels",       value: parsed.greTunnels.length },
+          { label: "DHCP", value: (parsed.dhcpServers?.length ?? 0) + (parsed.dhcpRelays?.length ?? 0) },
+          { label: "DNS Proxy",         value: parsed.dnsProxies.length },
         ].filter((s) => s.value > 0),
       },
     ]
@@ -159,10 +159,10 @@ function getSummarySections(parsed: ParsedConfig): StatSection[] {
         { label: "Virtual Routers",   value: parsed.templates.reduce((a, t) => a + t.virtualRouters.length, 0) },
         { label: "VLANs",             value: parsed.templates.reduce((a, t) => a + t.vlans.length, 0) },
         { label: "Virtual Wires",     value: parsed.templates.reduce((a, t) => a + t.virtualWires.length, 0) },
-        { label: "IPSec Tunnels",     value: parsed.templates.reduce((a, t) => a + t.ipsecTunnels, 0) },
-        { label: "GRE Tunnels",       value: parsed.templates.reduce((a, t) => a + t.greTunnels, 0) },
-        { label: "DHCP",              value: parsed.templates.reduce((a, t) => a + t.dhcpInterfaces, 0) },
-        { label: "DNS Proxy",         value: parsed.templates.reduce((a, t) => a + t.dnsProxies, 0) },
+        { label: "IPSec Tunnels",     value: parsed.templates.reduce((a, t) => a + t.ipsecTunnels.length, 0) },
+        { label: "GRE Tunnels",       value: parsed.templates.reduce((a, t) => a + t.greTunnels.length, 0) },
+        { label: "DHCP",              value: parsed.templates.reduce((a, t) => a + (t.dhcpServers?.length ?? 0) + (t.dhcpRelays?.length ?? 0), 0) },
+        { label: "DNS Proxy",         value: parsed.templates.reduce((a, t) => a + t.dnsProxies.length, 0) },
       ].filter((s) => s.value > 0),
     },
   ]
@@ -536,4 +536,3 @@ export function UploadConfigDialog({ open, onOpenChange }: UploadConfigDialogPro
     </Dialog>
   )
 }
-

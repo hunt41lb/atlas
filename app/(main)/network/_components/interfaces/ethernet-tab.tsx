@@ -43,6 +43,7 @@ function buildEthernetColumns(
   ifaceToZone: Map<string, string>,
   zoneColorMap: Map<string, string>,
   dhcpRelaySet: Set<string>,
+  dhcpServerSet: Set<string>,
   variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
@@ -143,6 +144,7 @@ function buildEthernetColumns(
         const iface = row.original
         const features: string[] = []
 
+        if (dhcpServerSet.has(iface.name)) features.push("DHCP Server")
         if (dhcpRelaySet.has(iface.name)) features.push("DHCP Relay")
 
         if (iface.lldpEnabled) features.push("LLDP")
@@ -184,6 +186,7 @@ export function EthernetTab({
   ifaceToZone,
   zoneColorMap,
   dhcpRelaySet,
+  dhcpServerSet,
   variableMap,
   onMgmtProfileClick,
 }: SharedInterfaceTabProps) {
@@ -202,8 +205,8 @@ export function EthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildEthernetColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick),
-    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick]
+    () => buildEthernetColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick),
+    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, dhcpServerSet, onMgmtProfileClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -251,6 +254,7 @@ export function EthernetTab({
                 ifaceToZone={ifaceToZone}
                 ifaceToRouter={ifaceToRouter}
                 dhcpRelaySet={dhcpRelaySet}
+                dhcpServerSet={dhcpServerSet}
                 visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
                 variableMap={variableMap}
                 zoneColorMap={zoneColorMap}

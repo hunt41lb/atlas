@@ -64,15 +64,16 @@ export function InterfacesView() {
 
   const isPanorama = activeConfig?.parsedConfig.deviceType === "panorama"
 
-  const { interfaces, zones, virtualRouters, logicalRouters, dhcpRelayInterfaces, interfaceMgmtProfiles } = React.useMemo(() => {
-    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [], dhcpRelayInterfaces: [], interfaceMgmtProfiles: [] }
+  const { interfaces, zones, virtualRouters, logicalRouters, dhcpRelays, dhcpServers, interfaceMgmtProfiles } = React.useMemo(() => {
+    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [], dhcpRelays: [], dhcpServers: [], interfaceMgmtProfiles: [] }
     const data = resolveNetworkData(activeConfig.parsedConfig, selectedScope)
     return {
       interfaces:          data.interfaces          ?? [],
       zones:               data.zones               ?? [],
       virtualRouters:      data.virtualRouters      ?? [],
       logicalRouters:      data.logicalRouters      ?? [],
-      dhcpRelayInterfaces: data.dhcpRelayInterfaces ?? [],
+      dhcpRelays:          data.dhcpRelays           ?? [],
+      dhcpServers:         data.dhcpServers           ?? [],
       interfaceMgmtProfiles: data.interfaceMgmtProfiles ?? [],
     }
   }, [activeConfig, selectedScope])
@@ -98,8 +99,13 @@ export function InterfacesView() {
   }, [zones])
 
   const dhcpRelaySet = React.useMemo(
-    () => new Set(dhcpRelayInterfaces),
-    [dhcpRelayInterfaces]
+    () => new Set(dhcpRelays.map(r => r.interface)),
+    [dhcpRelays]
+  )
+
+  const dhcpServerSet = React.useMemo(
+    () => new Set(dhcpServers.map(s => s.interface)),
+    [dhcpServers]
   )
 
   const variableMap = React.useMemo<VariableMap>(() => {
@@ -127,7 +133,7 @@ export function InterfacesView() {
     [mgmtProfileMap]
   )
 
-  const sharedProps = { interfaces, isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick: handleMgmtProfileClick }
+  const sharedProps = { interfaces, isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick: handleMgmtProfileClick }
 
   return (
     <Tabs defaultValue="ethernet" className="flex h-full flex-col min-h-0">

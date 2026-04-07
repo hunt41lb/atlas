@@ -24,6 +24,7 @@ export interface SharedInterfaceTabProps {
   ifaceToZone: Map<string, string>
   zoneColorMap: Map<string, string>
   dhcpRelaySet: Set<string>
+  dhcpServerSet: Set<string>
   variableMap?: VariableMap
   onMgmtProfileClick?: (name: string) => void
 }
@@ -125,6 +126,7 @@ export function SubInterfaceRows({
   ifaceToZone,
   ifaceToRouter,
   dhcpRelaySet,
+  dhcpServerSet,
   showMemberPorts = false,
   visibleColumns,
   variableMap,
@@ -137,6 +139,7 @@ export function SubInterfaceRows({
   ifaceToZone: Map<string, string>
   ifaceToRouter: Map<string, string>
   dhcpRelaySet: Set<string>
+  dhcpServerSet: Set<string>
   showMemberPorts?: boolean
   visibleColumns?: Set<string>
   variableMap?: VariableMap
@@ -197,6 +200,7 @@ export function SubInterfaceRows({
               <FeaturesList features={[
                 ...(sub.bonjourEnabled ? ["Bonjour"] : []),
                 ...(sub.dhcpClient ? ["DHCP Client"] : []),
+                ...(dhcpServerSet.has(sub.name) ? ["DHCP Server"] : []),
                 ...(dhcpRelaySet.has(sub.name) ? ["DHCP Relay"] : []),
                 ...(sub.ndpProxy ? ["NDP Proxy"] : []),
                 ...(sub.adjustTcpMss ? ["TCP MSS"] : []),

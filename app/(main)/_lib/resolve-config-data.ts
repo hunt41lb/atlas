@@ -7,6 +7,7 @@ import type {
   PanwApplicationGroup, PanwApplicationFilter, PanwProfileGroup, PanwTag,
   PanwSecurityRule, PanwNatRule,
 } from "@/lib/panw-parser/types"
+import type { PanwIpsecTunnel } from "@/lib/panw-parser/ipsec-tunnels"
 import type {
   PanwBfdProfile, PanwBgpRoutingProfiles, PanwRoutingFilters,
   PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles,PanwRipRoutingProfiles,
@@ -25,6 +26,9 @@ import type {
   PanwMacsecProfile,
   PanwQosProfile,
 } from "@/lib/panw-parser/network-profiles"
+import { PanwGreTunnel } from "@/lib/panw-parser/gre-tunnels"
+import { PanwDhcpServer, PanwDhcpRelay } from "@/lib/panw-parser/dhcp"
+import { PanwDnsProxy } from "@/lib/panw-parser/dns-proxy"
 
 // ─── Template resolution (Network scope) ─────────────────────────────────────
 
@@ -53,7 +57,6 @@ export interface ResolvedNetworkData {
   zones: PanwZone[]
   virtualRouters: PanwVirtualRouter[]
   logicalRouters: PanwVirtualRouter[]
-  dhcpRelayInterfaces: string[]
   vlans: PanwVlan[]
   virtualWires: PanwVirtualWire[]
   bfdProfiles: PanwBfdProfile[]
@@ -69,6 +72,11 @@ export interface ResolvedNetworkData {
   ikeCryptoProfiles: PanwIkeCryptoProfile[]
   ipsecCryptoProfiles: PanwIpsecCryptoProfile[]
   ikeGateways: PanwIkeGateway[]
+  ipsecTunnels: PanwIpsecTunnel[]
+  greTunnels: PanwGreTunnel[]
+  dhcpServers: PanwDhcpServer[]
+  dhcpRelays: PanwDhcpRelay[]
+  dnsProxies: PanwDnsProxy[]
   gpIpsecCryptoProfiles: PanwGpIpsecCryptoProfile[]
   networkBfdProfiles: PanwNetworkBfdProfile[]
   lldpProfiles: PanwLldpProfile[]
@@ -106,7 +114,6 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       zones: config.zones ?? [],
       virtualRouters: config.virtualRouters ?? [],
       logicalRouters: config.logicalRouters ?? [],
-      dhcpRelayInterfaces: [],
       vlans: config.vlans ?? [],
       virtualWires: config.virtualWires ?? [],
       bfdProfiles: [],
@@ -127,6 +134,11 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       lldpProfiles: [],
       macsecProfiles: [],
       qosProfiles: [],
+      ipsecTunnels: config.ipsecTunnels ?? [],
+      greTunnels: config.greTunnels ?? [],
+      dhcpServers: config.dhcpServers ?? [],
+      dhcpRelays: config.dhcpRelays ?? [],
+      dnsProxies: config.dnsProxies ?? [],
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -148,7 +160,6 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     zones,
     virtualRouters: templates.flatMap((t) => t.virtualRouters ?? []),
     logicalRouters: templates.flatMap((t) => t.logicalRouters ?? []),
-    dhcpRelayInterfaces: templates.flatMap((t) => t.dhcpRelayInterfaces ?? []),
     vlans: templates.flatMap((t) => t.vlans ?? []),
     virtualWires: templates.flatMap((t) => t.virtualWires ?? []),
     bfdProfiles: templates.flatMap((t) => t.bfdProfiles ?? []),
@@ -202,6 +213,11 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     lldpProfiles: templates.flatMap(t => t.lldpProfiles ?? []),
     macsecProfiles: templates.flatMap(t => t.macsecProfiles ?? []),
     qosProfiles: templates.flatMap(t => t.qosProfiles ?? []),
+    ipsecTunnels: templates.flatMap(t => t.ipsecTunnels ?? []),
+    greTunnels: templates.flatMap(t => t.greTunnels ?? []),
+    dhcpServers: templates.flatMap(t => t.dhcpServers ?? []),
+    dhcpRelays: templates.flatMap(t => t.dhcpRelays ?? []),
+    dnsProxies: templates.flatMap(t => t.dnsProxies ?? []),
   }
 }
 

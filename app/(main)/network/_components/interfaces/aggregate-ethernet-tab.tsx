@@ -43,6 +43,7 @@ function buildAeColumns(
   ifaceToZone: Map<string, string>,
   zoneColorMap: Map<string, string>,
   dhcpRelaySet: Set<string>,
+  dhcpServerSet: Set<string>,
   memberMap: Map<string, string[]>,
   variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
@@ -140,6 +141,7 @@ function buildAeColumns(
         const iface = row.original
         const features: string[] = []
 
+        if (dhcpServerSet.has(iface.name)) features.push("DHCP Server")
         if (dhcpRelaySet.has(iface.name)) features.push("DHCP Relay")
 
         if (iface.lacpEnabled) features.push("LACP")
@@ -182,6 +184,7 @@ export function AggregateEthernetTab({
   ifaceToZone,
   zoneColorMap,
   dhcpRelaySet,
+  dhcpServerSet,
   variableMap,
   onMgmtProfileClick,
 }: SharedInterfaceTabProps) {
@@ -216,8 +219,8 @@ export function AggregateEthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildAeColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, memberMap, variableMap, onMgmtProfileClick),
-    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, memberMap, variableMap, onMgmtProfileClick]
+    () => buildAeColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick),
+    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -265,6 +268,7 @@ export function AggregateEthernetTab({
                 ifaceToZone={ifaceToZone}
                 ifaceToRouter={ifaceToRouter}
                 dhcpRelaySet={dhcpRelaySet}
+                dhcpServerSet={dhcpServerSet}
                 showMemberPorts
                 visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
                 variableMap={variableMap}
