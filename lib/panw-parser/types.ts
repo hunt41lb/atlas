@@ -4,6 +4,7 @@ import type { PanwIpsecTunnel } from "./ipsec-tunnels"
 import type { PanwGreTunnel } from "./gre-tunnels"
 import type { PanwDhcpServer, PanwDhcpRelay } from "./dhcp"
 import type { PanwDnsProxy } from "./dns-proxy"
+import type { PanwProxy } from "./proxy"
 import type {
   PanwBfdProfile,
   PanwBgpRoutingProfiles,
@@ -13,6 +14,8 @@ import type {
   PanwRipRoutingProfiles,
   PanwRoutingFilters
 } from "./routing-profiles"
+import type { PanwQosInterface } from "./qos-interfaces"
+import type { PanwLldpGeneral } from "./lldp-general"
 import type {
   PanwInterfaceMgmtProfile,
   PanwMonitorProfile,
@@ -813,6 +816,9 @@ export interface PanwTemplate {
   ipsecTunnels: PanwIpsecTunnel[]
   greTunnels: PanwGreTunnel[]
   dnsProxies: PanwDnsProxy[]
+  qosInterfaces: PanwQosInterface[]
+  lldpGeneral: PanwLldpGeneral | null
+  proxy: PanwProxy | null
 }
 
 export interface PanwTemplateVariable {
@@ -921,6 +927,9 @@ export interface ParsedFirewallConfig {
   ipsecTunnels: PanwIpsecTunnel[]
   greTunnels: PanwGreTunnel[]
   dnsProxies: PanwDnsProxy[]
+  qosInterfaces: PanwQosInterface[]
+  lldpGeneral: PanwLldpGeneral | null
+  proxy: PanwProxy | null
 }
 
 export interface ParsedPanoramaConfig {

@@ -18,11 +18,14 @@ import { extractIpsecTunnels } from "./ipsec-tunnels"
 import { extractGreTunnels } from "./gre-tunnels"
 import { extractDhcpServers, extractDhcpRelays } from "./dhcp"
 import { extractDnsProxies } from "./dns-proxy"
+import { extractProxy } from "./proxy"
 import {
   extractBfdProfiles, extractBgpRoutingProfiles, extractRoutingFilters,
   extractOspfRoutingProfiles, extractOspfv3RoutingProfiles,
   extractRipRoutingProfiles, extractMulticastRoutingProfiles,
 } from "./routing-profiles"
+import { extractQosInterfaces } from "./qos-interfaces"
+import { extractLldpGeneral } from "./lldp-general"
 import {
   extractInterfaceMgmtProfiles,
   extractMonitorProfiles,
@@ -217,6 +220,9 @@ function parseFirewall(
     dhcpServers: extractDhcpServers(networkEl, null),
     dhcpRelays:  extractDhcpRelays(networkEl, null),
     dnsProxies: extractDnsProxies(networkEl, null, vsysEntry),
+    qosInterfaces: extractQosInterfaces(networkEl, null),
+    lldpGeneral:   extractLldpGeneral(networkEl, null),
+    proxy: extractProxy(networkEl, null),
     securityRules,
     natRules,
     ...policyCounts,
@@ -343,6 +349,9 @@ function parsePanorama(
       ipsecTunnels:             extractIpsecTunnels(networkEl, tmplName),
       greTunnels:               extractGreTunnels(networkEl, tmplName),
       dnsProxies:               extractDnsProxies(networkEl, tmplName, vsysEntry),
+      qosInterfaces:            extractQosInterfaces(networkEl, tmplName),
+      lldpGeneral:              extractLldpGeneral(networkEl, tmplName),
+      proxy:                    extractProxy(networkEl, tmplName),
     }
   })
 

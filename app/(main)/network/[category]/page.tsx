@@ -29,6 +29,9 @@ import { IpsecTunnelsView } from "../_components/ipsec-tunnels"
 import { GreTunnelsView } from "../_components/gre-tunnels"
 import { DhcpView } from "../_components/dhcp"
 import { DnsProxyView } from "../_components/dns-proxy"
+import { ProxyView } from "../_components/proxy"
+import { QosInterfacesView } from "../_components/qos-interfaces"
+import { LldpGeneralView } from "../_components/lldp-general"
 import {
   InterfaceMgmtView,
   MonitorView,
@@ -65,6 +68,7 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "gre-tunnels":                         { title: "GRE Tunnels",                component: GreTunnelsView },
   "dhcp":                                { title: "DHCP",                       component: DhcpView },
   "dns-proxy":                           { title: "DNS Proxy",                  component: DnsProxyView },
+  "proxy":                               { title: "Proxy",                      component: ProxyView },
   "global-protect":                      { title: "GlobalProtect" },
   "global-protect-portals":              { title: "Portals" },
   "global-protect-gateways":             { title: "Gateways" },
@@ -72,8 +76,8 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "global-protect-clientless-apps":      { title: "Clientless Apps" },
   "global-protect-clientless-app-groups":{ title: "Clientless App Groups" },
   "global-protect-dhcp-profile":         { title: "DHCP Profile" },
-  "qos":                                 { title: "QoS" },
-  "lldp":                                { title: "LLDP" },
+  "qos":                                 { title: "QoS",                        component: QosInterfacesView },
+  "lldp":                                { title: "LLDP",                       component: LldpGeneralView },
   "network-profiles":                    { title: "Network Profiles" },
   "network-profiles-gp-ipsec-crypto":    { title: "GlobalProtect IPSec Crypto", component: GpIpsecCryptoView },
   "network-profiles-ike-gateways":       { title: "IKE Gateways",               component: IkeGatewaysView },

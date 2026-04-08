@@ -13,6 +13,8 @@ import type {
   PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles,PanwRipRoutingProfiles,
   PanwMulticastRoutingProfiles,
 } from "@/lib/panw-parser/routing-profiles"
+import type { PanwQosInterface } from "@/lib/panw-parser/qos-interfaces"
+import type { PanwLldpGeneral } from "@/lib/panw-parser/lldp-general"
 import type {
   PanwInterfaceMgmtProfile,
   PanwMonitorProfile,
@@ -29,6 +31,7 @@ import type {
 import { PanwGreTunnel } from "@/lib/panw-parser/gre-tunnels"
 import { PanwDhcpServer, PanwDhcpRelay } from "@/lib/panw-parser/dhcp"
 import { PanwDnsProxy } from "@/lib/panw-parser/dns-proxy"
+import type { PanwProxy } from "@/lib/panw-parser/proxy"
 
 // ─── Template resolution (Network scope) ─────────────────────────────────────
 
@@ -82,6 +85,9 @@ export interface ResolvedNetworkData {
   lldpProfiles: PanwLldpProfile[]
   macsecProfiles: PanwMacsecProfile[]
   qosProfiles: PanwQosProfile[]
+  qosInterfaces: PanwQosInterface[]
+  lldpGeneral: PanwLldpGeneral[]
+  proxy: PanwProxy[]
 }
 
 const EMPTY_OSPF: PanwOspfRoutingProfiles = { spfTimerProfiles: [], authProfiles: [], ifTimerProfiles: [], redistributionProfiles: [] }
@@ -139,6 +145,9 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       dhcpServers: config.dhcpServers ?? [],
       dhcpRelays: config.dhcpRelays ?? [],
       dnsProxies: config.dnsProxies ?? [],
+      qosInterfaces: config.qosInterfaces ?? [],
+      lldpGeneral: config.lldpGeneral ? [config.lldpGeneral] : [],
+      proxy: config.proxy != null ? [config.proxy] : [],
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -218,6 +227,9 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     dhcpServers: templates.flatMap(t => t.dhcpServers ?? []),
     dhcpRelays: templates.flatMap(t => t.dhcpRelays ?? []),
     dnsProxies: templates.flatMap(t => t.dnsProxies ?? []),
+    qosInterfaces: templates.flatMap(t => t.qosInterfaces ?? []),
+    lldpGeneral: templates.map(t => t.lldpGeneral).filter((g): g is PanwLldpGeneral => g != null),
+    proxy: templates.map(t => t.proxy).filter((p): p is PanwProxy => p != null),
   }
 }
 
