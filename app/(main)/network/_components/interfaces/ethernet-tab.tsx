@@ -53,7 +53,7 @@ function buildEthernetColumns(
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      cell: (info) => <span className="text-xs font-medium">{info.getValue()}</span>,
     }) as ColumnDef<PanwInterface, unknown>,
 
     {

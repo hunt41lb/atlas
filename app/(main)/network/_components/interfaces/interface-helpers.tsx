@@ -156,7 +156,7 @@ export function SubInterfaceRows({
           {show("name") && (
             <TableCell className="pl-2">
               <span className="text-muted-foreground mr-1 text-xs">↳</span>
-              <span className="font-medium text-sm">{sub.name}</span>
+              <span className="font-medium text-xs">{sub.name}</span>
             </TableCell>
           )}
           {show("interfaceType") && (
