@@ -9,7 +9,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 
-import type { PanwBgpFilteringProfile } from "@/lib/panw-parser/routing-profiles"
+import type { PanwBgpFilteringProfile } from "@/lib/panw-parser/network/routing-profiles"
 
 // ─── Summary renderer ─────────────────────────────────────────────────────────
 
@@ -93,3 +93,4 @@ export function buildFilterColumns(isPanorama: boolean): ColumnDef<PanwBgpFilter
     } as ColumnDef<PanwBgpFilteringProfile, unknown>] : []),
   ]
 }
+

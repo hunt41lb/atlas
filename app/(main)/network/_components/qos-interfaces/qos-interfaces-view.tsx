@@ -21,7 +21,7 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { NotConfiguredState } from "@/app/(main)/_components/ui/empty-state"
-import type { PanwQosInterface, PanwQosTrafficGroup } from "@/lib/panw-parser/qos-interfaces"
+import type { PanwQosInterface, PanwQosTrafficGroup } from "@/lib/panw-parser/network/qos-interfaces"
 
 // ─── Traffic group table (reused for Clear Text and Tunneled tabs) ────────────
 
@@ -253,3 +253,4 @@ export function QosInterfacesView() {
     </>
   )
 }
+

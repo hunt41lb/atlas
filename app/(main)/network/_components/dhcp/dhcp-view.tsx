@@ -22,7 +22,7 @@ import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 import { NotConfiguredState } from "@/app/(main)/_components/ui/empty-state"
 import { DhcpServerDialog } from "./dhcp-server-dialog"
 import { DhcpRelayDialog } from "./dhcp-relay-dialog"
-import type { PanwDhcpServer, PanwDhcpRelay } from "@/lib/panw-parser/dhcp"
+import type { PanwDhcpServer, PanwDhcpRelay } from "@/lib/panw-parser/network/dhcp"
 
 // ─── Options summary (multi-line text for the Options column) ─────────────────
 
@@ -287,3 +287,4 @@ export function DhcpView() {
     </Tabs>
   )
 }
+

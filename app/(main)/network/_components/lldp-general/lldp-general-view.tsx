@@ -10,8 +10,8 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { NotConfiguredState } from "@/app/(main)/_components/ui/empty-state"
-import { LLDP_GENERAL_DEFAULTS } from "@/lib/panw-parser/lldp-general"
-import type { PanwLldpGeneral } from "@/lib/panw-parser/lldp-general"
+import { LLDP_GENERAL_DEFAULTS } from "@/lib/panw-parser/network/lldp-general"
+import type { PanwLldpGeneral } from "@/lib/panw-parser/network/lldp-general"
 
 const LW = "w-44"
 
@@ -79,3 +79,4 @@ export function LldpGeneralView() {
     </div>
   )
 }
+

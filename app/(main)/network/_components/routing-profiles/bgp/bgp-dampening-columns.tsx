@@ -7,8 +7,8 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table"
 
-import type { PanwBgpDampeningProfile } from "@/lib/panw-parser/routing-profiles"
-import { BGP_DAMPENING_DEFAULTS } from "@/lib/panw-parser/routing-profiles"
+import type { PanwBgpDampeningProfile } from "@/lib/panw-parser/network/routing-profiles"
+import { BGP_DAMPENING_DEFAULTS } from "@/lib/panw-parser/network/routing-profiles"
 import { DefaultCell } from "../_shared"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
@@ -72,3 +72,4 @@ export function buildDampeningColumns(isPanorama: boolean): ColumnDef<PanwBgpDam
     } as ColumnDef<PanwBgpDampeningProfile, unknown>] : []),
   ]
 }
+

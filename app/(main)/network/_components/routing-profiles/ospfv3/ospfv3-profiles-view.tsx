@@ -18,7 +18,7 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 
-import type { PanwOspfv3AuthProfile } from "@/lib/panw-parser/routing-profiles"
+import type { PanwOspfv3AuthProfile } from "@/lib/panw-parser/network/routing-profiles"
 
 import { ProfileSection, useSectionTable } from "../_shared"
 import {
@@ -102,3 +102,4 @@ export function Ospfv3ProfilesView() {
     </div>
   )
 }
+

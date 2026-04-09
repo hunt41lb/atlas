@@ -8,7 +8,7 @@ import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/field
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import type { PanwNetworkBfdProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwNetworkBfdProfile } from "@/lib/panw-parser/network/network-profiles"
 
 export function BfdDialog({
   profile,
@@ -62,3 +62,4 @@ export function BfdDialog({
     </DetailDialog>
   )
 }
+

@@ -1,20 +1,22 @@
 // @/app/(main)/_lib/resolve-config-data.ts
 
-import type {
-  ParsedConfig, ParsedPanoramaConfig,
-  PanwInterface, PanwZone, PanwVirtualRouter, PanwVlan, PanwVirtualWire,
-  PanwAddress, PanwAddressGroup, PanwService, PanwServiceGroup,
-  PanwApplicationGroup, PanwApplicationFilter, PanwProfileGroup, PanwTag,
-  PanwSecurityRule, PanwNatRule,
-} from "@/lib/panw-parser/types"
-import type { PanwIpsecTunnel } from "@/lib/panw-parser/ipsec-tunnels"
+// General Imports
+import type { ParsedConfig, ParsedPanoramaConfig, } from "@/lib/panw-parser/general/config"
+
+// Network Imports
+import type { PanwInterface } from "@/lib/panw-parser/network/interfaces"
+import type { PanwZone } from "@/lib/panw-parser/network/zones"
+import type { PanwVirtualRouter } from "@/lib/panw-parser/network/routers"
+import type { PanwVlan } from "@/lib/panw-parser/network/vlans"
+import type { PanwVirtualWire } from "@/lib/panw-parser/network/virtual-wires"
+import type { PanwIpsecTunnel } from "@/lib/panw-parser/network/ipsec-tunnels"
 import type {
   PanwBfdProfile, PanwBgpRoutingProfiles, PanwRoutingFilters,
   PanwOspfRoutingProfiles, PanwOspfv3RoutingProfiles,PanwRipRoutingProfiles,
   PanwMulticastRoutingProfiles,
-} from "@/lib/panw-parser/routing-profiles"
-import type { PanwQosInterface } from "@/lib/panw-parser/qos-interfaces"
-import type { PanwLldpGeneral } from "@/lib/panw-parser/lldp-general"
+} from "@/lib/panw-parser/network/routing-profiles"
+import type { PanwQosInterface } from "@/lib/panw-parser/network/qos-interfaces"
+import type { PanwLldpGeneral } from "@/lib/panw-parser/network/lldp-general"
 import type {
   PanwInterfaceMgmtProfile,
   PanwMonitorProfile,
@@ -27,11 +29,22 @@ import type {
   PanwLldpProfile,
   PanwMacsecProfile,
   PanwQosProfile,
-} from "@/lib/panw-parser/network-profiles"
-import { PanwGreTunnel } from "@/lib/panw-parser/gre-tunnels"
-import { PanwDhcpServer, PanwDhcpRelay } from "@/lib/panw-parser/dhcp"
-import { PanwDnsProxy } from "@/lib/panw-parser/dns-proxy"
-import type { PanwProxy } from "@/lib/panw-parser/proxy"
+} from "@/lib/panw-parser/network/network-profiles"
+import { PanwGreTunnel } from "@/lib/panw-parser/network/gre-tunnels"
+import { PanwDhcpServer, PanwDhcpRelay } from "@/lib/panw-parser/network/dhcp"
+import { PanwDnsProxy } from "@/lib/panw-parser/network/dns-proxy"
+import type { PanwProxy } from "@/lib/panw-parser/network/proxy"
+
+// Objects Imports
+import type { PanwAddress, PanwAddressGroup } from "@/lib/panw-parser/objects/addresses"
+import type { PanwService, PanwServiceGroup } from "@/lib/panw-parser/objects/services"
+import type { PanwApplicationGroup, PanwApplicationFilter } from "@/lib/panw-parser/objects/applications"
+import type { PanwProfileGroup } from "@/lib/panw-parser/objects/profile-groups"
+import type { PanwTag } from "@/lib/panw-parser/objects/tags"
+
+// Policies Imports
+import type { PanwSecurityRule } from "@/lib/panw-parser/policies/security-rules"
+import type { PanwNatRule } from "@/lib/panw-parser/policies/nat-rules"
 
 // ─── Template resolution (Network scope) ─────────────────────────────────────
 
@@ -347,3 +360,4 @@ function mergeZoneOverrides(templateZones: PanwZone[], overrides: PanwZone[]): P
 
   return merged
 }
+

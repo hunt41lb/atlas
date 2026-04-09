@@ -17,7 +17,7 @@ import { DataTable } from "@/components/ui/data-table"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import type { PanwZoneProtectionProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwZoneProtectionProfile } from "@/lib/panw-parser/network/network-profiles"
 import { ZoneProtectionDialog } from "./zone-protection-dialog"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
@@ -192,3 +192,4 @@ export function ZoneProtectionView() {
     </>
   )
 }
+

@@ -1,6 +1,6 @@
 // @/lib/api-client.ts
 
-import type { ParsedConfig } from "@/lib/panw-parser/types"
+import type { ParsedConfig } from "@/lib/panw-parser/general/config"
 
 const API_URL  = process.env.NEXT_PUBLIC_API_URL  ?? "http://localhost:3001"
 const API_KEY  = process.env.NEXT_PUBLIC_API_KEY  ?? ""
@@ -121,3 +121,4 @@ export async function uploadConfiguration(file: File): Promise<UploadResult> {
   }
   return res.json()
 }
+

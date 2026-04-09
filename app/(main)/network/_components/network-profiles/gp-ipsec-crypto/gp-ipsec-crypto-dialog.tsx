@@ -5,7 +5,7 @@
 import { DetailDialog } from "@/components/ui/detail-dialog"
 import { DisplayField } from "@/components/ui/display-field"
 import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
-import type { PanwGpIpsecCryptoProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwGpIpsecCryptoProfile } from "@/lib/panw-parser/network/network-profiles"
 
 export function GpIpsecCryptoDialog({
   profile,
@@ -41,3 +41,4 @@ export function GpIpsecCryptoDialog({
     </DetailDialog>
   )
 }
+

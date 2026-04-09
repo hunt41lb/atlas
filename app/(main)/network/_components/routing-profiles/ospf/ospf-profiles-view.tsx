@@ -22,7 +22,7 @@ import type {
   PanwOspfAuthProfile,
   PanwOspfIfTimerProfile,
   PanwOspfRedistProfile,
-} from "@/lib/panw-parser/routing-profiles"
+} from "@/lib/panw-parser/network/routing-profiles"
 
 import { ProfileSection, useSectionTable } from "../_shared"
 
@@ -182,3 +182,4 @@ export function OspfProfilesView() {
     </div>
   )
 }
+

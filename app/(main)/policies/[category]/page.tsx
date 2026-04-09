@@ -12,7 +12,9 @@ import {
   CategoryShell, ComingSoonView, ActionBadge, TagPill, TypeBadge, MembersList, MonoValue,
   DataTable, DataThead, DataTh, DataTbody, DataTr, DataTd, TableEmpty,
 } from "@/app/(main)/_components/ui/category-shell"
-import type { PanwSecurityRule, PanwNatRule } from "@/lib/panw-parser/types"
+
+import type { PanwSecurityRule } from "@/lib/panw-parser/policies/security-rules"
+import type { PanwNatRule } from "@/lib/panw-parser/policies/nat-rules"
 
 // ─── Rulebase badge ───────────────────────────────────────────────────────────
 
@@ -281,3 +283,4 @@ export default function PoliciesCategoryPage({ params }: { params: Promise<{ cat
 
   return <ComingSoonView title={view.title} />
 }
+

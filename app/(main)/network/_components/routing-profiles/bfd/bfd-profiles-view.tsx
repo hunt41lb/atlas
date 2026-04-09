@@ -1,4 +1,4 @@
-// @/app/(main)/network/_components/routing-profiles/bfd-profiles-view.tsx
+// @/app/(main)/network/_components/routing-profiles/bfd/bfd-profiles-view.tsx
 //
 // BFD (Bidirectional Forwarding Detection) Routing Profiles table.
 // Displays Logical Router BFD profile definitions.
@@ -21,8 +21,8 @@ import { DataTable } from "@/components/ui/data-table"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import type { PanwBfdProfile } from "@/lib/panw-parser/routing-profiles"
-import { BFD_DEFAULTS } from "@/lib/panw-parser/routing-profiles"
+import type { PanwBfdProfile } from "@/lib/panw-parser/network/routing-profiles"
+import { BFD_DEFAULTS } from "@/lib/panw-parser/network/routing-profiles"
 
 // ─── Column builder ──────────────────────────────────────────────────────────
 
@@ -165,3 +165,4 @@ export function BfdProfilesView() {
     />
   )
 }
+

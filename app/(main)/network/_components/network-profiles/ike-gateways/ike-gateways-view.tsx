@@ -19,8 +19,8 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { IkeGatewayDialog } from "./ike-gateways-dialog"
-import type { PanwIkeGateway } from "@/lib/panw-parser/network-profiles"
-import { ID_TYPE_LABELS } from "@/lib/panw-parser/network-profiles"
+import type { PanwIkeGateway } from "@/lib/panw-parser/network/network-profiles"
+import { ID_TYPE_LABELS } from "@/lib/panw-parser/network/network-profiles"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
@@ -247,3 +247,4 @@ export function IkeGatewaysView() {
     </>
   )
 }
+

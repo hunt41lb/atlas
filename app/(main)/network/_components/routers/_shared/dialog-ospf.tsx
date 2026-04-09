@@ -24,7 +24,7 @@ import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/field
 import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import type { RouterDialogPageProps } from "./dialog-general"
-import type { PanwOspfArea } from "@/lib/panw-parser/types"
+import type { PanwOspfArea } from "@/lib/panw-parser/network/routers"
 
 // ─── Area Detail Dialog ───────────────────────────────────────────────────────
 
@@ -368,3 +368,4 @@ function OspfPageInner({
     </div>
   )
 }
+

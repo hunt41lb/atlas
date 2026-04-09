@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { IpAddressCell, type VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
 import { INTERFACE_MODE_COLORS } from "@/lib/colors"
 import { ZoneBadge } from "@/app/(main)/_components/ui/category-shell"
-import type { PanwInterface, PanwSubInterface } from "@/lib/panw-parser/types"
+import type { PanwInterface, PanwSubInterface } from "@/lib/panw-parser/network/interfaces"
 
 // ─── Shared tab props type ────────────────────────────────────────────────────
 

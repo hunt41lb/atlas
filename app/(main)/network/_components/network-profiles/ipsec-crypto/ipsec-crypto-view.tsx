@@ -18,7 +18,7 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { IpsecCryptoDialog } from "./ipsec-crypto-dialog"
-import type { PanwIpsecCryptoProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwIpsecCryptoProfile } from "@/lib/panw-parser/network/network-profiles"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
@@ -160,3 +160,4 @@ export function IpsecCryptoView() {
     </>
   )
 }
+

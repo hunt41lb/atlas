@@ -9,7 +9,7 @@ import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/field
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
-import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network/network-profiles"
 import type { VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
 
 // ─── Service definitions ──────────────────────────────────────────────────────
@@ -124,3 +124,4 @@ export function InterfaceMgmtDialog({
     </DetailDialog>
   )
 }
+

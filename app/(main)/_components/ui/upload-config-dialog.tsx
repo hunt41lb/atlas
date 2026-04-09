@@ -15,7 +15,7 @@ import {
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { parseConfigFile, deriveConfigName } from "@/lib/panw-parser"
 import { uploadConfiguration, fetchConfiguration } from "@/lib/api-client"
-import type { ParsedConfig } from "@/lib/panw-parser/types"
+import type { ParsedConfig } from "@/lib/panw-parser/general/config"
 import {
   Dialog,
   DialogContent,

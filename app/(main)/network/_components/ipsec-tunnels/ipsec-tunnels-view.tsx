@@ -20,7 +20,7 @@ import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 import { NotConfiguredState } from "@/app/(main)/_components/ui/empty-state"
 import { IpsecTunnelDialog } from "./ipsec-tunnels-dialog"
-import type { PanwIpsecTunnel } from "@/lib/panw-parser/ipsec-tunnels"
+import type { PanwIpsecTunnel } from "@/lib/panw-parser/network/ipsec-tunnels"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -272,3 +272,4 @@ export function IpsecTunnelsView() {
     </>
   )
 }
+

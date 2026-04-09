@@ -16,7 +16,7 @@ import {
 import { DetailDialog } from "@/components/ui/detail-dialog"
 import { DisplayField } from "@/components/ui/display-field"
 
-import type { PanwBgpRouteMap, PanwBgpRouteMapEntry } from "@/lib/panw-parser/routing-profiles"
+import type { PanwBgpRouteMap, PanwBgpRouteMapEntry } from "@/lib/panw-parser/network/routing-profiles"
 import { BgpRouteMapDetailsDialog } from "./route-maps-bgp-dialog-details"
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
@@ -102,3 +102,4 @@ export function BgpRouteMapDialog({
     </>
   )
 }
+

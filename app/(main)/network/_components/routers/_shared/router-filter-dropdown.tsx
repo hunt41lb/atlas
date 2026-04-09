@@ -9,7 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select"
-import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
+import type { PanwVirtualRouter } from "@/lib/panw-parser/network/routers"
 
 export function RouterFilterDropdown({
   routers,
@@ -49,3 +49,4 @@ export function RouterFilterDropdown({
     </Select>
   )
 }
+

@@ -19,7 +19,7 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 import { GpIpsecCryptoDialog } from "./gp-ipsec-crypto-dialog"
-import type { PanwGpIpsecCryptoProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwGpIpsecCryptoProfile } from "@/lib/panw-parser/network/network-profiles"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -95,3 +95,4 @@ export function GpIpsecCryptoView() {
     </>
   )
 }
+

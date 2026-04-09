@@ -9,7 +9,7 @@ import {
 
 import { Badge } from "@/components/ui/badge"
 
-import type { PanwBgpRedistributionProfile } from "@/lib/panw-parser/routing-profiles"
+import type { PanwBgpRedistributionProfile } from "@/lib/panw-parser/network/routing-profiles"
 
 // ─── Summary renderer ─────────────────────────────────────────────────────────
 
@@ -73,3 +73,4 @@ export function buildRedistColumns(isPanorama: boolean): ColumnDef<PanwBgpRedist
     } as ColumnDef<PanwBgpRedistributionProfile, unknown>] : []),
   ]
 }
+

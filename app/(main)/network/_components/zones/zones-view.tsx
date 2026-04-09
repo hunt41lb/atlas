@@ -23,7 +23,7 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { ZONE_TYPE_COLORS } from "@/lib/colors"
-import type { PanwZone } from "@/lib/panw-parser/types"
+import type { PanwZone } from "@/lib/panw-parser/network/zones"
 
 const ZONE_TYPE_LABELS: Record<string, string> = {
   layer3: "Layer3",
@@ -223,3 +223,4 @@ export function ZonesView() {
     />
   )
 }
+

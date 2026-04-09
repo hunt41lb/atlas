@@ -5,18 +5,22 @@
 import * as React from "react"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { type VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
+
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { ComingSoonView } from "@/app/(main)/_components/ui/category-shell"
-import type { PanwVirtualRouter, PanwZone, ParsedPanoramaConfig } from "@/lib/panw-parser/types"
-import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network-profiles"
 import { InterfaceMgmtDialog } from "../network-profiles/interface-mgmt/interface-mgmt-dialog"
 import { EthernetTab } from "./ethernet-tab"
 import { AggregateEthernetTab } from "./aggregate-ethernet-tab"
 import { InterfaceTable } from "./interface-table"
 import { PoeTable } from "./poe-table"
+
+import type { ParsedPanoramaConfig  } from "@/lib/panw-parser/general/config"
+import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network/network-profiles"
+import type { PanwVirtualRouter } from "@/lib/panw-parser/network/routers"
+import type { PanwZone } from "@/lib/panw-parser/network/zones"
+import type { VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
 
 // ─── Tab definitions ─────────────────────────────────────────────────────────
 
@@ -192,3 +196,4 @@ export function InterfacesView() {
     </Tabs>
   )
 }
+

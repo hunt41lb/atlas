@@ -17,7 +17,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
-import type { PanwBgpAuthProfile } from "@/lib/panw-parser/routing-profiles"
+import type { PanwBgpAuthProfile } from "@/lib/panw-parser/network/routing-profiles"
 
 // ─── Dialog ───────────────────────────────────────────────────────────────────
 
@@ -87,3 +87,4 @@ export function buildAuthColumns(
     } as ColumnDef<PanwBgpAuthProfile, unknown>] : []),
   ]
 }
+

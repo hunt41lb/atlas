@@ -20,7 +20,7 @@ import { useExpandableRows, ExpandToggle } from "@/components/ui/expandable-row"
 import { IpAddressCell } from "@/app/(main)/_components/ui/ip-address-cell"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import { cn } from "@/lib/utils"
-import type { PanwInterface } from "@/lib/panw-parser/types"
+import type { PanwInterface } from "@/lib/panw-parser/network/interfaces"
 import {
   MODE_LABELS,
   InterfaceTypeBadge,

@@ -26,7 +26,7 @@ import { Label } from "@/components/ui/label"
 import type {
   PanwBgpAddressFamilyProfile,
   PanwBgpAddressFamilySubConfig,
-} from "@/lib/panw-parser/routing-profiles"
+} from "@/lib/panw-parser/network/routing-profiles"
 
 // ─── PAN-OS Defaults ──────────────────────────────────────────────────────────
 
@@ -359,3 +359,4 @@ export function buildAfColumns(
     } as ColumnDef<BgpAfTableRow, unknown>] : []),
   ]
 }
+

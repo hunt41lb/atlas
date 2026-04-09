@@ -22,7 +22,7 @@ import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/field
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
-import type { PanwIkeCryptoProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwIkeCryptoProfile } from "@/lib/panw-parser/network/network-profiles"
 
 // ─── General Tab ──────────────────────────────────────────────────────────────
 
@@ -197,3 +197,4 @@ export function IkeCryptoDialog({
     </DetailDialog>
   )
 }
+

@@ -20,7 +20,7 @@ import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 import { NotConfiguredState } from "@/app/(main)/_components/ui/empty-state"
 import { GreTunnelDialog } from "./gre-tunnels-dialog"
-import type { PanwGreTunnel } from "@/lib/panw-parser/gre-tunnels"
+import type { PanwGreTunnel } from "@/lib/panw-parser/network/gre-tunnels"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -204,3 +204,4 @@ export function GreTunnelsView() {
     </>
   )
 }
+

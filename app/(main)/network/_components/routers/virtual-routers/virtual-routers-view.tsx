@@ -8,7 +8,7 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { RouterSettingsTab } from "../_shared/router-settings-tab"
 import { RouterDialog } from "../_shared/router-dialog"
-import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
+import type { PanwVirtualRouter } from "@/lib/panw-parser/network/routers"
 
 export function VirtualRoutersView() {
   const { activeConfig } = useConfig()
@@ -39,3 +39,4 @@ export function VirtualRoutersView() {
     </>
   )
 }
+

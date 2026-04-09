@@ -21,7 +21,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { DataTable } from "@/components/ui/data-table"
 import { InterfaceTypeBadge } from "./interface-helpers"
-import type { PanwInterface } from "@/lib/panw-parser/types"
+import type { PanwInterface } from "@/lib/panw-parser/network/interfaces"
 
 // ─── Column builder ──────────────────────────────────────────────────────────
 

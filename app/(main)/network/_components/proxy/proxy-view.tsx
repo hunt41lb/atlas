@@ -12,7 +12,7 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { NotConfiguredState } from "@/app/(main)/_components/ui/empty-state"
-import type { PanwProxy, PanwExplicitProxy, PanwTransparentProxy } from "@/lib/panw-parser/proxy"
+import type { PanwProxy, PanwExplicitProxy, PanwTransparentProxy } from "@/lib/panw-parser/network/proxy"
 
 // ─── Labels ───────────────────────────────────────────────────────────────────
 
@@ -145,3 +145,4 @@ export function ProxyView() {
     </div>
   )
 }
+

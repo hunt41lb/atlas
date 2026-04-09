@@ -20,7 +20,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type {
   PanwIpsecTunnel,
   PanwIpsecProxyId,
-} from "@/lib/panw-parser/ipsec-tunnels"
+} from "@/lib/panw-parser/network/ipsec-tunnels"
 
 // ─── Shared label width ───────────────────────────────────────────────────────
 
@@ -419,3 +419,4 @@ export function IpsecTunnelDialog({
     </DetailDialog>
   )
 }
+

@@ -16,7 +16,7 @@ import { DisplayField } from "@/components/ui/display-field"
 import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import type { PanwDnsProxy } from "@/lib/panw-parser/dns-proxy"
+import type { PanwDnsProxy } from "@/lib/panw-parser/network/dns-proxy"
 
 const LW = "w-36"
 const GLW = "w-28"
@@ -286,3 +286,4 @@ export function DnsProxyDialog({
     </DetailDialog>
   )
 }
+

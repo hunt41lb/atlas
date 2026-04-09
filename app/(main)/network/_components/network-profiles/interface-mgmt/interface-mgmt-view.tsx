@@ -20,9 +20,9 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 import { InterfaceMgmtDialog } from "./interface-mgmt-dialog"
-import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network-profiles"
+import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network/network-profiles"
 import type { VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
-import type { ParsedPanoramaConfig } from "@/lib/panw-parser/types"
+import type { ParsedPanoramaConfig } from "@/lib/panw-parser/general/config"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -155,3 +155,4 @@ export function InterfaceMgmtView() {
     </>
   )
 }
+

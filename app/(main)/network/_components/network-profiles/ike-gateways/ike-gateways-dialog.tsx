@@ -25,8 +25,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import type { PanwIkeGateway } from "@/lib/panw-parser/network-profiles"
-import { ID_TYPE_LABELS } from "@/lib/panw-parser/network-profiles"
+import type { PanwIkeGateway } from "@/lib/panw-parser/network/network-profiles"
+import { ID_TYPE_LABELS } from "@/lib/panw-parser/network/network-profiles"
 
 // ─── Labels ───────────────────────────────────────────────────────────────────
 
@@ -482,3 +482,4 @@ export function IkeGatewayDialog({
     </DetailDialog>
   )
 }
+

@@ -18,7 +18,7 @@ import type {
   PanwBgpAuthProfile,
   PanwBgpTimerProfile,
   PanwBgpAddressFamilyProfile,
-} from "@/lib/panw-parser/routing-profiles"
+} from "@/lib/panw-parser/network/routing-profiles"
 
 import { ProfileSection, useSectionTable } from "../_shared"
 import { AuthProfileDialog, buildAuthColumns } from "./bgp-auth-dialog"
@@ -132,3 +132,4 @@ export function BgpProfilesView() {
     </div>
   )
 }
+

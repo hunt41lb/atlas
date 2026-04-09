@@ -21,7 +21,7 @@ import { MembersList, MonoValue } from "@/app/(main)/_components/ui/category-she
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import type { PanwVlan } from "@/lib/panw-parser/types"
+import type { PanwVlan } from "@/lib/panw-parser/network/vlans"
 
 const columnHelper = createColumnHelper<PanwVlan>()
 
@@ -122,3 +122,4 @@ export function VlansView() {
     />
   )
 }
+

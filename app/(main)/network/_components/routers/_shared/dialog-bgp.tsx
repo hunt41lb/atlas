@@ -24,7 +24,7 @@ import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/field
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import type { PanwLrBgpPeerGroup, PanwLrBgpAggregateRoute } from "@/lib/panw-parser/types"
+import type { PanwLrBgpPeerGroup, PanwLrBgpAggregateRoute } from "@/lib/panw-parser/network/routers"
 import type { RouterDialogPageProps } from "./dialog-general"
 
 // ─── Shared label width ───────────────────────────────────────────────────────

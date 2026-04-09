@@ -21,7 +21,7 @@ import type {
   PanwRipGlobalTimerProfile,
   PanwRipAuthProfile,
   PanwRipRedistProfile,
-} from "@/lib/panw-parser/routing-profiles"
+} from "@/lib/panw-parser/network/routing-profiles"
 
 import { ProfileSection, useSectionTable } from "../_shared"
 
@@ -145,3 +145,4 @@ export function RipProfilesView() {
     </div>
   )
 }
+

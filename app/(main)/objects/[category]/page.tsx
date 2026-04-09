@@ -12,10 +12,11 @@ import {
   CategoryShell, ComingSoonView, TagPill, ProtoBadge, TypeBadge, MembersList, MonoValue,
   DataTable, DataThead, DataTh, DataTbody, DataTr, DataTd, TableEmpty,
 } from "@/app/(main)/_components/ui/category-shell"
-import type {
-  PanwAddress, PanwAddressGroup, PanwService, PanwServiceGroup,
-  PanwApplicationGroup, PanwApplicationFilter, PanwProfileGroup, PanwTag,
-} from "@/lib/panw-parser/types"
+import type { PanwAddress, PanwAddressGroup } from "@/lib/panw-parser/objects/addresses"
+import type { PanwService, PanwServiceGroup } from "@/lib/panw-parser/objects/services"
+import type { PanwApplicationGroup, PanwApplicationFilter } from "@/lib/panw-parser/objects/applications"
+import type { PanwTag } from "@/lib/panw-parser/objects/tags"
+import type { PanwProfileGroup } from "@/lib/panw-parser/objects/profile-groups"
 
 // ─── Addresses ────────────────────────────────────────────────────────────────
 
@@ -563,3 +564,4 @@ export default function ObjectsCategoryPage({ params }: { params: Promise<{ cate
 
   return <ComingSoonView title={view.title} />
 }
+

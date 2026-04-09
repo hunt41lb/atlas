@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DataTable } from "@/components/ui/data-table"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
-import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
+import type { PanwVirtualRouter } from "@/lib/panw-parser/network/routers"
 
 // ─── Column builder ──────────────────────────────────────────────────────────
 
@@ -207,3 +207,4 @@ export function RouterSettingsTab({
     />
   )
 }
+

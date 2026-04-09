@@ -21,7 +21,7 @@ import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { templateColumn } from "@/app/(main)/_components/ui/table-columns"
 import { NotConfiguredState } from "@/app/(main)/_components/ui/empty-state"
 import { DnsProxyDialog } from "./dns-proxy-dialog"
-import type { PanwDnsProxy } from "@/lib/panw-parser/dns-proxy"
+import type { PanwDnsProxy } from "@/lib/panw-parser/network/dns-proxy"
 
 // ─── Columns ──────────────────────────────────────────────────────────────────
 
@@ -166,3 +166,4 @@ export function DnsProxyView() {
     </>
   )
 }
+

@@ -29,7 +29,7 @@ import {
   DEFAULT_ECMP,
   ECMP_ALGORITHM_LABELS,
 } from "@/lib/panw-defaults"
-import type { PanwVirtualRouter } from "@/lib/panw-parser/types"
+import type { PanwVirtualRouter } from "@/lib/panw-parser/network/routers"
 
 // ─── Interface Tab ────────────────────────────────────────────────────────────
 

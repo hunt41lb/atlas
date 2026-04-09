@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import { useConfig, type Configuration } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
-import type { ParsedPanoramaConfig } from "@/lib/panw-parser/types"
+import type { ParsedPanoramaConfig } from "@/lib/panw-parser/general/config"
 import {
   DropdownMenu,
   DropdownMenuContent,

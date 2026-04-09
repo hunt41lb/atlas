@@ -19,7 +19,7 @@ import {
 import { DetailDialog } from "@/components/ui/detail-dialog"
 import { DisplayField } from "@/components/ui/display-field"
 
-import type { PanwRedistRouteMap, PanwRedistRouteMapEntry } from "@/lib/panw-parser/routing-profiles"
+import type { PanwRedistRouteMap, PanwRedistRouteMapEntry } from "@/lib/panw-parser/network/routing-profiles"
 import { RedistRouteMapDetailsDialog } from "./route-maps-redist-dialog-details"
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
@@ -127,3 +127,4 @@ export function RedistRouteMapDialog({
     </>
   )
 }
+

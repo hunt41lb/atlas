@@ -3,7 +3,7 @@
 "use client"
 
 import * as React from "react"
-import type { ParsedConfig } from "@/lib/panw-parser/types"
+import type { ParsedConfig } from "@/lib/panw-parser/general/config"
 import {
   fetchConfigurations,
   fetchConfiguration,

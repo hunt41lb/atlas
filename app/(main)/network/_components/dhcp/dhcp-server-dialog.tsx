@@ -17,7 +17,7 @@ import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/field
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import type { PanwDhcpServer } from "@/lib/panw-parser/dhcp"
+import type { PanwDhcpServer } from "@/lib/panw-parser/network/dhcp"
 
 const LW = "w-36"
 
@@ -193,3 +193,4 @@ export function DhcpServerDialog({
     </DetailDialog>
   )
 }
+

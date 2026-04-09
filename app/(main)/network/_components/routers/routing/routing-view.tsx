@@ -18,7 +18,7 @@ import {
   MonoValue,
   MembersList,
 } from "@/app/(main)/_components/ui/category-shell"
-import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/types"
+import type { PanwVirtualRouter, PanwStaticRoute } from "@/lib/panw-parser/network/routers"
 
 export function RoutingView() {
   const { activeConfig } = useConfig()
@@ -100,3 +100,4 @@ export function RoutingView() {
     </CategoryShell>
   )
 }
+

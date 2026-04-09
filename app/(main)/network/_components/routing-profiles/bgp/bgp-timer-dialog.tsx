@@ -17,8 +17,8 @@ import {
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
-import type { PanwBgpTimerProfile } from "@/lib/panw-parser/routing-profiles"
-import { BGP_TIMER_DEFAULTS } from "@/lib/panw-parser/routing-profiles"
+import type { PanwBgpTimerProfile } from "@/lib/panw-parser/network/routing-profiles"
+import { BGP_TIMER_DEFAULTS } from "@/lib/panw-parser/network/routing-profiles"
 import { DefaultCell } from "../_shared"
 
 // ─── Dialog ───────────────────────────────────────────────────────────────────
@@ -119,3 +119,4 @@ export function buildTimerColumns(
     } as ColumnDef<PanwBgpTimerProfile, unknown>] : []),
   ]
 }
+

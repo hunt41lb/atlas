@@ -22,7 +22,7 @@ import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import type { PanwVirtualWire } from "@/lib/panw-parser/types"
+import type { PanwVirtualWire } from "@/lib/panw-parser/network/virtual-wires"
 
 const columnHelper = createColumnHelper<PanwVirtualWire>()
 
@@ -126,3 +126,4 @@ export function VirtualWiresView() {
     />
   )
 }
+

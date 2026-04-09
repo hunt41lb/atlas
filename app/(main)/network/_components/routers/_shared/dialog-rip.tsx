@@ -18,7 +18,7 @@ import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/field
 import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import type { RouterDialogPageProps } from "./dialog-general"
-import type { PanwRipInterface } from "@/lib/panw-parser/types"
+import type { PanwRipInterface } from "@/lib/panw-parser/network/routers"
 
 // ─── Shared label width ───────────────────────────────────────────────────────
 
@@ -162,3 +162,4 @@ export function RipPage({ router }: RouterDialogPageProps) {
     </div>
   )
 }
+

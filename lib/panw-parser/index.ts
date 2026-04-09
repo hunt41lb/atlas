@@ -1,31 +1,38 @@
 // @/lib/panw-parser/index.ts
 
 import { XMLParser } from "fast-xml-parser"
-import {
-  buildTagColorMap, extractTags, extractAddresses, extractAddressGroups,
-  extractServices, extractServiceGroups, extractApplicationGroups,
-  extractApplicationFilters, extractProfileGroups, extractZones,
-  extractInterfaces, extractVirtualRouters, extractLogicalRouters,
-  extractSecurityRules, extractNatRules,
-  extractTemplateVariables, extractVlans, extractVirtualWires,
-} from "./extractors"
 import { str, entries, entryName, dig, toArray, members } from "./xml-helpers"
 import type {
   ParseResult, ParsedFirewallConfig, ParsedPanoramaConfig,
   PanwDeviceGroup, PanwTemplate,
-} from "./types"
-import { extractIpsecTunnels } from "./ipsec-tunnels"
-import { extractGreTunnels } from "./gre-tunnels"
-import { extractDhcpServers, extractDhcpRelays } from "./dhcp"
-import { extractDnsProxies } from "./dns-proxy"
-import { extractProxy } from "./proxy"
+} from "./general/config"
+import { extractTemplateVariables } from "./general/config"
+
+// ─── Objects ──────────────────────────────────────────────────────────────────
+import { extractTags, buildTagColorMap } from "./objects/tags"
+import { extractAddresses, extractAddressGroups } from "./objects/addresses"
+import { extractServices, extractServiceGroups } from "./objects/services"
+import { extractApplicationGroups, extractApplicationFilters } from "./objects/applications"
+import { extractProfileGroups } from "./objects/profile-groups"
+
+// ─── Network ──────────────────────────────────────────────────────────────────
+import { extractInterfaces } from "./network/interfaces"
+import { extractZones } from "./network/zones"
+import { extractVlans } from "./network/vlans"
+import { extractVirtualWires } from "./network/virtual-wires"
+import { extractVirtualRouters, extractLogicalRouters } from "./network/routers"
+import { extractIpsecTunnels } from "./network/ipsec-tunnels"
+import { extractGreTunnels } from "./network/gre-tunnels"
+import { extractDhcpServers, extractDhcpRelays } from "./network/dhcp"
+import { extractDnsProxies } from "./network/dns-proxy"
+import { extractProxy } from "./network/proxy"
 import {
   extractBfdProfiles, extractBgpRoutingProfiles, extractRoutingFilters,
   extractOspfRoutingProfiles, extractOspfv3RoutingProfiles,
   extractRipRoutingProfiles, extractMulticastRoutingProfiles,
-} from "./routing-profiles"
-import { extractQosInterfaces } from "./qos-interfaces"
-import { extractLldpGeneral } from "./lldp-general"
+} from "./network/routing-profiles"
+import { extractQosInterfaces } from "./network/qos-interfaces"
+import { extractLldpGeneral } from "./network/lldp-general"
 import {
   extractInterfaceMgmtProfiles,
   extractMonitorProfiles,
@@ -38,7 +45,11 @@ import {
   extractLldpProfiles,
   extractMacsecProfiles,
   extractQosProfiles,
-} from "./network-profiles"
+} from "./network/network-profiles"
+
+// ─── Policies ─────────────────────────────────────────────────────────────────
+import { extractSecurityRules } from "./policies/security-rules"
+import { extractNatRules } from "./policies/nat-rules"
 
 // ─── XML Parser config ───────────────────────────────────────────────────────
 
@@ -64,6 +75,7 @@ const xmlParser = new XMLParser({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+/** Count entries at a path. Safe — returns 0 if path doesn't exist. */
 function countEntries(root: unknown, ...path: string[]): number {
   const el = path.reduce<unknown>((acc, key) => {
     if (acc && typeof acc === "object") return (acc as Record<string, unknown>)[key]
@@ -72,6 +84,7 @@ function countEntries(root: unknown, ...path: string[]): number {
   return entries(el).length
 }
 
+/** Sum a counter across all rulebase types (pre + post) for Panorama DGs */
 function countRulebaseEntries(
   dgEntry: Record<string, unknown>,
   ruleName: string
@@ -107,7 +120,7 @@ function extractSystemInfo(config: Record<string, unknown>) {
   }
 }
 
-// ─── Policy counts ────────────────────────────────────────────────────────────
+// ─── Policy counts (shared between firewall vsys and DG extractions) ─────────
 
 function extractPolicyCounts(rulebaseEl: unknown) {
   const rb = rulebaseEl as Record<string, unknown> | undefined
@@ -123,7 +136,7 @@ function extractPolicyCounts(rulebaseEl: unknown) {
   }
 }
 
-// ─── Object counts ────────────────────────────────────────────────────────────
+// ─── Object counts (shared between firewall vsys and DG/shared extractions) ──
 
 function extractObjectCounts(scopeEl: Record<string, unknown>) {
   const profilesEl = scopeEl["profiles"] as Record<string, unknown> | undefined
@@ -133,13 +146,13 @@ function extractObjectCounts(scopeEl: Record<string, unknown>) {
   ].reduce((sum, key) => sum + countEntries(profilesEl, key), 0)
 
   return {
-    externalDynamicLists:   countEntries(scopeEl, "external-list"),
-    schedules:              countEntries(scopeEl, "schedule"),
-    regions:                countEntries(scopeEl, "region"),
+    externalDynamicLists:  countEntries(scopeEl, "external-list"),
+    schedules:             countEntries(scopeEl, "schedule"),
+    regions:               countEntries(scopeEl, "region"),
     securityProfiles,
-    logForwardingProfiles:  countEntries(scopeEl, "log-settings", "profiles"),
-    authenticationProfiles: countEntries(scopeEl, "authentication-profile"),
-    decryptionProfiles:     countEntries(profilesEl, "decryption"),
+    logForwardingProfiles: countEntries(scopeEl, "log-settings", "profiles"),
+    authenticationProfiles:countEntries(scopeEl, "authentication-profile"),
+    decryptionProfiles:    countEntries(profilesEl, "decryption"),
   }
 }
 
@@ -163,11 +176,13 @@ function parseFirewall(
 
   const sharedEl = config["shared"] as Record<string, unknown> | undefined
 
+  // Tags
   const vsysTags = extractTags(vsysEntry["tag"])
   const sharedTags = extractTags(sharedEl?.["tag"])
   const allTags = [...vsysTags, ...sharedTags]
   const tagColorMap = buildTagColorMap(allTags)
 
+  // Objects
   const addresses       = extractAddresses(vsysEntry["address"], tagColorMap)
   const addressGroups   = extractAddressGroups(vsysEntry["address-group"], tagColorMap)
   const services        = extractServices(vsysEntry["service"], tagColorMap)
@@ -176,13 +191,15 @@ function parseFirewall(
   const applicationFilters = extractApplicationFilters(vsysEntry["application-filter"], tagColorMap)
   const profileGroups   = extractProfileGroups(vsysEntry["profile-group"])
 
-  const interfaces      = extractInterfaces(networkEl, null)
-  const virtualRouters  = extractVirtualRouters(networkEl, null)
-  const logicalRouters  = extractLogicalRouters(networkEl, null)
-  const vlans           = extractVlans(networkEl, null)
-  const virtualWires    = extractVirtualWires(networkEl, null)
-  const zones           = extractZones(vsysEntry["zone"], tagColorMap)
+  // Network
+  const interfaces     = extractInterfaces(networkEl, null)
+  const virtualRouters = extractVirtualRouters(networkEl, null)
+  const logicalRouters = extractLogicalRouters(networkEl, null)
+  const zones          = extractZones(vsysEntry["zone"], tagColorMap)
+  const vlans          = extractVlans(networkEl, null)
+  const virtualWires   = extractVirtualWires(networkEl, null)
 
+  // Policies
   const rulebaseEl    = vsysEntry["rulebase"]
   const securityRules = extractSecurityRules(
     dig(vsysEntry, "rulebase", "security", "rules"), "vsys1", "local", tagColorMap
@@ -191,6 +208,8 @@ function parseFirewall(
     dig(vsysEntry, "rulebase", "nat", "rules"), "vsys1", "local", tagColorMap
   )
   const policyCounts = extractPolicyCounts(rulebaseEl)
+
+  // Object counts
   const objectCounts = extractObjectCounts(vsysEntry)
 
   return {
@@ -201,6 +220,7 @@ function parseFirewall(
     serialNumber: sys.serialNumber,
     ipAddress: sys.ipAddress,
     platformModel: sys.platformModel,
+    // Objects
     tags: allTags,
     addresses,
     addressGroups,
@@ -209,12 +229,16 @@ function parseFirewall(
     applicationGroups,
     applicationFilters,
     profileGroups,
+    // Network
     interfaces,
     zones,
     virtualRouters,
     logicalRouters,
     vlans,
     virtualWires,
+    // Policies
+    securityRules,
+    natRules,
     ipsecTunnels: extractIpsecTunnels(networkEl, null),
     greTunnels: extractGreTunnels(networkEl, null),
     dhcpServers: extractDhcpServers(networkEl, null),
@@ -223,9 +247,8 @@ function parseFirewall(
     qosInterfaces: extractQosInterfaces(networkEl, null),
     lldpGeneral:   extractLldpGeneral(networkEl, null),
     proxy: extractProxy(networkEl, null),
-    securityRules,
-    natRules,
     ...policyCounts,
+    // Object counts
     ...objectCounts,
   }
 }
@@ -241,9 +264,11 @@ function parsePanorama(
 
   const sharedEl = (config["shared"] ?? {}) as Record<string, unknown>
 
+  // Shared tags first
   const sharedTags = extractTags(sharedEl["tag"])
   const tagColorMap = buildTagColorMap(sharedTags)
 
+  // Shared objects
   const sharedAddresses        = extractAddresses(sharedEl["address"], tagColorMap)
   const sharedAddressGroups    = extractAddressGroups(sharedEl["address-group"], tagColorMap)
   const sharedServices         = extractServices(sharedEl["service"], tagColorMap)
@@ -253,6 +278,7 @@ function parsePanorama(
   const sharedProfileGroups    = extractProfileGroups(sharedEl["profile-group"])
   const sharedObjectCounts     = extractObjectCounts(sharedEl)
 
+  // Shared rulebases
   const sharedPreSecurityRules = extractSecurityRules(
     dig(sharedEl, "pre-rulebase", "security", "rules"), "shared", "pre", tagColorMap
   )
@@ -260,10 +286,12 @@ function parsePanorama(
     dig(sharedEl, "post-rulebase", "security", "rules"), "shared", "post", tagColorMap
   )
 
+  // Panorama stores device-group, template, template-stack inside devices/entry
   const panoramaDeviceEntry = (
     toArray(dig(config, "devices", "entry") as unknown)[0] ?? {}
   ) as Record<string, unknown>
 
+  // Device groups
   const dgRootEl = panoramaDeviceEntry["device-group"] as Record<string, unknown> | undefined
   const deviceGroups: PanwDeviceGroup[] = entries(dgRootEl).map((dgEntry) => {
     const dgName = entryName(dgEntry)
@@ -302,6 +330,7 @@ function parsePanorama(
     }
   })
 
+  // Templates
   const tmplRootEl = panoramaDeviceEntry["template"] as Record<string, unknown> | undefined
   const templates: PanwTemplate[] = entries(tmplRootEl).map((tmplEntry) => {
     const tmplName = entryName(tmplEntry)
@@ -318,7 +347,7 @@ function parsePanorama(
 
     return {
       name: tmplName,
-      description: str(tmplEntry["description"]),
+      description:              str(tmplEntry["description"]),
       variables:                extractTemplateVariables(tmplEntry["variable"]),
       interfaces:               extractInterfaces(networkEl, tmplName),
       virtualRouters:           extractVirtualRouters(networkEl, tmplName),
@@ -355,9 +384,9 @@ function parsePanorama(
     }
   })
 
+  // Template stacks
   const tmplStackRootEl = panoramaDeviceEntry["template-stack"] as Record<string, unknown> | undefined
   const templateStacks = entries(tmplStackRootEl).map((stackEntry) => {
-    // Template stacks can have a <config> block with zone override assignments
     const stackDeviceEntry = (
       toArray(dig(stackEntry, "config", "devices", "entry") as unknown)[0] ?? {}
     ) as Record<string, unknown>
@@ -365,7 +394,6 @@ function parsePanorama(
       toArray(dig(stackDeviceEntry, "vsys", "entry") as unknown)[0] ?? {}
     ) as Record<string, unknown>
 
-    // Parse zone overrides — these contain the interface assignments
     const zoneOverrides = extractZones(stackVsysEntry["zone"], tagColorMap)
 
     return {

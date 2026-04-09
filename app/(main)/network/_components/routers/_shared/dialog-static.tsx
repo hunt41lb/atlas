@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/table"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import type { RouterDialogPageProps } from "./dialog-general"
-import type { PanwStaticRoute } from "@/lib/panw-parser/types"
+import type { PanwStaticRoute } from "@/lib/panw-parser/network/routers"
 
 // ─── Nexthop type labels ──────────────────────────────────────────────────────
 

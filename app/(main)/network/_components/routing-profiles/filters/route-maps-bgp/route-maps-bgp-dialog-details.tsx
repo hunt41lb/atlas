@@ -25,7 +25,7 @@ import type {
   PanwBgpRouteMapMatch,
   PanwBgpRouteMapSet,
   PanwRouteMapFilterRef,
-} from "@/lib/panw-parser/routing-profiles"
+} from "@/lib/panw-parser/network/routing-profiles"
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -327,3 +327,4 @@ export function BgpRouteMapDetailsDialog({
     </DetailDialog>
   )
 }
+

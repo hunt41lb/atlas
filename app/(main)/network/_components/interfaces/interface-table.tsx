@@ -23,7 +23,7 @@ import {
 import { DataTable } from "@/components/ui/data-table"
 import { IpAddressCell } from "@/app/(main)/_components/ui/ip-address-cell"
 import { RouterCell, ZoneCell, MgmtProfileCell, FeaturesList, type SharedInterfaceTabProps } from "./interface-helpers"
-import type { PanwInterface, InterfaceType } from "@/lib/panw-parser/types"
+import type { PanwInterface, InterfaceType } from "@/lib/panw-parser/network/interfaces"
 
 // ─── Column builder ──────────────────────────────────────────────────────────
 
@@ -183,3 +183,4 @@ export function InterfaceTable({
     />
   )
 }
+

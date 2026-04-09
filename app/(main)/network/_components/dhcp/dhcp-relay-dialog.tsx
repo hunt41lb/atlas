@@ -15,7 +15,7 @@ import { DisplayField } from "@/components/ui/display-field"
 import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import type { PanwDhcpRelay } from "@/lib/panw-parser/dhcp"
+import type { PanwDhcpRelay } from "@/lib/panw-parser/network/dhcp"
 
 export function DhcpRelayDialog({
   relay,
@@ -96,3 +96,4 @@ export function DhcpRelayDialog({
     </DetailDialog>
   )
 }
+

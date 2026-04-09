@@ -14,7 +14,7 @@ import {
 import { DetailDialog } from "@/components/ui/detail-dialog"
 import { DisplayField } from "@/components/ui/display-field"
 
-import type { PanwAccessList } from "@/lib/panw-parser/routing-profiles"
+import type { PanwAccessList } from "@/lib/panw-parser/network/routing-profiles"
 import { ActionBadge } from "@/app/(main)/_components/ui/category-shell"
 
 export function AccessListDialog({
@@ -96,3 +96,4 @@ export function AccessListDialog({
     </DetailDialog>
   )
 }
+
