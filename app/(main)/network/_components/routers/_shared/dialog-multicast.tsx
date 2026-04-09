@@ -23,26 +23,20 @@ import { DisplayField } from "@/components/ui/display-field"
 import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
 import { Label } from "@/components/ui/label"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
+
 import type { RouterDialogPageProps } from "./dialog-general"
-
-// ─── Type helpers (defensive casts for new fields) ────────────────────────────
-
-type MCStaticRoute = { name: string; destination: string | null; nexthop: string | null; interface: string | null; preference: number | null }
-type MCPimIface = { name: string; drPriority: number | null; ifTimer: string | null; neighborFilter: string | null; description: string | null; sendBsm: boolean }
-type MCPimRp = { address: string | null; groupList: string | null; interface: string | null; override: boolean }
-type MCPimExternalRp = { ipAddress: string; groupList: string | null; override: boolean }
-type MCPimSpt = { groupAddress: string; threshold: string | null }
-type MCPimConfig = { enabled: boolean; rpfLookupMode: string | null; routeAgeoutTime: number | null; groupPermission: string | null; ssmGroupList: string | null; interfaces: MCPimIface[]; sptThresholds: MCPimSpt[]; localRp: MCPimRp | null; externalRps: MCPimExternalRp[] }
-type MCIgmpDynamic = { name: string; groupFilter: string | null; queryProfile: string | null; version: string | null; robustness: number | null; maxGroups: string | null; maxSources: string | null; routerAlertPolicing: boolean }
-type MCIgmpStatic = { name: string; interface: string | null; groupAddress: string | null; sourceAddress: string | null }
-type MCIgmpConfig = { enabled: boolean; dynamicInterfaces: MCIgmpDynamic[]; staticEntries: MCIgmpStatic[] }
-type MCMsdpPeer = { name: string; peerAddress: string | null; localInterface: string | null; localIp: string | null; authProfile: string | null; maxSa: number | null; inboundSaFilter: string | null; outboundSaFilter: string | null }
-type MCMsdpConfig = { enabled: boolean; globalTimer: string | null; globalAuth: string | null; originatorIp: string | null; originatorInterface: string | null; peers: MCMsdpPeer[] }
-type MCConfig = { enabled: boolean; staticRoutes?: MCStaticRoute[]; pim?: MCPimConfig | null; igmp?: MCIgmpConfig | null; msdp?: MCMsdpConfig | null }
+import type {
+  PanwMulticastConfig,
+  PanwMulticastStaticRoute,
+  PanwMulticastPimInterface,
+  PanwMulticastIgmpDynamicInterface,
+  PanwMulticastIgmpStaticEntry,
+  PanwMulticastMsdpPeer,
+} from "@/lib/panw-parser/network/routers"
 
 // ─── Static Route Detail Dialog ───────────────────────────────────────────────
 
-function StaticRouteDetailDialog({ route, open, onOpenChange }: { route: MCStaticRoute | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+function StaticRouteDetailDialog({ route, open, onOpenChange }: { route: PanwMulticastStaticRoute | null; open: boolean; onOpenChange: (open: boolean) => void }) {
   if (!route) return null
   return (
     <DetailDialog title="IPv4 Multicast - Static Route" open={open} onOpenChange={onOpenChange}>
@@ -58,8 +52,8 @@ function StaticRouteDetailDialog({ route, open, onOpenChange }: { route: MCStati
 // ─── Static Tab ───────────────────────────────────────────────────────────────
 
 function StaticTab({ router }: { router: RouterDialogPageProps["router"] }) {
-  const routes = (router.multicast as MCConfig)?.staticRoutes ?? []
-  const [selected, setSelected] = React.useState<MCStaticRoute | null>(null)
+  const routes = (router.multicast as PanwMulticastConfig)?.staticRoutes ?? []
+  const [selected, setSelected] = React.useState<PanwMulticastStaticRoute | null>(null)
 
   return (
     <>
@@ -96,7 +90,7 @@ function StaticTab({ router }: { router: RouterDialogPageProps["router"] }) {
 
 // ─── PIM Interface Detail Dialog ──────────────────────────────────────────────
 
-function PimInterfaceDetailDialog({ iface, open, onOpenChange }: { iface: MCPimIface | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+function PimInterfaceDetailDialog({ iface, open, onOpenChange }: { iface: PanwMulticastPimInterface | null; open: boolean; onOpenChange: (open: boolean) => void }) {
   if (!iface) return null
   return (
     <DetailDialog title="IPv4 Multicast - PIM Interface" open={open} onOpenChange={onOpenChange}>
@@ -116,8 +110,8 @@ function PimInterfaceDetailDialog({ iface, open, onOpenChange }: { iface: MCPimI
 // ─── PIM Tab ──────────────────────────────────────────────────────────────────
 
 function PimTab({ router }: { router: RouterDialogPageProps["router"] }) {
-  const pim = (router.multicast as MCConfig)?.pim
-  const [selectedIface, setSelectedIface] = React.useState<MCPimIface | null>(null)
+  const pim = (router.multicast as PanwMulticastConfig)?.pim
+  const [selectedIface, setSelectedIface] = React.useState<PanwMulticastPimInterface | null>(null)
 
   if (!pim) return <p className="py-6 text-xs text-muted-foreground text-center">PIM not configured.</p>
 
@@ -255,7 +249,7 @@ function PimTab({ router }: { router: RouterDialogPageProps["router"] }) {
 
 // ─── IGMP Dynamic Interface Detail Dialog ─────────────────────────────────────
 
-function IgmpDynamicDetailDialog({ iface, open, onOpenChange }: { iface: MCIgmpDynamic | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+function IgmpDynamicDetailDialog({ iface, open, onOpenChange }: { iface: PanwMulticastIgmpDynamicInterface | null; open: boolean; onOpenChange: (open: boolean) => void }) {
   if (!iface) return null
   return (
     <DetailDialog title="IPv4 Multicast - IGMP Dynamic" open={open} onOpenChange={onOpenChange}>
@@ -282,7 +276,7 @@ function IgmpDynamicDetailDialog({ iface, open, onOpenChange }: { iface: MCIgmpD
 
 // ─── IGMP Static Entry Detail Dialog ──────────────────────────────────────────
 
-function IgmpStaticDetailDialog({ entry, open, onOpenChange }: { entry: MCIgmpStatic | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+function IgmpStaticDetailDialog({ entry, open, onOpenChange }: { entry: PanwMulticastIgmpStaticEntry | null; open: boolean; onOpenChange: (open: boolean) => void }) {
   if (!entry) return null
   return (
     <DetailDialog title="IPv4 Multicast - IGMP Static" open={open} onOpenChange={onOpenChange}>
@@ -296,7 +290,7 @@ function IgmpStaticDetailDialog({ entry, open, onOpenChange }: { entry: MCIgmpSt
 
 // ─── MSDP Peer Detail Dialog ──────────────────────────────────────────────────
 
-function MsdpPeerDetailDialog({ peer, open, onOpenChange }: { peer: MCMsdpPeer | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+function MsdpPeerDetailDialog({ peer, open, onOpenChange }: { peer: PanwMulticastMsdpPeer | null; open: boolean; onOpenChange: (open: boolean) => void }) {
   if (!peer) return null
   return (
     <DetailDialog title="Logical Router - MSDP - Peer Detail" open={open} onOpenChange={onOpenChange} maxWidth="sm:max-w-2xl">
@@ -337,9 +331,9 @@ function MsdpPeerDetailDialog({ peer, open, onOpenChange }: { peer: MCMsdpPeer |
 // ─── IGMP Tab — Dynamic/Static sub-tabs ───────────────────────────────────────
 
 function IgmpTab({ router }: { router: RouterDialogPageProps["router"] }) {
-  const igmp = (router.multicast as MCConfig)?.igmp
-  const [selectedDynamic, setSelectedDynamic] = React.useState<MCIgmpDynamic | null>(null)
-  const [selectedStatic, setSelectedStatic] = React.useState<MCIgmpStatic | null>(null)
+  const igmp = (router.multicast as PanwMulticastConfig)?.igmp
+  const [selectedDynamic, setSelectedDynamic] = React.useState<PanwMulticastIgmpDynamicInterface | null>(null)
+  const [selectedStatic, setSelectedStatic] = React.useState<PanwMulticastIgmpStaticEntry | null>(null)
 
   if (!igmp) return <p className="py-6 text-xs text-muted-foreground text-center">IGMP not configured.</p>
 
@@ -428,9 +422,9 @@ function IgmpTab({ router }: { router: RouterDialogPageProps["router"] }) {
 // ─── MSDP Tab — General/Peers sub-tabs ────────────────────────────────────────
 
 function MsdpTab({ router }: { router: RouterDialogPageProps["router"] }) {
-  const msdp = (router.multicast as MCConfig)?.msdp
+  const msdp = (router.multicast as PanwMulticastConfig)?.msdp
   const msdpRefs = router.msdpRefs
-  const [selectedPeer, setSelectedPeer] = React.useState<MCMsdpPeer | null>(null)
+  const [selectedPeer, setSelectedPeer] = React.useState<PanwMulticastMsdpPeer | null>(null)
 
   if (!msdp) return <p className="py-6 text-xs text-muted-foreground text-center">MSDP not configured.</p>
 
