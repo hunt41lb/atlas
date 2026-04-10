@@ -45,6 +45,7 @@ import {
   MacsecView,
   QosView,
 } from "@/app/(main)/network/_components/network-profiles"
+import { SdwanInterfaceProfileView } from "../_components/sd-wan-interface-profile"
 
 // ─── Route map ────────────────────────────────────────────────────────────────
 
@@ -90,7 +91,7 @@ const NETWORK_VIEWS: Record<string, { title: string; component?: React.Component
   "network-profiles-lldp":               { title: "LLDP Profile",               component: LldpProfileView },
   "network-profiles-bfd":                { title: "BFD Profile",                component: NetworkBfdView },
   "network-profiles-macsec":             { title: "MACsec Profile",             component: MacsecView },
-  "sd-wan-interface":                    { title: "SD-WAN Interface Profile" },
+  "sd-wan-interface":                    { title: "SD-WAN Interface Profile",   component: SdwanInterfaceProfileView },
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────

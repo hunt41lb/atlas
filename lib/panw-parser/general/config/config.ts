@@ -1,4 +1,4 @@
-// @/src/lib/panw-parser/general/config/config.ts
+// @/lib/panw-parser/general/config/config.ts
 //
 // Top-level configuration types and extractors: parsed config shapes, Panorama
 // template/device-group structures, template variables, and parse result types.
@@ -26,6 +26,7 @@ import type {
   PanwRoutingFilters,
 } from "../../network/routing-profiles"
 import type { PanwQosInterface } from "../../network/qos-interfaces"
+import type { PanwGpPortal } from "../../network/global-protect"
 import type { PanwLldpGeneral } from "../../network/lldp-general"
 import type {
   PanwInterfaceMgmtProfile,
@@ -40,6 +41,7 @@ import type {
   PanwMacsecProfile,
   PanwQosProfile,
 } from "../../network/network-profiles"
+import type { PanwSdwanInterfaceProfile } from "../../network/sd-wan-interface-profile"
 
 // ─── Objects imports ──────────────────────────────────────────────────────────
 import type { PanwTag } from "../../objects/tags"
@@ -105,6 +107,8 @@ export interface PanwTemplate {
   qosInterfaces: PanwQosInterface[]
   lldpGeneral: PanwLldpGeneral | null
   proxy: PanwProxy | null
+  sdwanInterfaceProfiles: PanwSdwanInterfaceProfile[]
+  gpPortals: PanwGpPortal[]
 }
 
 // ─── Panorama Device Group ───────────────────────────────────────────────────
@@ -196,6 +200,8 @@ export interface ParsedFirewallConfig {
   qosInterfaces: PanwQosInterface[]
   lldpGeneral: PanwLldpGeneral | null
   proxy: PanwProxy | null
+  sdwanInterfaceProfiles: PanwSdwanInterfaceProfile[]
+  gpPortals: PanwGpPortal[]
 }
 
 // ─── Parsed Config (Panorama) ────────────────────────────────────────────────

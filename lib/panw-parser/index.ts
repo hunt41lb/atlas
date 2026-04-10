@@ -32,6 +32,7 @@ import {
   extractRipRoutingProfiles, extractMulticastRoutingProfiles,
 } from "./network/routing-profiles"
 import { extractQosInterfaces } from "./network/qos-interfaces"
+import { extractGpPortals } from "./network/global-protect"
 import { extractLldpGeneral } from "./network/lldp-general"
 import {
   extractInterfaceMgmtProfiles,
@@ -46,6 +47,7 @@ import {
   extractMacsecProfiles,
   extractQosProfiles,
 } from "./network/network-profiles"
+import { extractSdwanInterfaceProfiles } from "./network/sd-wan-interface-profile"
 
 // ─── Policies ─────────────────────────────────────────────────────────────────
 import { extractSecurityRules } from "./policies/security-rules"
@@ -247,6 +249,8 @@ function parseFirewall(
     qosInterfaces: extractQosInterfaces(networkEl, null),
     lldpGeneral:   extractLldpGeneral(networkEl, null),
     proxy: extractProxy(networkEl, null),
+    sdwanInterfaceProfiles: extractSdwanInterfaceProfiles(networkEl, null, vsysEntry),
+    gpPortals: extractGpPortals(networkEl, null, vsysEntry),
     ...policyCounts,
     // Object counts
     ...objectCounts,
@@ -381,6 +385,8 @@ function parsePanorama(
       qosInterfaces:            extractQosInterfaces(networkEl, tmplName),
       lldpGeneral:              extractLldpGeneral(networkEl, tmplName),
       proxy:                    extractProxy(networkEl, tmplName),
+      sdwanInterfaceProfiles:   extractSdwanInterfaceProfiles(networkEl, tmplName, vsysEntry),
+      gpPortals:                extractGpPortals(networkEl, tmplName, vsysEntry),
     }
   })
 

@@ -16,6 +16,7 @@ import type {
   PanwMulticastRoutingProfiles,
 } from "@/lib/panw-parser/network/routing-profiles"
 import type { PanwQosInterface } from "@/lib/panw-parser/network/qos-interfaces"
+import type { PanwGpPortal } from "@/lib/panw-parser/network/global-protect"
 import type { PanwLldpGeneral } from "@/lib/panw-parser/network/lldp-general"
 import type {
   PanwInterfaceMgmtProfile,
@@ -34,6 +35,7 @@ import { PanwGreTunnel } from "@/lib/panw-parser/network/gre-tunnels"
 import { PanwDhcpServer, PanwDhcpRelay } from "@/lib/panw-parser/network/dhcp"
 import { PanwDnsProxy } from "@/lib/panw-parser/network/dns-proxy"
 import type { PanwProxy } from "@/lib/panw-parser/network/proxy"
+import type { PanwSdwanInterfaceProfile } from "@/lib/panw-parser/network/sd-wan-interface-profile"
 
 // Objects Imports
 import type { PanwAddress, PanwAddressGroup } from "@/lib/panw-parser/objects/addresses"
@@ -101,6 +103,8 @@ export interface ResolvedNetworkData {
   qosInterfaces: PanwQosInterface[]
   lldpGeneral: PanwLldpGeneral[]
   proxy: PanwProxy[]
+  sdwanInterfaceProfiles: PanwSdwanInterfaceProfile[]
+  gpPortals: PanwGpPortal[]
 }
 
 const EMPTY_OSPF: PanwOspfRoutingProfiles = { spfTimerProfiles: [], authProfiles: [], ifTimerProfiles: [], redistributionProfiles: [] }
@@ -161,6 +165,8 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       qosInterfaces: config.qosInterfaces ?? [],
       lldpGeneral: config.lldpGeneral ? [config.lldpGeneral] : [],
       proxy: config.proxy != null ? [config.proxy] : [],
+      sdwanInterfaceProfiles: [],
+      gpPortals: [],
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -243,6 +249,8 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     qosInterfaces: templates.flatMap(t => t.qosInterfaces ?? []),
     lldpGeneral: templates.map(t => t.lldpGeneral).filter((g): g is PanwLldpGeneral => g != null),
     proxy: templates.map(t => t.proxy).filter((p): p is PanwProxy => p != null),
+    sdwanInterfaceProfiles: templates.flatMap((t) => t.sdwanInterfaceProfiles ?? []),
+    gpPortals: templates.flatMap((t) => t.gpPortals ?? []),
   }
 }
 
@@ -360,4 +368,3 @@ function mergeZoneOverrides(templateZones: PanwZone[], overrides: PanwZone[]): P
 
   return merged
 }
-
