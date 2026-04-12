@@ -26,7 +26,14 @@ import type {
   PanwRoutingFilters,
 } from "../../network/routing-profiles"
 import type { PanwQosInterface } from "../../network/qos-interfaces"
-import type { PanwGpPortal } from "../../network/global-protect"
+import type {
+  PanwGpPortal,
+  PanwGpGateway,
+  PanwGpClientlessApp,
+  PanwGpClientlessAppGroup,
+  PanwGpMdmServer,
+  PanwGpDhcpProfile,
+} from "../../network/global-protect"
 import type { PanwLldpGeneral } from "../../network/lldp-general"
 import type {
   PanwInterfaceMgmtProfile,
@@ -109,6 +116,11 @@ export interface PanwTemplate {
   proxy: PanwProxy | null
   sdwanInterfaceProfiles: PanwSdwanInterfaceProfile[]
   gpPortals: PanwGpPortal[]
+  gpGateways: PanwGpGateway[]
+  gpClientlessApps: PanwGpClientlessApp[]
+  gpClientlessAppGroups: PanwGpClientlessAppGroup[]
+  gpMdmServers: PanwGpMdmServer[]
+  gpDhcpProfiles: PanwGpDhcpProfile[]
 }
 
 // ─── Panorama Device Group ───────────────────────────────────────────────────
@@ -202,6 +214,11 @@ export interface ParsedFirewallConfig {
   proxy: PanwProxy | null
   sdwanInterfaceProfiles: PanwSdwanInterfaceProfile[]
   gpPortals: PanwGpPortal[]
+  gpGateways: PanwGpGateway[]
+  gpClientlessApps: PanwGpClientlessApp[]
+  gpClientlessAppGroups: PanwGpClientlessAppGroup[]
+  gpMdmServers: PanwGpMdmServer[]
+  gpDhcpProfiles: PanwGpDhcpProfile[]
 }
 
 // ─── Parsed Config (Panorama) ────────────────────────────────────────────────

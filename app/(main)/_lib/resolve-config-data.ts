@@ -16,7 +16,14 @@ import type {
   PanwMulticastRoutingProfiles,
 } from "@/lib/panw-parser/network/routing-profiles"
 import type { PanwQosInterface } from "@/lib/panw-parser/network/qos-interfaces"
-import type { PanwGpPortal } from "@/lib/panw-parser/network/global-protect"
+import type {
+  PanwGpPortal,
+  PanwGpGateway,
+  PanwGpClientlessApp,
+  PanwGpMdmServer,
+  PanwGpDhcpProfile,
+  PanwGpClientlessAppGroup,
+} from "@/lib/panw-parser/network/global-protect"
 import type { PanwLldpGeneral } from "@/lib/panw-parser/network/lldp-general"
 import type {
   PanwInterfaceMgmtProfile,
@@ -105,6 +112,11 @@ export interface ResolvedNetworkData {
   proxy: PanwProxy[]
   sdwanInterfaceProfiles: PanwSdwanInterfaceProfile[]
   gpPortals: PanwGpPortal[]
+  gpGateways: PanwGpGateway[]
+  gpClientlessApps: PanwGpClientlessApp[]
+  gpClientlessAppGroups: PanwGpClientlessAppGroup[]
+  gpMdmServers: PanwGpMdmServer[]
+  gpDhcpProfiles: PanwGpDhcpProfile[]
 }
 
 const EMPTY_OSPF: PanwOspfRoutingProfiles = { spfTimerProfiles: [], authProfiles: [], ifTimerProfiles: [], redistributionProfiles: [] }
@@ -167,6 +179,11 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       proxy: config.proxy != null ? [config.proxy] : [],
       sdwanInterfaceProfiles: [],
       gpPortals: [],
+      gpGateways: [],
+      gpClientlessApps: [],
+      gpClientlessAppGroups: [],
+      gpMdmServers: [],
+      gpDhcpProfiles: [],
     }
   }
   const templates = resolveTemplates(config, scope)
@@ -251,6 +268,11 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     proxy: templates.map(t => t.proxy).filter((p): p is PanwProxy => p != null),
     sdwanInterfaceProfiles: templates.flatMap((t) => t.sdwanInterfaceProfiles ?? []),
     gpPortals: templates.flatMap((t) => t.gpPortals ?? []),
+    gpGateways: templates.flatMap((t) => t.gpGateways ?? []),
+    gpClientlessApps: templates.flatMap((t) => t.gpClientlessApps ?? []),
+    gpClientlessAppGroups: templates.flatMap((t) => t.gpClientlessAppGroups ?? []),
+    gpMdmServers: templates.flatMap((t) => t.gpMdmServers ?? []),
+    gpDhcpProfiles: templates.flatMap((t) => t.gpDhcpProfiles ?? []),
   }
 }
 

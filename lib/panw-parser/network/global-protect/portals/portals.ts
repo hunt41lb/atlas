@@ -5,6 +5,12 @@
 // Path (network): networkEl → global-protect-gateway (for future gateway support)
 
 import { entries, entryName, str, yesNo, dig, members } from "../../../xml-helpers"
+import {
+  type PanwGpClientAuth,
+  type PanwGpAuthOverride,
+  extractGpClientAuth,
+  extractGpAuthOverride,
+} from "../_shared"
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
@@ -28,20 +34,6 @@ export interface PanwGpPortalGeneral {
   // Profiles
   sslTlsServiceProfile: string | null
   certificateProfile: string | null
-}
-
-// ─── Authentication (portal-config → client-auth) ─────────────────────────────
-
-export interface PanwGpPortalClientAuth {
-  name: string
-  os: string | null
-  authenticationProfile: string | null
-  authenticationMessage: string | null
-  userCredentialOrClientCertRequired: boolean
-  autoRetrievePasscode: boolean
-  useDefaultBrowser: boolean
-  usernameLabel: string | null
-  passwordLabel: string | null
 }
 
 // ─── Portal Data Collection (portal-config → config-selection) ────────────────
@@ -87,14 +79,6 @@ export interface PanwGpConfigAuthentication {
   saveUserCredentials: number | null        // 0=No, 1=Save, 2=Prompt, 3=Fingerprint
   authOverride: PanwGpAuthOverride
   twoFactor: PanwGpTwoFactor
-}
-
-export interface PanwGpAuthOverride {
-  generateCookie: boolean
-  acceptCookie: boolean
-  cookieLifetimeUnit: string | null         // "days" or "hours"
-  cookieLifetimeValue: number | null
-  cookieEncryptDecryptCert: string | null
 }
 
 export interface PanwGpTwoFactor {
@@ -302,7 +286,7 @@ export interface PanwGpMdm {
 export interface PanwGpPortal {
   name: string
   general: PanwGpPortalGeneral
-  clientAuth: PanwGpPortalClientAuth[]
+  clientAuth: PanwGpClientAuth[]
   configSelection: PanwGpPortalConfigSelection
   agentConfig: PanwGpPortalAgentConfig
   templateName: string | null
@@ -575,36 +559,6 @@ function extractAppConfig(configEntry: Record<string, unknown>): PanwGpAppConfig
   }
 }
 
-// ─── Auth Override ────────────────────────────────────────────────────────────
-
-function extractAuthOverride(configEntry: Record<string, unknown>): PanwGpAuthOverride {
-  const aoEl = configEntry["authentication-override"] as Record<string, unknown> | undefined
-  if (!aoEl) return { generateCookie: false, acceptCookie: false, cookieLifetimeUnit: null, cookieLifetimeValue: null, cookieEncryptDecryptCert: null }
-
-  const acceptEl = aoEl["accept-cookie"] as Record<string, unknown> | undefined
-  const lifetimeEl = acceptEl?.["cookie-lifetime"] as Record<string, unknown> | undefined
-
-  let cookieLifetimeUnit: string | null = null
-  let cookieLifetimeValue: number | null = null
-  if (lifetimeEl) {
-    if (lifetimeEl["lifetime-in-days"] !== undefined) {
-      cookieLifetimeUnit = "days"
-      cookieLifetimeValue = Number(lifetimeEl["lifetime-in-days"])
-    } else if (lifetimeEl["lifetime-in-hours"] !== undefined) {
-      cookieLifetimeUnit = "hours"
-      cookieLifetimeValue = Number(lifetimeEl["lifetime-in-hours"])
-    }
-  }
-
-  return {
-    generateCookie: yesNo(aoEl["generate-cookie"]),
-    acceptCookie: acceptEl !== undefined,
-    cookieLifetimeUnit,
-    cookieLifetimeValue,
-    cookieEncryptDecryptCert: str(aoEl["cookie-encrypt-decrypt-cert"]) ?? null,
-  }
-}
-
 // ─── HIP Collection ──────────────────────────────────────────────────────────
 
 function extractHipCollection(configEntry: Record<string, unknown>): PanwGpHipCollection {
@@ -689,7 +643,7 @@ function extractConfigEntry(configEntry: Record<string, unknown>): PanwGpPortalC
       saveUserCredentials: configEntry["save-user-credentials"] !== undefined
         ? Number(configEntry["save-user-credentials"])
         : null,
-      authOverride: extractAuthOverride(configEntry),
+      authOverride: extractGpAuthOverride(configEntry),
       twoFactor: {
         portal: yesNo(configEntry["portal-2fa"]),
         manualOnlyGateway: yesNo(configEntry["manual-only-gateway-2fa"]),
@@ -782,17 +736,7 @@ export function extractGpPortals(
         sslTlsServiceProfile: str(portalConfig?.["ssl-tls-service-profile"]) ?? null,
         certificateProfile: str(portalConfig?.["certificate-profile"]) ?? null,
       },
-      clientAuth: entries(portalConfig?.["client-auth"]).map((authEntry) => ({
-        name: entryName(authEntry),
-        os: str(authEntry["os"]) ?? null,
-        authenticationProfile: str(authEntry["authentication-profile"]) ?? null,
-        authenticationMessage: str(authEntry["authentication-message"]) ?? null,
-        userCredentialOrClientCertRequired: yesNo(authEntry["user-credential-or-client-cert-required"]),
-        autoRetrievePasscode: yesNo(authEntry["auto-retrieve-passcode"]),
-        useDefaultBrowser: yesNo(authEntry["use-default-browser"]),
-        usernameLabel: str(authEntry["username-label"]) ?? null,
-        passwordLabel: str(authEntry["password-label"]) ?? null,
-      })),
+      clientAuth: extractGpClientAuth(portalConfig?.["client-auth"]),
       configSelection: {
         certificateProfile: str(dig(portalConfig, "config-selection", "certificate-profile")) ?? null,
       },

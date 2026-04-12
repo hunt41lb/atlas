@@ -32,7 +32,14 @@ import {
   extractRipRoutingProfiles, extractMulticastRoutingProfiles,
 } from "./network/routing-profiles"
 import { extractQosInterfaces } from "./network/qos-interfaces"
-import { extractGpPortals } from "./network/global-protect"
+import {
+  extractGpPortals,
+  extractGpGateways,
+  extractGpClientlessApps,
+  extractGpClientlessAppGroups,
+  extractGpMdmServers,
+  extractGpDhcpProfiles,
+} from "./network/global-protect"
 import { extractLldpGeneral } from "./network/lldp-general"
 import {
   extractInterfaceMgmtProfiles,
@@ -251,6 +258,11 @@ function parseFirewall(
     proxy: extractProxy(networkEl, null),
     sdwanInterfaceProfiles: extractSdwanInterfaceProfiles(networkEl, null, vsysEntry),
     gpPortals: extractGpPortals(networkEl, null, vsysEntry),
+    gpGateways: extractGpGateways(networkEl, null, vsysEntry),
+    gpClientlessApps:      extractGpClientlessApps(networkEl, null, vsysEntry),
+    gpClientlessAppGroups: extractGpClientlessAppGroups(networkEl, null, vsysEntry),
+    gpMdmServers:          extractGpMdmServers(networkEl, null, vsysEntry),
+    gpDhcpProfiles:        extractGpDhcpProfiles(networkEl, null, vsysEntry),
     ...policyCounts,
     // Object counts
     ...objectCounts,
@@ -387,6 +399,11 @@ function parsePanorama(
       proxy:                    extractProxy(networkEl, tmplName),
       sdwanInterfaceProfiles:   extractSdwanInterfaceProfiles(networkEl, tmplName, vsysEntry),
       gpPortals:                extractGpPortals(networkEl, tmplName, vsysEntry),
+      gpGateways:               extractGpGateways(networkEl, tmplName, vsysEntry),
+      gpClientlessApps:         extractGpClientlessApps(networkEl, tmplName, vsysEntry),
+      gpClientlessAppGroups:    extractGpClientlessAppGroups(networkEl, tmplName, vsysEntry),
+      gpMdmServers:             extractGpMdmServers(networkEl, tmplName, vsysEntry),
+      gpDhcpProfiles:           extractGpDhcpProfiles(networkEl, tmplName, vsysEntry),
     }
   })
 

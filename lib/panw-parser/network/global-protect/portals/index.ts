@@ -4,13 +4,11 @@ export {
   // Types
   type PanwGpPortal,
   type PanwGpPortalGeneral,
-  type PanwGpPortalClientAuth,
   type PanwGpPortalConfigSelection,
   type PanwGpPortalAgentConfig,
   type PanwGpRootCa,
   type PanwGpPortalConfigEntry,
   type PanwGpConfigAuthentication,
-  type PanwGpAuthOverride,
   type PanwGpTwoFactor,
   type PanwGpConfigSelection,
   type PanwGpHostDetection,
@@ -30,3 +28,4 @@ export {
   // Extractor
   extractGpPortals,
 } from "./portals"
+
