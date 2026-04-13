@@ -82,10 +82,17 @@ export function InterfacesView() {
     }
   }, [activeConfig, selectedScope])
 
-  const ifaceToRouter = React.useMemo(
-    () => buildIfaceToRouter([...virtualRouters, ...logicalRouters]),
-    [virtualRouters, logicalRouters]
+  const ifaceToVirtualRouter = React.useMemo(
+    () => buildIfaceToRouter(virtualRouters),
+    [virtualRouters]
   )
+  const ifaceToLogicalRouter = React.useMemo(
+    () => buildIfaceToRouter(logicalRouters),
+    [logicalRouters]
+  )
+
+  const hasVirtualRouters = virtualRouters.length > 0
+  const hasLogicalRouters = logicalRouters.length > 0
 
   const ifaceToZone = React.useMemo(
     () => buildIfaceToZone(zones),
@@ -137,7 +144,7 @@ export function InterfacesView() {
     [mgmtProfileMap]
   )
 
-  const sharedProps = { interfaces, isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick: handleMgmtProfileClick }
+  const sharedProps = { interfaces, isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, hasVirtualRouters, hasLogicalRouters, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick: handleMgmtProfileClick }
 
   return (
     <Tabs defaultValue="ethernet" className="flex h-full flex-col min-h-0">
@@ -196,4 +203,3 @@ export function InterfacesView() {
     </Tabs>
   )
 }
-

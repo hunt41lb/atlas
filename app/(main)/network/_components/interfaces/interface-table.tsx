@@ -18,6 +18,7 @@ import {
   createColumnHelper,
   type ColumnDef,
   type SortingState,
+  type VisibilityState,
 } from "@tanstack/react-table"
 
 import { DataTable } from "@/components/ui/data-table"
@@ -31,7 +32,8 @@ const columnHelper = createColumnHelper<PanwInterface>()
 
 function buildColumns(
   isPanorama: boolean,
-  ifaceToRouter: Map<string, string>,
+  ifaceToVirtualRouter: Map<string, string>,
+  ifaceToLogicalRouter: Map<string, string>,
   ifaceToZone: Map<string, string>,
   zoneColorMap: Map<string, string> | undefined,
   dhcpRelaySet: Set<string>,
@@ -75,11 +77,19 @@ function buildColumns(
     },
 
     {
+      id: "virtualRouter",
+      header: "Virtual Router",
+      enableSorting: true,
+      accessorFn: (row) => ifaceToVirtualRouter.get(row.name) ?? "",
+      cell: ({ row }) => <RouterCell name={ifaceToVirtualRouter.get(row.original.name)} />,
+    },
+
+    {
       id: "logicalRouter",
       header: "Logical Router",
       enableSorting: true,
-      accessorFn: (row) => ifaceToRouter.get(row.name) ?? "",
-      cell: ({ row }) => <RouterCell name={ifaceToRouter.get(row.original.name)} />,
+      accessorFn: (row) => ifaceToLogicalRouter.get(row.name) ?? "",
+      cell: ({ row }) => <RouterCell name={ifaceToLogicalRouter.get(row.original.name)} />,
     },
 
     {
@@ -138,7 +148,10 @@ export function InterfaceTable({
   title,
   interfaces,
   isPanorama,
-  ifaceToRouter,
+  ifaceToVirtualRouter,
+  ifaceToLogicalRouter,
+  hasVirtualRouters,
+  hasLogicalRouters,
   ifaceToZone,
   zoneColorMap,
   dhcpRelaySet,
@@ -150,6 +163,11 @@ export function InterfaceTable({
 }) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    mtu: false,
+    virtualRouter: hasVirtualRouters,
+    logicalRouter: hasLogicalRouters,
+  })
 
   const filtered = React.useMemo(
     () => interfaces.filter((i) => i.type === type),
@@ -157,17 +175,18 @@ export function InterfaceTable({
   )
 
   const columns = React.useMemo(
-    () => buildColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick),
-    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick]
+    () => buildColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick),
+    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filtered,
     columns,
-    state: { sorting, globalFilter: search },
+    state: { sorting, globalFilter: search, columnVisibility },
     onSortingChange: setSorting,
     onGlobalFilterChange: setSearch,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -183,4 +202,3 @@ export function InterfaceTable({
     />
   )
 }
-

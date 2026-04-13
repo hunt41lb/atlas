@@ -20,7 +20,10 @@ import type { PanwInterface, PanwSubInterface } from "@/lib/panw-parser/network/
 export interface SharedInterfaceTabProps {
   interfaces: PanwInterface[]
   isPanorama: boolean
-  ifaceToRouter: Map<string, string>
+  ifaceToVirtualRouter: Map<string, string>
+  ifaceToLogicalRouter: Map<string, string>
+  hasVirtualRouters: boolean
+  hasLogicalRouters: boolean
   ifaceToZone: Map<string, string>
   zoneColorMap: Map<string, string>
   dhcpRelaySet: Set<string>
@@ -124,7 +127,8 @@ export function SubInterfaceRows({
   isPanorama,
   templateName,
   ifaceToZone,
-  ifaceToRouter,
+  ifaceToVirtualRouter,
+  ifaceToLogicalRouter,
   dhcpRelaySet,
   dhcpServerSet,
   showMemberPorts = false,
@@ -137,7 +141,8 @@ export function SubInterfaceRows({
   isPanorama: boolean
   templateName: string | null
   ifaceToZone: Map<string, string>
-  ifaceToRouter: Map<string, string>
+  ifaceToVirtualRouter: Map<string, string>
+  ifaceToLogicalRouter: Map<string, string>
   dhcpRelaySet: Set<string>
   dhcpServerSet: Set<string>
   showMemberPorts?: boolean
@@ -184,8 +189,11 @@ export function SubInterfaceRows({
                 : <span className="text-muted-foreground text-xs">Untagged</span>}
             </TableCell>
           )}
+          {show("virtualRouter") && (
+            <TableCell><RouterCell name={ifaceToVirtualRouter.get(sub.name)} /></TableCell>
+          )}
           {show("logicalRouter") && (
-            <TableCell><RouterCell name={ifaceToRouter.get(sub.name)} /></TableCell>
+            <TableCell><RouterCell name={ifaceToLogicalRouter.get(sub.name)} /></TableCell>
           )}
           {show("securityZone") && (
             <TableCell>
@@ -225,3 +233,4 @@ export function SubInterfaceRows({
     </>
   )
 }
+

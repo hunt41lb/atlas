@@ -12,6 +12,7 @@ import {
   createColumnHelper,
   type ColumnDef,
   type SortingState,
+  type VisibilityState,
 } from "@tanstack/react-table"
 
 import { DataTable } from "@/components/ui/data-table"
@@ -39,7 +40,8 @@ const columnHelper = createColumnHelper<PanwInterface>()
 
 function buildEthernetColumns(
   isPanorama: boolean,
-  ifaceToRouter: Map<string, string>,
+  ifaceToVirtualRouter: Map<string, string>,
+  ifaceToLogicalRouter: Map<string, string>,
   ifaceToZone: Map<string, string>,
   zoneColorMap: Map<string, string>,
   dhcpRelaySet: Set<string>,
@@ -118,11 +120,19 @@ function buildEthernetColumns(
     },
 
     {
+      id: "virtualRouter",
+      header: "Virtual Router",
+      enableSorting: true,
+      accessorFn: (row) => ifaceToVirtualRouter.get(row.name) ?? "",
+      cell: ({ row }) => <RouterCell name={ifaceToVirtualRouter.get(row.original.name)} />,
+    },
+
+    {
       id: "logicalRouter",
       header: "Logical Router",
       enableSorting: true,
-      accessorFn: (row) => ifaceToRouter.get(row.name) ?? "",
-      cell: ({ row }) => <RouterCell name={ifaceToRouter.get(row.original.name)} />,
+      accessorFn: (row) => ifaceToLogicalRouter.get(row.name) ?? "",
+      cell: ({ row }) => <RouterCell name={ifaceToLogicalRouter.get(row.original.name)} />,
     },
 
     {
@@ -182,7 +192,10 @@ function buildEthernetColumns(
 export function EthernetTab({
   interfaces,
   isPanorama,
-  ifaceToRouter,
+  ifaceToVirtualRouter,
+  ifaceToLogicalRouter,
+  hasVirtualRouters,
+  hasLogicalRouters,
   ifaceToZone,
   zoneColorMap,
   dhcpRelaySet,
@@ -193,6 +206,14 @@ export function EthernetTab({
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
 
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    subIfCount: false,
+    aggregateGroup: false,
+    virtualRouter: hasVirtualRouters,
+    logicalRouter: hasLogicalRouters,
+    ...(isPanorama ? {} : { template: false }),
+  })
+
   const ethernetInterfaces = React.useMemo(
     () => interfaces.filter((i) => i.type === "ethernet"),
     [interfaces]
@@ -202,20 +223,22 @@ export function EthernetTab({
     items: ethernetInterfaces,
     getRowKey: (i) => `${i.templateName ?? "fw"}-${i.name}`,
     isExpandable: (i) => i.subInterfaces.length > 0,
+    defaultExpanded: false,
   })
 
   const columns = React.useMemo(
-    () => buildEthernetColumns(isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick),
-    [isPanorama, ifaceToRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, dhcpServerSet, onMgmtProfileClick]
+    () => buildEthernetColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick),
+    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: ethernetInterfaces,
     columns,
-    state: { sorting, globalFilter: search },
+    state: { sorting, globalFilter: search, columnVisibility },
     onSortingChange: setSorting,
     onGlobalFilterChange: setSearch,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -252,7 +275,8 @@ export function EthernetTab({
                 isPanorama={isPanorama}
                 templateName={iface.templateName}
                 ifaceToZone={ifaceToZone}
-                ifaceToRouter={ifaceToRouter}
+                ifaceToVirtualRouter={ifaceToVirtualRouter}
+                ifaceToLogicalRouter={ifaceToLogicalRouter}
                 dhcpRelaySet={dhcpRelaySet}
                 dhcpServerSet={dhcpServerSet}
                 visibleColumns={new Set(table.getVisibleLeafColumns().map((c) => c.id))}
