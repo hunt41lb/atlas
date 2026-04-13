@@ -30,6 +30,7 @@ export interface SharedInterfaceTabProps {
   dhcpServerSet: Set<string>
   variableMap?: VariableMap
   onMgmtProfileClick?: (name: string) => void
+  onRouterClick?: (name: string) => void
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -81,10 +82,19 @@ export function TagCell() {
   return <span className="text-xs text-muted-foreground">Untagged</span>
 }
 
-/** Displays router name or dash */
-export function RouterCell({ name }: { name: string | undefined }) {
+/** Displays router name or dash, optionally clickable */
+export function RouterCell({ name, onClick }: { name: string | undefined; onClick?: (name: string) => void }) {
   if (!name) return <span className="text-muted-foreground text-xs">—</span>
-  return <span className="text-xs font-medium">{name}</span>
+  if (!onClick) return <span className="text-xs font-medium">{name}</span>
+  return (
+    <button
+      type="button"
+      className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+      onClick={() => onClick(name)}
+    >
+      {name}
+    </button>
+  )
 }
 
 /** Displays zone name or "none" */
@@ -136,6 +146,7 @@ export function SubInterfaceRows({
   variableMap,
   zoneColorMap,
   onMgmtProfileClick,
+  onRouterClick,
 }: {
   subs: PanwSubInterface[]
   isPanorama: boolean
@@ -150,6 +161,7 @@ export function SubInterfaceRows({
   variableMap?: VariableMap
   zoneColorMap?: Map<string, string>
   onMgmtProfileClick?: (name: string) => void
+  onRouterClick?: (name: string) => void
 }) {
   const show = (colId: string) => !visibleColumns || visibleColumns.has(colId)
 
@@ -190,10 +202,10 @@ export function SubInterfaceRows({
             </TableCell>
           )}
           {show("virtualRouter") && (
-            <TableCell><RouterCell name={ifaceToVirtualRouter.get(sub.name)} /></TableCell>
+            <TableCell><RouterCell name={ifaceToVirtualRouter.get(sub.name)} onClick={onRouterClick} /></TableCell>
           )}
           {show("logicalRouter") && (
-            <TableCell><RouterCell name={ifaceToLogicalRouter.get(sub.name)} /></TableCell>
+            <TableCell><RouterCell name={ifaceToLogicalRouter.get(sub.name)} onClick={onRouterClick} /></TableCell>
           )}
           {show("securityZone") && (
             <TableCell>
@@ -233,4 +245,3 @@ export function SubInterfaceRows({
     </>
   )
 }
-

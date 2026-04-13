@@ -9,12 +9,15 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
-import { ComingSoonView } from "@/app/(main)/_components/ui/category-shell"
 import { InterfaceMgmtDialog } from "../network-profiles/interface-mgmt/interface-mgmt-dialog"
+import { RouterDialog } from "../routers/_shared/router-dialog"
 import { EthernetTab } from "./ethernet-tab"
 import { AggregateEthernetTab } from "./aggregate-ethernet-tab"
 import { InterfaceTable } from "./interface-table"
 import { PoeTable } from "./poe-table"
+import { SdwanTab } from "./sdwan-tab"
+import { CellularTab } from "./cellular-tab"
+import { FailOpenTab } from "./fail-open-tab"
 
 import type { ParsedPanoramaConfig  } from "@/lib/panw-parser/general/config"
 import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network/network-profiles"
@@ -68,17 +71,20 @@ export function InterfacesView() {
 
   const isPanorama = activeConfig?.parsedConfig.deviceType === "panorama"
 
-  const { interfaces, zones, virtualRouters, logicalRouters, dhcpRelays, dhcpServers, interfaceMgmtProfiles } = React.useMemo(() => {
-    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [], dhcpRelays: [], dhcpServers: [], interfaceMgmtProfiles: [] }
+  const { interfaces, zones, virtualRouters, logicalRouters, dhcpRelays, dhcpServers, interfaceMgmtProfiles, sdwanInterfaces, cellularInterfaces, failOpen } = React.useMemo(() => {
+    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [], dhcpRelays: [], dhcpServers: [], interfaceMgmtProfiles: [], sdwanInterfaces: [], cellularInterfaces: [], failOpen: [] }
     const data = resolveNetworkData(activeConfig.parsedConfig, selectedScope)
     return {
-      interfaces:          data.interfaces          ?? [],
-      zones:               data.zones               ?? [],
-      virtualRouters:      data.virtualRouters      ?? [],
-      logicalRouters:      data.logicalRouters      ?? [],
-      dhcpRelays:          data.dhcpRelays           ?? [],
-      dhcpServers:         data.dhcpServers           ?? [],
+      interfaces:            data.interfaces            ?? [],
+      zones:                 data.zones                 ?? [],
+      virtualRouters:        data.virtualRouters        ?? [],
+      logicalRouters:        data.logicalRouters        ?? [],
+      dhcpRelays:            data.dhcpRelays             ?? [],
+      dhcpServers:           data.dhcpServers            ?? [],
       interfaceMgmtProfiles: data.interfaceMgmtProfiles ?? [],
+      sdwanInterfaces:       data.sdwanInterfaces       ?? [],
+      cellularInterfaces:    data.cellularInterfaces    ?? [],
+      failOpen:              data.failOpen              ?? [],
     }
   }, [activeConfig, selectedScope])
 
@@ -144,7 +150,20 @@ export function InterfacesView() {
     [mgmtProfileMap]
   )
 
-  const sharedProps = { interfaces, isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, hasVirtualRouters, hasLogicalRouters, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick: handleMgmtProfileClick }
+  const routerMap = React.useMemo(() => {
+    const map = new Map<string, PanwVirtualRouter>()
+    for (const r of virtualRouters) map.set(r.name, r)
+    for (const r of logicalRouters) map.set(r.name, r)
+    return map
+  }, [virtualRouters, logicalRouters])
+
+  const [selectedRouter, setSelectedRouter] = React.useState<PanwVirtualRouter | null>(null)
+  const handleRouterClick = React.useCallback(
+    (name: string) => setSelectedRouter(routerMap.get(name) ?? null),
+    [routerMap]
+  )
+
+  const sharedProps = { interfaces, isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, hasVirtualRouters, hasLogicalRouters, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick: handleMgmtProfileClick, onRouterClick: handleRouterClick }
 
   return (
     <Tabs defaultValue="ethernet" className="flex h-full flex-col min-h-0">
@@ -179,7 +198,17 @@ export function InterfacesView() {
       </TabsContent>
 
       <TabsContent value="sd-wan" className="flex-1 min-h-0">
-        <ComingSoonView title="SD-WAN Interfaces" />
+        <SdwanTab
+          data={sdwanInterfaces}
+          isPanorama={isPanorama}
+          ifaceToVirtualRouter={ifaceToVirtualRouter}
+          ifaceToLogicalRouter={ifaceToLogicalRouter}
+          hasVirtualRouters={hasVirtualRouters}
+          hasLogicalRouters={hasLogicalRouters}
+          ifaceToZone={ifaceToZone}
+          zoneColorMap={zoneColorMap}
+          onRouterClick={handleRouterClick}
+        />
       </TabsContent>
 
       <TabsContent value="poe" className="flex-1 min-h-0">
@@ -187,11 +216,22 @@ export function InterfacesView() {
       </TabsContent>
 
       <TabsContent value="cellular" className="flex-1 min-h-0">
-        <ComingSoonView title="Cellular Interfaces" />
+        <CellularTab
+          data={cellularInterfaces}
+          isPanorama={isPanorama}
+          ifaceToVirtualRouter={ifaceToVirtualRouter}
+          ifaceToLogicalRouter={ifaceToLogicalRouter}
+          hasVirtualRouters={hasVirtualRouters}
+          hasLogicalRouters={hasLogicalRouters}
+          ifaceToZone={ifaceToZone}
+          zoneColorMap={zoneColorMap}
+          onMgmtProfileClick={handleMgmtProfileClick}
+          onRouterClick={handleRouterClick}
+        />
       </TabsContent>
 
       <TabsContent value="fail-open" className="flex-1 min-h-0">
-        <ComingSoonView title="Fail Open Interfaces" />
+        <FailOpenTab data={failOpen} />
       </TabsContent>
 
       <InterfaceMgmtDialog
@@ -199,6 +239,12 @@ export function InterfacesView() {
         open={selectedMgmtProfile !== null}
         onOpenChange={(open) => { if (!open) setSelectedMgmtProfile(null) }}
         variableMap={variableMap}
+      />
+      <RouterDialog
+        router={selectedRouter}
+        open={selectedRouter !== null}
+        onOpenChange={(open) => { if (!open) setSelectedRouter(null) }}
+        routerLabel={selectedRouter && logicalRouters.some(r => r.name === selectedRouter.name) ? "Logical Router" : "Virtual Router"}
       />
     </Tabs>
   )

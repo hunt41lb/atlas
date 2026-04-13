@@ -16,7 +16,7 @@ import { extractApplicationGroups, extractApplicationFilters } from "./objects/a
 import { extractProfileGroups } from "./objects/profile-groups"
 
 // ─── Network ──────────────────────────────────────────────────────────────────
-import { extractInterfaces } from "./network/interfaces"
+import { extractInterfaces, extractSdwanInterfaces, extractCellularInterfaces, extractFailOpen } from "./network/interfaces"
 import { extractZones } from "./network/zones"
 import { extractVlans } from "./network/vlans"
 import { extractVirtualWires } from "./network/virtual-wires"
@@ -398,6 +398,9 @@ function parsePanorama(
       lldpGeneral:              extractLldpGeneral(networkEl, tmplName),
       proxy:                    extractProxy(networkEl, tmplName),
       sdwanInterfaceProfiles:   extractSdwanInterfaceProfiles(networkEl, tmplName, vsysEntry),
+      sdwanInterfaces:          extractSdwanInterfaces(networkEl, tmplName),
+      cellularInterfaces:       extractCellularInterfaces(networkEl, tmplName),
+      failOpen:                 extractFailOpen(networkEl, tmplName),
       gpPortals:                extractGpPortals(networkEl, tmplName, vsysEntry),
       gpGateways:               extractGpGateways(networkEl, tmplName, vsysEntry),
       gpClientlessApps:         extractGpClientlessApps(networkEl, tmplName, vsysEntry),

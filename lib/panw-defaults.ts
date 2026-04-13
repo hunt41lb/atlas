@@ -55,3 +55,32 @@ export const DEFAULT_RIB_FILTER = {
     staticRouteMap: "None",
   },
 } as const
+
+// ─── DDNS Vendor Display Names ────────────────────────────────────────────────
+
+export const DDNS_VENDOR_LABELS: Record<string, string> = {
+  "paloalto-networks-ddns": "Palo Alto Networks DDNS",
+  "duckdns-v1": "DuckDNS v1",
+  "dyn-v1": "DynDNS v1",
+  "freedns-afraid-dynamic-v1": "FreeDNS Afraid.org Dynamic API v1",
+  "freedns-afraid-v1": "FreeDNS Afraid.org v1",
+  "noip-v1": "No-IP v1",
+}
+
+// ─── DDNS Vendor Config Display Names ─────────────────────────────────────────
+
+export const DDNS_CONFIG_LABELS: Record<string, string> = {
+  // Palo Alto Networks DDNS
+  "ztp-ddns-ttl": "TTL (sec)",
+  // DuckDNS v1
+  "duckdns-api-host": "API Host",
+  "duckdns-baseuri": "Base URI",
+  "duckdns-secret-token": "Secret Token",
+  // DynDNS v1
+  "dyn-api-host": "API Host",
+  "dyn-baseuri": "Base URI",
+  "dyn-username": "username",
+  "dyn-password": "password",
+  // Shared
+  "ddns-timeout": "Timeout (sec)",
+}

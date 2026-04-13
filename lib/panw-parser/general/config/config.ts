@@ -6,7 +6,7 @@
 import { entries, entryName, str } from "../../xml-helpers"
 
 // ─── Network imports ──────────────────────────────────────────────────────────
-import type { PanwInterface } from "../../network/interfaces"
+import type { PanwInterface, PanwSdwanInterface, PanwCellularInterface, PanwFailOpen } from "../../network/interfaces"
 import type { PanwZone } from "../../network/zones"
 import type { PanwVlan } from "../../network/vlans"
 import type { PanwVirtualWire } from "../../network/virtual-wires"
@@ -115,6 +115,9 @@ export interface PanwTemplate {
   lldpGeneral: PanwLldpGeneral | null
   proxy: PanwProxy | null
   sdwanInterfaceProfiles: PanwSdwanInterfaceProfile[]
+  sdwanInterfaces: PanwSdwanInterface[]
+  cellularInterfaces: PanwCellularInterface[]
+  failOpen: PanwFailOpen | null
   gpPortals: PanwGpPortal[]
   gpGateways: PanwGpGateway[]
   gpClientlessApps: PanwGpClientlessApp[]

@@ -48,6 +48,7 @@ function buildEthernetColumns(
   dhcpServerSet: Set<string>,
   variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
+  onRouterClick?: (name: string) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
@@ -124,7 +125,7 @@ function buildEthernetColumns(
       header: "Virtual Router",
       enableSorting: true,
       accessorFn: (row) => ifaceToVirtualRouter.get(row.name) ?? "",
-      cell: ({ row }) => <RouterCell name={ifaceToVirtualRouter.get(row.original.name)} />,
+      cell: ({ row }) => <RouterCell name={ifaceToVirtualRouter.get(row.original.name)} onClick={onRouterClick} />,
     },
 
     {
@@ -132,7 +133,7 @@ function buildEthernetColumns(
       header: "Logical Router",
       enableSorting: true,
       accessorFn: (row) => ifaceToLogicalRouter.get(row.name) ?? "",
-      cell: ({ row }) => <RouterCell name={ifaceToLogicalRouter.get(row.original.name)} />,
+      cell: ({ row }) => <RouterCell name={ifaceToLogicalRouter.get(row.original.name)} onClick={onRouterClick} />,
     },
 
     {
@@ -202,6 +203,7 @@ export function EthernetTab({
   dhcpServerSet,
   variableMap,
   onMgmtProfileClick,
+  onRouterClick,
 }: SharedInterfaceTabProps) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
@@ -227,8 +229,8 @@ export function EthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildEthernetColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick),
-    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick]
+    () => buildEthernetColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick, onRouterClick),
+    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick, onRouterClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -283,6 +285,7 @@ export function EthernetTab({
                 variableMap={variableMap}
                 zoneColorMap={zoneColorMap}
                 onMgmtProfileClick={onMgmtProfileClick}
+                onRouterClick={onRouterClick}
               />
             )}
           </React.Fragment>

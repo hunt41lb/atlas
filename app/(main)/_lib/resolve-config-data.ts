@@ -4,7 +4,7 @@
 import type { ParsedConfig, ParsedPanoramaConfig, } from "@/lib/panw-parser/general/config"
 
 // Network Imports
-import type { PanwInterface } from "@/lib/panw-parser/network/interfaces"
+import type { PanwInterface, PanwSdwanInterface, PanwCellularInterface, PanwFailOpen } from "@/lib/panw-parser/network/interfaces"
 import type { PanwZone } from "@/lib/panw-parser/network/zones"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/network/routers"
 import type { PanwVlan } from "@/lib/panw-parser/network/vlans"
@@ -111,6 +111,9 @@ export interface ResolvedNetworkData {
   lldpGeneral: PanwLldpGeneral[]
   proxy: PanwProxy[]
   sdwanInterfaceProfiles: PanwSdwanInterfaceProfile[]
+  sdwanInterfaces: PanwSdwanInterface[]
+  cellularInterfaces: PanwCellularInterface[]
+  failOpen: PanwFailOpen[]
   gpPortals: PanwGpPortal[]
   gpGateways: PanwGpGateway[]
   gpClientlessApps: PanwGpClientlessApp[]
@@ -178,6 +181,9 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
       lldpGeneral: config.lldpGeneral ? [config.lldpGeneral] : [],
       proxy: config.proxy != null ? [config.proxy] : [],
       sdwanInterfaceProfiles: [],
+      sdwanInterfaces: [],
+      cellularInterfaces: [],
+      failOpen: [],
       gpPortals: [],
       gpGateways: [],
       gpClientlessApps: [],
@@ -267,6 +273,9 @@ export function resolveNetworkData(config: ParsedConfig, scope: string | null): 
     lldpGeneral: templates.map(t => t.lldpGeneral).filter((g): g is PanwLldpGeneral => g != null),
     proxy: templates.map(t => t.proxy).filter((p): p is PanwProxy => p != null),
     sdwanInterfaceProfiles: templates.flatMap((t) => t.sdwanInterfaceProfiles ?? []),
+    sdwanInterfaces: templates.flatMap((t) => t.sdwanInterfaces ?? []),
+    cellularInterfaces: templates.flatMap((t) => t.cellularInterfaces ?? []),
+    failOpen: templates.map((t) => t.failOpen).filter((f): f is PanwFailOpen => f != null),
     gpPortals: templates.flatMap((t) => t.gpPortals ?? []),
     gpGateways: templates.flatMap((t) => t.gpGateways ?? []),
     gpClientlessApps: templates.flatMap((t) => t.gpClientlessApps ?? []),

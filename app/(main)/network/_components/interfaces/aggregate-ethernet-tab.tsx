@@ -49,6 +49,7 @@ function buildAeColumns(
   memberMap: Map<string, string[]>,
   variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
+  onRouterClick?: (name: string) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
@@ -121,7 +122,7 @@ function buildAeColumns(
       header: "Virtual Router",
       enableSorting: true,
       accessorFn: (row) => ifaceToVirtualRouter.get(row.name) ?? "",
-      cell: ({ row }) => <RouterCell name={ifaceToVirtualRouter.get(row.original.name)} />,
+      cell: ({ row }) => <RouterCell name={ifaceToVirtualRouter.get(row.original.name)} onClick={onRouterClick} />,
     },
 
     {
@@ -129,7 +130,7 @@ function buildAeColumns(
       header: "Logical Router",
       enableSorting: true,
       accessorFn: (row) => ifaceToLogicalRouter.get(row.name) ?? "",
-      cell: ({ row }) => <RouterCell name={ifaceToLogicalRouter.get(row.original.name)} />,
+      cell: ({ row }) => <RouterCell name={ifaceToLogicalRouter.get(row.original.name)} onClick={onRouterClick} />,
     },
 
     {
@@ -200,6 +201,7 @@ export function AggregateEthernetTab({
   dhcpServerSet,
   variableMap,
   onMgmtProfileClick,
+  onRouterClick,
 }: SharedInterfaceTabProps) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
@@ -239,8 +241,8 @@ export function AggregateEthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildAeColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick),
-    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick]
+    () => buildAeColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick),
+    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -296,6 +298,7 @@ export function AggregateEthernetTab({
                 variableMap={variableMap}
                 zoneColorMap={zoneColorMap}
                 onMgmtProfileClick={onMgmtProfileClick}
+                onRouterClick={onRouterClick}
               />
             )}
           </React.Fragment>
