@@ -31,11 +31,18 @@ export interface VariableInfo {
 /** Map of variable name (with $ prefix) → resolved info */
 export type VariableMap = Map<string, VariableInfo>
 
+/** Accepts both plain string[] and rich { address: string }[] formats */
+type IpInput = string[] | { address: string }[]
+
+function toStrings(ips: IpInput): string[] {
+  return ips.map((ip) => (typeof ip === "string" ? ip : ip.address))
+}
+
 interface IpAddressCellProps {
-  /** IPv4 addresses to display */
-  ipv4?: string[]
-  /** IPv6 addresses to display (rendered in blue) */
-  ipv6?: string[]
+  /** IPv4 addresses to display (string[] or PanwIpEntry[]) */
+  ipv4?: IpInput
+  /** IPv6 addresses to display (string[] or PanwIpv6Entry[]) */
+  ipv6?: IpInput
   /** When true, renders "Dynamic-DHCP Client" badge instead of addresses */
   dhcpClient?: boolean
   /** Template variable lookup — when provided, $-prefixed values get tooltips */
@@ -88,19 +95,19 @@ export function IpAddressCell({ ipv4 = [], ipv6 = [], dhcpClient = false, variab
     )
   }
 
-  const hasIpv4 = ipv4.length > 0
-  const hasIpv6 = ipv6.length > 0
+  const v4 = toStrings(ipv4)
+  const v6 = toStrings(ipv6)
 
-  if (!hasIpv4 && !hasIpv6) {
+  if (v4.length === 0 && v6.length === 0) {
     return <span className="text-muted-foreground text-xs">—</span>
   }
 
   return (
     <div className="flex flex-col gap-0.5">
-      {ipv4.map((ip) => (
+      {v4.map((ip) => (
         <IpValue key={ip} ip={ip} className="text-xs" variableMap={variableMap} />
       ))}
-      {ipv6.map((ip) => (
+      {v6.map((ip) => (
         <IpValue key={ip} ip={ip} className="text-xs text-blue-500 dark:text-blue-400" variableMap={variableMap} />
       ))}
     </div>

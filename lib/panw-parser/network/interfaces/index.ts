@@ -5,6 +5,8 @@ export {
   type InterfaceMode,
   type PanwSubInterface,
   type PanwInterface,
+  type PanwIpEntry,
+  type PanwIpv6Entry,
   extractInterfaces,
 } from "./interfaces"
 

@@ -1,4 +1,4 @@
-// @/src/lib/panw-parser/network/interfaces/interfaces.ts
+// @/lib/panw-parser/network/interfaces/interfaces.ts
 //
 // Interface types and extractor.
 // Path: network > interface > ethernet|aggregate-ethernet|loopback|vlan|tunnel
@@ -14,7 +14,9 @@ export interface PanwSubInterface {
   name: string
   tag: number | null
   ipAddresses: string[]
+  ipEntries: PanwIpEntry[]
   ipv6Addresses: string[]
+  ipv6Entries: PanwIpv6Entry[]
   comment: string | null
   managementProfile: string | null
   // ── Feature flags ──────────────────────────────────────────────────────
@@ -29,21 +31,16 @@ export interface PanwInterface {
   name: string
   type: InterfaceType
   mode: InterfaceMode
-  ipAddresses: string[]
-  ipv6Addresses: string[]            // ← NEW: was missing on parent
   subInterfaces: PanwSubInterface[]
   comment: string | null
   managementProfile: string | null
   aggregateGroup: string | null
-  /** Panorama: which template this came from */
   templateName: string | null
-  // ── Feature flags ──────────────────────────────────────────────────────
   dhcpClient: boolean
   lldpEnabled: boolean
   lldpProfile: string | null
   ndpProxy: boolean
   sdwanEnabled: boolean
-  // ── LACP (AE interfaces only) ──────────────────────────────────────────
   lacpEnabled: boolean
   lacpMode: string | null
   lacpTransmissionRate: string | null
@@ -54,6 +51,67 @@ export interface PanwInterface {
   poeConfigured: boolean
   poeEnabled: boolean
   poeReservedPower: number | null
+  // ── NEW: Richer IP addresses (replaces string[]) ──
+  ipAddresses: PanwIpEntry[]        // was string[] → now { address, sdwanGateway }
+  ipv6Addresses: PanwIpv6Entry[]    // was string[] → now { address, enabled, anycast }
+  // ── NEW: IPv4 details ──
+  bonjourEnabled: boolean
+  ipv4MssAdjustment: number | null
+  ipv6MssAdjustment: number | null
+  // ── NEW: IPv6 ──
+  ipv6Enabled: boolean
+  // ── NEW: SD-WAN link settings ──
+  sdwanInterfaceProfile: string | null
+  upstreamNatEnabled: boolean
+  upstreamNatType: string | null     // "static-ip" | "ddns"
+  upstreamNatAddress: string | null
+  // ── NEW: Link settings (Advanced) ──
+  linkSpeed: string | null           // "auto", "10", "100", etc.
+  linkDuplex: string | null          // "auto", "full", "half"
+  linkState: string | null           // "auto", "up", "down"
+  // ── IPv4 type detection ──
+  pppoeEnabled: boolean
+  // ── IPv6 details ──
+  ipv6SdwanEnabled: boolean
+  ipv6InterfaceId: string | null     // "EUI-64" etc.
+  // Address Resolution (neighbor-discovery)
+  ipv6DadEnabled: boolean
+  ipv6DadAttempts: number | null
+  ipv6NdpMonitor: boolean
+  ipv6ReachableTime: number | null
+  ipv6NsInterval: number | null
+  // Router Advertisement
+  ipv6RaEnabled: boolean
+  ipv6RaMinInterval: number | null
+  ipv6RaMaxInterval: number | null
+  ipv6RaHopLimit: number | null
+  ipv6RaReachableTime: number | null
+  ipv6RaRetransTime: number | null
+  ipv6RaLifetime: number | null
+  ipv6RaRouterPreference: string | null
+  ipv6RaLinkMtu: string | null
+  ipv6RaManagedConfig: boolean
+  ipv6RaOtherConfig: boolean
+  ipv6RaConsistencyCheck: boolean
+}
+
+// New helper types
+export interface PanwIpEntry {
+  address: string
+  sdwanGateway: string | null
+}
+
+export interface PanwIpv6Entry {
+  address: string
+  enabled: boolean
+  anycast: boolean
+  prefix: boolean
+  // ── Send RA (advertise) ──
+  sendRa: boolean
+  validLifetime: number | null
+  preferredLifetime: number | null
+  onLink: boolean
+  autonomous: boolean
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -74,11 +132,31 @@ function extractSubInterfaces(unitsEl: unknown): PanwSubInterface[] {
     const sdwanEnabled = str(dig(entry, "sdwan-link-settings", "enable")) === "yes"
     const dhcpClient = dig(entry, "dhcp-client") !== undefined
 
+    // Rich IP entries for dialog
+    const ipEntryList: PanwIpEntry[] = ipEntries.map((ip) => ({
+      address: entryName(ip),
+      sdwanGateway: str(ip["sdwan-gateway"]) ?? null,
+    }))
+
+    const ipv6EntryList: PanwIpv6Entry[] = ipv6Entries.map((ip) => ({
+      address: entryName(ip),
+      enabled: str(ip["enable-on-interface"]) === "yes",
+      anycast: dig(ip, "anycast") !== undefined,
+      prefix: dig(ip, "prefix") !== undefined,
+      sendRa: str(dig(ip, "advertise", "enable")) === "yes",
+      validLifetime: dig(ip, "advertise", "valid-lifetime") !== undefined ? Number(dig(ip, "advertise", "valid-lifetime")) : null,
+      preferredLifetime: dig(ip, "advertise", "preferred-lifetime") !== undefined ? Number(dig(ip, "advertise", "preferred-lifetime")) : null,
+      onLink: str(dig(ip, "advertise", "onlink-flag")) === "yes",
+      autonomous: str(dig(ip, "advertise", "auto-config-flag")) === "yes",
+    }))
+
     return {
       name: entryName(entry),
       tag: entry["tag"] !== undefined ? Number(entry["tag"]) : null,
       ipAddresses,
+      ipEntries: ipEntryList,
       ipv6Addresses,
+      ipv6Entries: ipv6EntryList,
       comment: str(entry["comment"]),
       managementProfile: str(entry["interface-management-profile"]),
       bonjourEnabled,
@@ -115,13 +193,24 @@ function extractInterfacesOfType(
     // element to read these shared properties from.
     const propEl: Record<string, unknown> = modeEl ?? entry
 
-    // Direct IP addresses on the interface
     const directIpEntries = entries(dig(propEl, "ip"))
-    const directIps = directIpEntries.map((ip) => entryName(ip)).filter(Boolean)
+    const directIps: PanwIpEntry[] = directIpEntries.map((ip) => ({
+      address: entryName(ip),
+      sdwanGateway: str(ip["sdwan-gateway"]) ?? null,
+    }))
 
-    // IPv6 addresses on the parent interface
-    const ipv6Entries = entries(dig(propEl, "ipv6", "address"))
-    const ipv6Addresses = ipv6Entries.map((ip) => entryName(ip)).filter(Boolean)
+    const ipv6EntryList = entries(dig(propEl, "ipv6", "address"))
+    const ipv6Addresses: PanwIpv6Entry[] = ipv6EntryList.map((ip) => ({
+      address: entryName(ip),
+      enabled: str(ip["enable-on-interface"]) === "yes",
+      anycast: dig(ip, "anycast") !== undefined,
+      prefix: dig(ip, "prefix") !== undefined,
+      sendRa: str(dig(ip, "advertise", "enable")) === "yes",
+      validLifetime: dig(ip, "advertise", "valid-lifetime") !== undefined ? Number(dig(ip, "advertise", "valid-lifetime")) : null,
+      preferredLifetime: dig(ip, "advertise", "preferred-lifetime") !== undefined ? Number(dig(ip, "advertise", "preferred-lifetime")) : null,
+      onLink: str(dig(ip, "advertise", "onlink-flag")) === "yes",
+      autonomous: str(dig(ip, "advertise", "auto-config-flag")) === "yes",
+    }))
 
     // Sub-interfaces (units)
     const subInterfaces = extractSubInterfaces(dig(propEl, "units"))
@@ -168,6 +257,64 @@ function extractInterfacesOfType(
     const poeRsvd = str(dig(entry, "poe", "poe-rsvd-pwr"))
     const poeReservedPower = poeRsvd ? Number(poeRsvd) : null
 
+    const bonjourEnabled = str(dig(propEl, "bonjour", "enable")) === "yes"
+    const ipv6Enabled = str(dig(propEl, "ipv6", "enabled")) === "yes"
+
+    // TCP MSS details
+    const tcpMssEl = dig(propEl, "adjust-tcp-mss") as Record<string, unknown> | undefined
+    const ipv4MssAdjustment = tcpMssEl?.["ipv4-mss-adjustment"] !== undefined ? Number(tcpMssEl["ipv4-mss-adjustment"]) : null
+    const ipv6MssAdjustment = tcpMssEl?.["ipv6-mss-adjustment"] !== undefined ? Number(tcpMssEl["ipv6-mss-adjustment"]) : null
+
+    // SD-WAN link settings
+    const sdwanLinkEl = dig(propEl, "sdwan-link-settings") as Record<string, unknown> | undefined
+    const sdwanInterfaceProfile = str(sdwanLinkEl?.["sdwan-interface-profile"]) ?? null
+    const upstreamNatEl = dig(sdwanLinkEl, "upstream-nat") as Record<string, unknown> | undefined
+    const upstreamNatEnabled = str(upstreamNatEl?.["enable"]) === "yes"
+    let upstreamNatType: string | null = null
+    let upstreamNatAddress: string | null = null
+    if (upstreamNatEl?.["static-ip"]) {
+      upstreamNatType = "static-ip"
+      upstreamNatAddress = str(dig(upstreamNatEl, "static-ip", "ip-address")) ?? null
+    } else if (upstreamNatEl?.["ddns"]) {
+      upstreamNatType = "ddns"
+    }
+
+    // Link settings (Advanced)
+    const linkSpeed = str(dig(entry, "link-speed")) ?? null
+    const linkDuplex = str(dig(entry, "link-duplex")) ?? null
+    const linkState = str(dig(entry, "link-state")) ?? null
+
+    // IPv4 type detection
+    const pppoeEnabled = dig(propEl, "pppoe") !== undefined
+
+    // IPv6 details
+    const ipv6El = dig(propEl, "ipv6") as Record<string, unknown> | undefined
+    const ipv6SdwanEnabled = str(sdwanLinkEl?.["ipv6-enable"]) === "yes"
+    const ipv6InterfaceId = str(ipv6El?.["interface-id"]) ?? null
+
+    // Neighbor discovery
+    const ndEl = dig(ipv6El, "neighbor-discovery") as Record<string, unknown> | undefined
+    const ipv6DadEnabled = str(ndEl?.["enable-dad"]) === "yes"
+    const ipv6DadAttempts = ndEl?.["dad-attempts"] !== undefined ? Number(ndEl["dad-attempts"]) : null
+    const ipv6NdpMonitor = str(ndEl?.["enable-ndp-monitor"]) === "yes"
+    const ipv6ReachableTime = ndEl?.["reachable-time"] !== undefined ? Number(ndEl["reachable-time"]) : null
+    const ipv6NsInterval = ndEl?.["ns-interval"] !== undefined ? Number(ndEl["ns-interval"]) : null
+
+    // Router advertisement
+    const raEl = dig(ndEl, "router-advertisement") as Record<string, unknown> | undefined
+    const ipv6RaEnabled = str(raEl?.["enable"]) === "yes"
+    const ipv6RaMinInterval = raEl?.["min-interval"] !== undefined ? Number(raEl["min-interval"]) : null
+    const ipv6RaMaxInterval = raEl?.["max-interval"] !== undefined ? Number(raEl["max-interval"]) : null
+    const ipv6RaHopLimit = raEl?.["hop-limit"] !== undefined ? Number(raEl["hop-limit"]) : null
+    const ipv6RaReachableTime = raEl?.["reachable-time"] !== undefined ? Number(raEl["reachable-time"]) : null
+    const ipv6RaRetransTime = raEl?.["retransmission-timer"] !== undefined ? Number(raEl["retransmission-timer"]) : null
+    const ipv6RaLifetime = raEl?.["lifetime"] !== undefined ? Number(raEl["lifetime"]) : null
+    const ipv6RaRouterPreference = str(raEl?.["router-preference"]) ?? null
+    const ipv6RaLinkMtu = raEl?.["link-mtu"] !== undefined ? String(raEl["link-mtu"]) : null
+    const ipv6RaManagedConfig = str(raEl?.["managed-flag"]) === "yes"
+    const ipv6RaOtherConfig = str(raEl?.["other-flag"]) === "yes"
+    const ipv6RaConsistencyCheck = str(raEl?.["enable-consistency-check"]) === "yes"
+
     return {
       name: entryName(entry),
       type,
@@ -194,6 +341,38 @@ function extractInterfacesOfType(
       poeConfigured,
       poeEnabled,
       poeReservedPower,
+      // New fields
+      bonjourEnabled,
+      ipv4MssAdjustment,
+      ipv6MssAdjustment,
+      ipv6Enabled,
+      sdwanInterfaceProfile,
+      upstreamNatEnabled,
+      upstreamNatType,
+      upstreamNatAddress,
+      linkSpeed,
+      linkDuplex,
+      linkState,
+      pppoeEnabled,
+      ipv6SdwanEnabled,
+      ipv6InterfaceId,
+      ipv6DadEnabled,
+      ipv6DadAttempts,
+      ipv6NdpMonitor,
+      ipv6ReachableTime,
+      ipv6NsInterval,
+      ipv6RaEnabled,
+      ipv6RaMinInterval,
+      ipv6RaMaxInterval,
+      ipv6RaHopLimit,
+      ipv6RaReachableTime,
+      ipv6RaRetransTime,
+      ipv6RaLifetime,
+      ipv6RaRouterPreference,
+      ipv6RaLinkMtu,
+      ipv6RaManagedConfig,
+      ipv6RaOtherConfig,
+      ipv6RaConsistencyCheck,
     }
   })
 }

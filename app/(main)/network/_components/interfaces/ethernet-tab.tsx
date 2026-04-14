@@ -22,6 +22,7 @@ import { IpAddressCell } from "@/app/(main)/_components/ui/ip-address-cell"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import { cn } from "@/lib/utils"
 import type { PanwInterface } from "@/lib/panw-parser/network/interfaces"
+import { EthernetDialog } from "./ethernet-dialog"
 import {
   MODE_LABELS,
   InterfaceTypeBadge,
@@ -49,6 +50,7 @@ function buildEthernetColumns(
   variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
   onRouterClick?: (name: string) => void,
+  onNameClick?: (item: PanwInterface) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
@@ -56,7 +58,17 @@ function buildEthernetColumns(
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
-      cell: (info) => <span className="text-xs font-medium">{info.getValue()}</span>,
+      cell: (info) => onNameClick ? (
+        <button
+          type="button"
+          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+          onClick={() => onNameClick(info.row.original)}
+        >
+          {info.getValue()}
+        </button>
+      ) : (
+        <span className="text-xs font-medium">{info.getValue()}</span>
+      ),
     }) as ColumnDef<PanwInterface, unknown>,
 
     {
@@ -207,6 +219,7 @@ export function EthernetTab({
 }: SharedInterfaceTabProps) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
+  const [selected, setSelected] = React.useState<PanwInterface | null>(null)
 
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     subIfCount: false,
@@ -229,7 +242,7 @@ export function EthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildEthernetColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick, onRouterClick),
+    () => buildEthernetColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick, onRouterClick, setSelected),
     [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick, onRouterClick]
   )
 
@@ -248,11 +261,12 @@ export function EthernetTab({
   })
 
   return (
-    <DataTable
-      table={table}
-      title="Ethernet"
-      search={search}
-      onSearch={setSearch}
+    <>
+      <DataTable
+        table={table}
+        title="Ethernet"
+        search={search}
+        onSearch={setSearch}
       renderRow={(row) => {
         const iface = row.original
         const rowKey = `${iface.templateName ?? "fw"}-${iface.name}`
@@ -292,5 +306,17 @@ export function EthernetTab({
         )
       }}
     />
+    <EthernetDialog
+      item={selected}
+      open={selected !== null}
+      onOpenChange={(open) => { if (!open) setSelected(null) }}
+      ifaceToVirtualRouter={ifaceToVirtualRouter}
+      ifaceToLogicalRouter={ifaceToLogicalRouter}
+      ifaceToZone={ifaceToZone}
+      zoneColorMap={zoneColorMap}
+      onRouterClick={onRouterClick}
+      onMgmtProfileClick={onMgmtProfileClick}
+    />
+  </>
   )
 }
