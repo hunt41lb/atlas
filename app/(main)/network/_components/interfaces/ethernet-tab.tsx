@@ -21,8 +21,8 @@ import { useExpandableRows, ExpandToggle } from "@/components/ui/expandable-row"
 import { IpAddressCell } from "@/app/(main)/_components/ui/ip-address-cell"
 import { MonoValue } from "@/app/(main)/_components/ui/category-shell"
 import { cn } from "@/lib/utils"
-import type { PanwInterface } from "@/lib/panw-parser/network/interfaces"
-import { EthernetDialog } from "./ethernet-dialog"
+import type { PanwInterface, PanwSubInterface } from "@/lib/panw-parser/network/interfaces"
+import { InterfaceDialog } from "./interface-dialog"
 import {
   MODE_LABELS,
   InterfaceTypeBadge,
@@ -219,7 +219,7 @@ export function EthernetTab({
 }: SharedInterfaceTabProps) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
-  const [selected, setSelected] = React.useState<PanwInterface | null>(null)
+  const [selected, setSelected] = React.useState<PanwInterface | PanwSubInterface | null>(null)
 
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     subIfCount: false,
@@ -300,13 +300,14 @@ export function EthernetTab({
                 zoneColorMap={zoneColorMap}
                 onMgmtProfileClick={onMgmtProfileClick}
                 onRouterClick={onRouterClick}
+                onSubInterfaceClick={setSelected}
               />
             )}
           </React.Fragment>
         )
       }}
     />
-    <EthernetDialog
+    <InterfaceDialog
       item={selected}
       open={selected !== null}
       onOpenChange={(open) => { if (!open) setSelected(null) }}

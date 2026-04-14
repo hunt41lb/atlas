@@ -7,6 +7,10 @@ export {
   type PanwInterface,
   type PanwIpEntry,
   type PanwIpv6Entry,
+  type PanwArpEntry,
+  type PanwNdEntry,
+  type PanwNdpProxyAddress,
+  type PanwDdnsVendorConfig,
   extractInterfaces,
 } from "./interfaces"
 

@@ -21,7 +21,8 @@ import { useExpandableRows, ExpandToggle } from "@/components/ui/expandable-row"
 import { IpAddressCell } from "@/app/(main)/_components/ui/ip-address-cell"
 import { MembersList } from "@/app/(main)/_components/ui/category-shell"
 import { cn } from "@/lib/utils"
-import type { PanwInterface } from "@/lib/panw-parser/network/interfaces"
+import type { PanwInterface, PanwSubInterface } from "@/lib/panw-parser/network/interfaces"
+import { InterfaceDialog } from "./interface-dialog"
 import {
   MODE_LABELS,
   ModeBadge,
@@ -50,6 +51,7 @@ function buildAeColumns(
   variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
   onRouterClick?: (name: string) => void,
+  onNameClick?: (item: PanwInterface) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     { id: "expand", enableSorting: false, enableHiding: false, size: 32, cell: () => null },
@@ -57,7 +59,17 @@ function buildAeColumns(
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      cell: (info) => onNameClick ? (
+        <button
+          type="button"
+          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+          onClick={() => onNameClick(info.row.original)}
+        >
+          {info.getValue()}
+        </button>
+      ) : (
+        <span className="text-xs font-medium">{info.getValue()}</span>
+      ),
     }) as ColumnDef<PanwInterface, unknown>,
 
     {
@@ -205,6 +217,7 @@ export function AggregateEthernetTab({
 }: SharedInterfaceTabProps) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
+  const [selected, setSelected] = React.useState<PanwInterface | PanwSubInterface | null>(null)
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     subIfCount: false,
     virtualRouter: hasVirtualRouters,
@@ -241,7 +254,7 @@ export function AggregateEthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildAeColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick),
+    () => buildAeColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick, setSelected),
     [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick]
   )
 
@@ -260,6 +273,7 @@ export function AggregateEthernetTab({
   })
 
   return (
+    <>
     <DataTable
       table={table}
       title="Aggregate Ethernet"
@@ -299,11 +313,24 @@ export function AggregateEthernetTab({
                 zoneColorMap={zoneColorMap}
                 onMgmtProfileClick={onMgmtProfileClick}
                 onRouterClick={onRouterClick}
+                onSubInterfaceClick={setSelected}
               />
             )}
           </React.Fragment>
         )
       }}
     />
+    <InterfaceDialog
+      item={selected}
+      open={selected !== null}
+      onOpenChange={(open) => { if (!open) setSelected(null) }}
+      ifaceToVirtualRouter={ifaceToVirtualRouter}
+      ifaceToLogicalRouter={ifaceToLogicalRouter}
+      ifaceToZone={ifaceToZone}
+      zoneColorMap={zoneColorMap}
+      onRouterClick={onRouterClick}
+      onMgmtProfileClick={onMgmtProfileClick}
+    />
+    </>
   )
 }

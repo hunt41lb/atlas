@@ -146,6 +146,7 @@ export function SubInterfaceRows({
   variableMap,
   zoneColorMap,
   onMgmtProfileClick,
+  onSubInterfaceClick,
   onRouterClick,
 }: {
   subs: PanwSubInterface[]
@@ -161,6 +162,7 @@ export function SubInterfaceRows({
   variableMap?: VariableMap
   zoneColorMap?: Map<string, string>
   onMgmtProfileClick?: (name: string) => void
+  onSubInterfaceClick?: (sub: PanwSubInterface) => void
   onRouterClick?: (name: string) => void
 }) {
   const show = (colId: string) => !visibleColumns || visibleColumns.has(colId)
@@ -173,7 +175,17 @@ export function SubInterfaceRows({
           {show("name") && (
             <TableCell className="pl-2">
               <span className="text-muted-foreground mr-1 text-xs">↳</span>
-              <span className="font-medium text-xs">{sub.name}</span>
+              {onSubInterfaceClick ? (
+                <button
+                  type="button"
+                  className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+                  onClick={() => onSubInterfaceClick(sub)}
+                >
+                  {sub.name}
+                </button>
+              ) : (
+                <span className="font-medium text-xs">{sub.name}</span>
+              )}
             </TableCell>
           )}
           {show("interfaceType") && (
