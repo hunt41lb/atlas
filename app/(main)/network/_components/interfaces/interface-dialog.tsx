@@ -18,7 +18,7 @@ import { MODE_LABELS, RouterCell, ZoneCell, MgmtProfileCell } from "./interface-
 import type { PanwInterface, PanwSubInterface, PanwIpv6Entry } from "@/lib/panw-parser/network/interfaces"
 import { DDNS_CONFIG_LABELS, DDNS_VENDOR_LABELS } from "@/lib/panw-defaults"
 
-// ─── Shared types ────────────────────────────────────────────────────────────
+// ─── Type detection helpers ──────────────────────────────────────────────────
 
 type DialogItem = PanwInterface | PanwSubInterface
 
@@ -32,6 +32,17 @@ function isAeMember(item: DialogItem): boolean {
 
 function isAeParent(item: DialogItem): boolean {
   return isParentInterface(item) && item.type === "ae"
+}
+
+function dialogTitle(item: DialogItem): string {
+  if (!isParentInterface(item)) return "Layer3 Subinterface"
+  switch (item.type) {
+    case "vlan":     return "VLAN Interface"
+    case "loopback": return "Loopback Interface"
+    case "tunnel":   return "Tunnel Interface"
+    case "ae":       return "Aggregate Ethernet Interface"
+    default:         return "Ethernet Interface"
+  }
 }
 
 // ─── IPv6 Address Detail Dialog ──────────────────────────────────────────────
@@ -99,8 +110,10 @@ interface InterfaceDialogProps {
   ifaceToLogicalRouter: Map<string, string>
   ifaceToZone: Map<string, string>
   zoneColorMap: Map<string, string>
+  ifaceToVlan?: Map<string, string>
   onRouterClick?: (name: string) => void
   onMgmtProfileClick?: (name: string) => void
+  onZoneClick?: (name: string) => void
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -115,8 +128,10 @@ export function InterfaceDialog({
   ifaceToLogicalRouter,
   ifaceToZone,
   zoneColorMap,
+  ifaceToVlan,
   onRouterClick,
   onMgmtProfileClick,
+  onZoneClick,
 }: InterfaceDialogProps) {
   const [selectedIpv6, setSelectedIpv6] = useState<PanwIpv6Entry | null>(null)
 
@@ -130,24 +145,35 @@ export function InterfaceDialog({
   const ipAddresses = isParent ? item.ipAddresses : item.ipEntries
   const ipv6Addresses = isParent ? item.ipv6Addresses : item.ipv6Entries
 
+  // Unit-based interface flags (vlan, loopback, tunnel)
+  const isUnit     = isParent && (item.type === "vlan" || item.type === "loopback" || item.type === "tunnel")
+  const isVlan     = isParent && item.type === "vlan"
+  const isLoopback = isParent && item.type === "loopback"
+  const isTunnel   = isParent && item.type === "tunnel"
+
+  // Feature flags — drive conditional rendering
+  const hasIpv4TypeRadio    = !isLoopback && !isTunnel
+  const hasIpv6SubTabs      = !isLoopback && !isTunnel
+  const hasSdwanTab         = !isUnit
+  const hasAdvancedSubTabs  = !isLoopback && !isTunnel
+  const hasLinkSettings     = isParent && !isAe && !isUnit
+  const hasLldp             = isParent && !isUnit
+  const hasCluster          = isParent && !isUnit
+
   return (
     <DetailDialog
-      title={
-        !isParent ? "Layer3 Subinterface"
-        : isMember ? "Ethernet Interface"
-        : isAe ? "Aggregate Ethernet Interface"
-        : "Ethernet Interface"
-      }
+      title={dialogTitle(item)}
       open={open}
       onOpenChange={onOpenChange}
       maxWidth="sm:max-w-3xl"
     >
+      {/* ── Header fields ── */}
       <DisplayField labelWidth={LW} label="Interface Name" value={item.name} />
       <DisplayField labelWidth={LW} label="Comment" value={item.comment ?? "None"} />
       {!isParent && (
         <DisplayField labelWidth={LW} label="Tag" value={item.tag !== null ? String(item.tag) : "Untagged"} />
       )}
-      {isParent && (
+      {isParent && !isUnit && (
         <DisplayField labelWidth={LW} label="Interface Type" value={item.mode !== "none" ? (MODE_LABELS[item.mode] ?? item.mode) : "None"} />
       )}
       {isParent && isMember && (
@@ -157,7 +183,7 @@ export function InterfaceDialog({
         <DisplayField labelWidth={LW} label="Netflow Profile" value={item.netflowProfile ?? "None"} />
       )}
 
-      {/* AE member — simplified view (no tabs) */}
+      {/* ── AE member — simplified view (no tabs) ── */}
       {isMember && isParent && (
         <div className="mt-3 space-y-4">
           <Fieldset>
@@ -185,7 +211,7 @@ export function InterfaceDialog({
         </div>
       )}
 
-      {/* Full tabbed view — for AE parents, ethernet parents (non-member), and subinterfaces */}
+      {/* ── Full tabbed view ── */}
       {!isMember && (
       <Tabs defaultValue="config" className="mt-3 flex flex-col">
         <div className="shrink-0 border-b">
@@ -194,7 +220,7 @@ export function InterfaceDialog({
             <TabsTrigger value="ipv4">IPv4</TabsTrigger>
             <TabsTrigger value="ipv6">IPv6</TabsTrigger>
             {isAe && <TabsTrigger value="lacp">LACP</TabsTrigger>}
-            <TabsTrigger value="sdwan">SD-WAN</TabsTrigger>
+            {hasSdwanTab && <TabsTrigger value="sdwan">SD-WAN</TabsTrigger>}
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
           </TabsList>
         </div>
@@ -204,6 +230,9 @@ export function InterfaceDialog({
           <Fieldset>
             <FieldsetLegend>Assign Interface To</FieldsetLegend>
             <FieldsetContent>
+              {isVlan && (
+                <DisplayField label="VLAN" value={ifaceToVlan?.get(item.name) ?? "None"} labelWidth="w-32" />
+              )}
               <div className="flex items-center gap-2">
                 <span className="w-32 shrink-0 font-medium text-foreground">Virtual Router</span>
                 <RouterCell name={ifaceToVirtualRouter.get(item.name)} onClick={onRouterClick} />
@@ -214,7 +243,7 @@ export function InterfaceDialog({
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-32 shrink-0 font-medium text-foreground">Security Zone</span>
-                <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} />
+                <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} onClick={onZoneClick} />
               </div>
             </FieldsetContent>
           </Fieldset>
@@ -222,44 +251,49 @@ export function InterfaceDialog({
 
         {/* ── IPv4 ── */}
         <TabsContent value="ipv4" className="pt-3 space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="flex items-center gap-2 pl-1">
-              <Checkbox checked={item.sdwanEnabled} disabled />
-              <span>Enable SD-WAN</span>
-            </Label>
-            <Label className="flex items-center gap-2">
-              <Checkbox checked={item.bonjourEnabled} disabled />
-              <span>Enable Bonjour Reflector</span>
-            </Label>
-          </div>
+          {hasIpv4TypeRadio && (
+            <>
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2 pl-1">
+                  <Checkbox checked={item.sdwanEnabled} disabled />
+                  <span>Enable SD-WAN</span>
+                </Label>
+                <Label className="flex items-center gap-2">
+                  <Checkbox checked={item.bonjourEnabled} disabled />
+                  <span>Enable Bonjour Reflector</span>
+                </Label>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="shrink-0 font-medium text-foreground">Type</span>
+                <RadioGroup value={ipv4Type} disabled className="flex flex-row gap-4">
+                  <Label className="flex items-center gap-1.5 font-normal"><RadioGroupItem value="static" />Static</Label>
+                  {isParent && !isVlan && <Label className="flex items-center gap-1.5 font-normal"><RadioGroupItem value="pppoe" />PPPoE</Label>}
+                  <Label className="flex items-center gap-1.5 font-normal"><RadioGroupItem value="dhcp" />DHCP Client</Label>
+                </RadioGroup>
+              </div>
+            </>
+          )}
 
-          <div className="flex items-center gap-4">
-            <span className="shrink-0 font-medium text-foreground">Type</span>
-            <RadioGroup value={ipv4Type} disabled className="flex flex-row gap-4">
-              <Label className="flex items-center gap-1.5 font-normal"><RadioGroupItem value="static" />Static</Label>
-              {isParent && <Label className="flex items-center gap-1.5 font-normal"><RadioGroupItem value="pppoe" />PPPoE</Label>}
-              <Label className="flex items-center gap-1.5 font-normal"><RadioGroupItem value="dhcp" />DHCP Client</Label>
-            </RadioGroup>
-          </div>
-
-          {ipv4Type === "static" && (
+          {(ipv4Type === "static" || !hasIpv4TypeRadio) && (
             <div className="rounded-lg border overflow-hidden">
               <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="text-[11px]">IP</TableHead>
-                    <TableHead className="text-[11px]">NEXT HOP GATEWAY</TableHead>
+                    {hasIpv4TypeRadio && <TableHead className="text-[11px]">NEXT HOP GATEWAY</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {ipAddresses.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No IPv4 addresses configured.</TableCell>
+                      <TableCell colSpan={hasIpv4TypeRadio ? 2 : 1} className="py-4 text-center text-muted-foreground">No IPv4 addresses configured.</TableCell>
                     </TableRow>
                   ) : ipAddresses.map((ip) => (
                     <TableRow key={ip.address}>
                       <TableCell><MonoValue className="text-xs">{ip.address}</MonoValue></TableCell>
-                      <TableCell>{ip.sdwanGateway ? <MonoValue className="text-xs">{ip.sdwanGateway}</MonoValue> : <span className="text-muted-foreground text-xs">—</span>}</TableCell>
+                      {hasIpv4TypeRadio && (
+                        <TableCell>{ip.sdwanGateway ? <MonoValue className="text-xs">{ip.sdwanGateway}</MonoValue> : <span className="text-muted-foreground text-xs">—</span>}</TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -276,17 +310,17 @@ export function InterfaceDialog({
               <span>Enable IPv6 on the interface</span>
             </Label>
             <div className="flex items-center gap-4">
-              <Label className="flex items-center gap-2">
-                <Checkbox checked={item.ipv6SdwanEnabled} disabled />
-                <span>Enable SD-WAN</span>
-              </Label>
-              <span className="text-xs">{item.ipv6InterfaceId ?? "EUI-64"}</span>
+              {!isUnit && (
+                <Label className="flex items-center gap-2">
+                  <Checkbox checked={item.ipv6SdwanEnabled} disabled />
+                  <span>Enable SD-WAN</span>
+                </Label>
+              )}
+              <DisplayField label="Interface ID" value={item.ipv6InterfaceId ?? "EUI-64"} />
             </div>
           </div>
 
-          <DisplayField label="Type" value="Static" />
-
-          {item.ipv6Enabled && (
+          {hasIpv6SubTabs && item.ipv6Enabled && (
             <Tabs defaultValue="addr-assignment" className="flex flex-col">
               <div className="shrink-0 border-b">
                 <TabsList variant="line">
@@ -297,34 +331,7 @@ export function InterfaceDialog({
               </div>
 
               <TabsContent value="addr-assignment" className="pt-3">
-                {ipv6Addresses.length === 0 ? (
-                  <p className="py-4 text-center text-muted-foreground">No IPv6 addresses configured.</p>
-                ) : (
-                  <div className="rounded-lg border overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="text-[11px]">ADDRESS</TableHead>
-                          <TableHead className="text-[11px]">ENABLED</TableHead>
-                          <TableHead className="text-[11px]">INTERFACE ID AS HOST</TableHead>
-                          <TableHead className="text-[11px]">ANYCAST</TableHead>
-                          <TableHead className="text-[11px]">SEND RA</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {ipv6Addresses.map((ip) => (
-                          <TableRow key={ip.address} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedIpv6(ip)}>
-                            <TableCell><MonoValue className="text-xs text-foreground hover:underline">{ip.address}</MonoValue></TableCell>
-                            <TableCell><Checkbox checked={ip.enabled} disabled /></TableCell>
-                            <TableCell><Checkbox checked={ip.prefix} disabled /></TableCell>
-                            <TableCell><Checkbox checked={ip.anycast} disabled /></TableCell>
-                            <TableCell><Checkbox checked={ip.sendRa} disabled /></TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
+                <Ipv6AddressTable addresses={ipv6Addresses} onSelect={setSelectedIpv6} showSendRa />
               </TabsContent>
 
               <TabsContent value="addr-resolution" className="pt-3 space-y-3">
@@ -372,9 +379,15 @@ export function InterfaceDialog({
               </TabsContent>
             </Tabs>
           )}
+
+          {/* Simple IPv6 for loopback/tunnel — just address table, no sub-tabs */}
+          {!hasIpv6SubTabs && (
+            <Ipv6AddressTable addresses={ipv6Addresses} onSelect={setSelectedIpv6} />
+          )}
         </TabsContent>
 
-        {/* ── SD-WAN ── */}
+        {/* ── SD-WAN (ethernet/ae/sub only) ── */}
+        {hasSdwanTab && (
         <TabsContent value="sdwan" className="pt-3 space-y-3">
           <DisplayField labelWidth={LW} label="SD-WAN Interface Status" value={item.sdwanEnabled ? "Enabled" : "Disabled"} />
           <DisplayField labelWidth={LW} label="SD-WAN Interface Profile" value={item.sdwanInterfaceProfile ?? "None"} />
@@ -406,6 +419,7 @@ export function InterfaceDialog({
             </FieldsetContent>
           </Fieldset>
         </TabsContent>
+        )}
 
         {/* ── LACP (AE only) ── */}
         {isParent && isAe && (
@@ -457,8 +471,8 @@ export function InterfaceDialog({
 
         {/* ── Advanced ── */}
         <TabsContent value="advanced" className="pt-3 space-y-4">
-          {/* Link Settings & PoE — parent only */}
-          {isParent && !isAe && (
+          {/* Link Settings & PoE — ethernet parent only */}
+          {hasLinkSettings && isParent && (
             <>
               <Fieldset>
                 <FieldsetLegend>Link Settings</FieldsetLegend>
@@ -485,6 +499,8 @@ export function InterfaceDialog({
             </>
           )}
 
+          {/* Full sub-tabs: ethernet/ae/vlan */}
+          {hasAdvancedSubTabs && (
           <Tabs defaultValue="other-info" className="flex flex-col">
             <div className="shrink-0 border-b">
               <TabsList variant="line">
@@ -492,127 +508,29 @@ export function InterfaceDialog({
                 <TabsTrigger value="arp-entries">ARP Entries</TabsTrigger>
                 <TabsTrigger value="nd-entries">ND Entries</TabsTrigger>
                 <TabsTrigger value="ndp-proxy">NDP Proxy</TabsTrigger>
-                {isParent && <TabsTrigger value="lldp">LLDP</TabsTrigger>}
+                {hasLldp && <TabsTrigger value="lldp">LLDP</TabsTrigger>}
                 <TabsTrigger value="ddns">DDNS</TabsTrigger>
-                {isParent && <TabsTrigger value="cluster">Cluster</TabsTrigger>}
+                {hasCluster && <TabsTrigger value="cluster">Cluster</TabsTrigger>}
               </TabsList>
             </div>
 
-            {/* Other Info */}
             <TabsContent value="other-info" className="pt-3 space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="w-40 shrink-0 font-medium text-foreground">Management Profile</span>
-                <MgmtProfileCell name={item.managementProfile} onClick={onMgmtProfileClick} />
-              </div>
-              <DisplayField labelWidth="w-40" label="MTU" value={item.mtu !== null ? String(item.mtu) : "None"} />
-              <Label className="flex items-center gap-2 pl-1">
-                <Checkbox checked={isParent ? item.networkPacketBroker : item.networkPacketBroker} disabled />
-                <span>Network Packet Broker</span>
-              </Label>
-
-              <Fieldset>
-                <FieldsetLegend>
-                  <Label className="flex items-center gap-2"><Checkbox checked={item.adjustTcpMss} disabled />Adjust TCP MSS</Label>
-                </FieldsetLegend>
-                {item.adjustTcpMss && (
-                  <FieldsetContent>
-                    <DisplayField label="IPv4 MSS Adjustment" value={item.ipv4MssAdjustment !== null ? String(item.ipv4MssAdjustment) : "40"} />
-                    <DisplayField label="IPv6 MSS Adjustment" value={item.ipv6MssAdjustment !== null ? String(item.ipv6MssAdjustment) : "60"} />
-                  </FieldsetContent>
-                )}
-              </Fieldset>
-
-              {isParent && (
-                <Label className="flex items-center gap-2 pl-1">
-                  <Checkbox checked={item.untaggedSubInterface} disabled />
-                  <span>Untagged Subinterface</span>
-                </Label>
-              )}
+              <OtherInfoContent item={item} isParent={isParent} onMgmtProfileClick={onMgmtProfileClick} />
             </TabsContent>
 
-            {/* ARP Entries */}
             <TabsContent value="arp-entries" className="pt-3">
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-[11px]">IP ADDRESS</TableHead>
-                      <TableHead className="text-[11px]">MAC ADDRESS</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {item.arpEntries.length === 0 ? (
-                      <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No ARP entries configured.</TableCell></TableRow>
-                    ) : item.arpEntries.map((e) => (
-                      <TableRow key={e.ip}>
-                        <TableCell><MonoValue className="text-xs">{e.ip}</MonoValue></TableCell>
-                        <TableCell><MonoValue className="text-xs">{e.mac}</MonoValue></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ArpEntriesTable entries={item.arpEntries} />
             </TabsContent>
 
-            {/* ND Entries */}
             <TabsContent value="nd-entries" className="pt-3">
-              <div className="rounded-lg border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-[11px]">IPV6 ADDRESS</TableHead>
-                      <TableHead className="text-[11px]">MAC ADDRESS</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {item.ndEntries.length === 0 ? (
-                      <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No ND entries configured.</TableCell></TableRow>
-                    ) : item.ndEntries.map((e) => (
-                      <TableRow key={e.ipv6}>
-                        <TableCell><MonoValue className="text-xs">{e.ipv6}</MonoValue></TableCell>
-                        <TableCell><MonoValue className="text-xs">{e.mac}</MonoValue></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <NdEntriesTable entries={item.ndEntries} />
             </TabsContent>
 
-            {/* NDP Proxy */}
             <TabsContent value="ndp-proxy" className="pt-3">
-              <Fieldset>
-                <FieldsetLegend>
-                  <Label className="flex items-center gap-2"><Checkbox checked={item.ndpProxy} disabled />Enable NDP Proxy</Label>
-                </FieldsetLegend>
-                {item.ndpProxy && (
-                  <FieldsetContent>
-                    <div className="rounded-lg border overflow-hidden">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="text-[11px]">ADDRESS</TableHead>
-                            <TableHead className="text-[11px]">NEGATE</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {item.ndpProxyAddresses.length === 0 ? (
-                            <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No proxy addresses configured.</TableCell></TableRow>
-                          ) : item.ndpProxyAddresses.map((e) => (
-                            <TableRow key={e.address}>
-                              <TableCell><MonoValue className="text-xs">{e.address}</MonoValue></TableCell>
-                              <TableCell><Checkbox checked={e.negate} disabled /></TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </FieldsetContent>
-                )}
-              </Fieldset>
+              <NdpProxyContent item={item} />
             </TabsContent>
 
-            {/* LLDP — parent only */}
-            {isParent && (
+            {hasLldp && isParent && (
               <TabsContent value="lldp" className="pt-3 space-y-3">
                 <Fieldset>
                   <FieldsetLegend>
@@ -633,115 +551,41 @@ export function InterfaceDialog({
               </TabsContent>
             )}
 
-            {/* DDNS */}
             <TabsContent value="ddns" className="pt-3">
-              <Fieldset disabled={!item.ddnsEnabled}>
-                <FieldsetLegend>
-                  <Label className="flex items-center gap-2"><Checkbox checked={item.ddnsEnabled} disabled />Settings</Label>
-                </FieldsetLegend>
-                {item.ddnsEnabled ? (
-                  <FieldsetContent>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-4">
-                        <Label className="flex items-center gap-2 pl-1"><Checkbox checked={item.ddnsEnabled} disabled /><span>Enable</span></Label>
-                        <DisplayField label="Update Interval (days)" value={String(item.ddnsUpdateInterval ?? 1)} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <DisplayField label="Certificate Profile" value={item.ddnsCertProfile ?? "None"} />
-                        <DisplayField label="Hostname" value={item.ddnsHostname ?? "None"} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div />
-                        <DisplayField label="Vendor" value={item.ddnsVendor ? (DDNS_VENDOR_LABELS[item.ddnsVendor] ?? item.ddnsVendor) : "None"} />
-                      </div>
-
-                      <Tabs defaultValue="ddns-ipv4" className="flex flex-col">
-                        <div className="shrink-0 border-b">
-                          <TabsList variant="line">
-                            <TabsTrigger value="ddns-ipv4">IPv4</TabsTrigger>
-                            <TabsTrigger value="ddns-ipv6">IPv6</TabsTrigger>
-                          </TabsList>
-                        </div>
-                        <TabsContent value="ddns-ipv4" className="pt-3">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="rounded-lg border overflow-hidden">
-                              <Table>
-                                <TableHeader><TableRow><TableHead className="text-[11px]">IP</TableHead></TableRow></TableHeader>
-                                <TableBody>
-                                  {item.ddnsIpv4.length === 0 ? (
-                                    <TableRow><TableCell className="py-4 text-center text-muted-foreground">No IPs configured.</TableCell></TableRow>
-                                  ) : item.ddnsIpv4.map((ip) => (
-                                    <TableRow key={ip}><TableCell><MonoValue className="text-xs">{ip}</MonoValue></TableCell></TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                            <div className="rounded-lg border overflow-hidden">
-                              <Table>
-                                <TableHeader><TableRow><TableHead className="text-[11px]">NAME</TableHead><TableHead className="text-[11px]">VALUE</TableHead></TableRow></TableHeader>
-                                <TableBody>
-                                  {item.ddnsVendorConfig.length === 0 ? (
-                                    <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No vendor config.</TableCell></TableRow>
-                                  ) : item.ddnsVendorConfig.map((vc) => (
-                                    <TableRow key={vc.name}>
-                                      <TableCell className="font-medium">{DDNS_CONFIG_LABELS[vc.name] ?? vc.name}</TableCell>
-                                      <TableCell className="tabular-nums">{vc.value}</TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </div>
-                        </TabsContent>
-                        <TabsContent value="ddns-ipv6" className="pt-3">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="rounded-lg border overflow-hidden">
-                              <Table>
-                                <TableHeader><TableRow><TableHead className="text-[11px]">IPV6</TableHead></TableRow></TableHeader>
-                                <TableBody>
-                                  {item.ddnsIpv6.length === 0 ? (
-                                    <TableRow><TableCell className="py-4 text-center text-muted-foreground">No IPv6 addresses configured.</TableCell></TableRow>
-                                  ) : item.ddnsIpv6.map((ip) => (
-                                    <TableRow key={ip}><TableCell><MonoValue className="text-xs">{ip}</MonoValue></TableCell></TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                            <div className="rounded-lg border overflow-hidden">
-                              <Table>
-                                <TableHeader><TableRow><TableHead className="text-[11px]">NAME</TableHead><TableHead className="text-[11px]">VALUE</TableHead></TableRow></TableHeader>
-                                <TableBody>
-                                  {item.ddnsVendorConfig.length === 0 ? (
-                                    <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No vendor config.</TableCell></TableRow>
-                                  ) : item.ddnsVendorConfig.map((vc) => (
-                                    <TableRow key={vc.name}>
-                                      <TableCell className="font-medium">{DDNS_CONFIG_LABELS[vc.name] ?? vc.name}</TableCell>
-                                      <TableCell className="tabular-nums">{vc.value}</TableCell>
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </div>
-                        </TabsContent>
-                      </Tabs>
-                    </div>
-                  </FieldsetContent>
-                ) : (
-                  <FieldsetContent>
-                    <p className="py-2 text-center text-muted-foreground">DDNS is not enabled on this interface.</p>
-                  </FieldsetContent>
-                )}
-              </Fieldset>
+              <DdnsContent item={item} />
             </TabsContent>
 
-            {/* Cluster — parent only */}
-            {isParent && (
+            {hasCluster && isParent && (
               <TabsContent value="cluster" className="pt-3">
                 <Label className="flex items-center gap-2 pl-1"><Checkbox checked={item.trafficInterconnect} disabled /><span>Traffic Interconnect</span></Label>
               </TabsContent>
             )}
           </Tabs>
+          )}
+
+          {/* Loopback — inline Other Info (no sub-tabs) */}
+          {isLoopback && (
+            <Fieldset>
+              <FieldsetLegend>Other Info</FieldsetLegend>
+              <FieldsetContent>
+                <OtherInfoContent item={item} isParent={isParent} onMgmtProfileClick={onMgmtProfileClick} />
+              </FieldsetContent>
+            </Fieldset>
+          )}
+
+          {/* Tunnel — minimal Other Info (just Mgmt Profile + MTU) */}
+          {isTunnel && (
+            <Fieldset>
+              <FieldsetLegend>Other Info</FieldsetLegend>
+              <FieldsetContent>
+                <div className="flex items-center gap-2">
+                  <span className="w-40 shrink-0 font-medium text-foreground">Management Profile</span>
+                  <MgmtProfileCell name={item.managementProfile} onClick={onMgmtProfileClick} />
+                </div>
+                <DisplayField labelWidth="w-40" label="MTU" value={item.mtu !== null ? String(item.mtu) : "None"} />
+              </FieldsetContent>
+            </Fieldset>
+          )}
         </TabsContent>
       </Tabs>
       )}
@@ -752,5 +596,268 @@ export function InterfaceDialog({
         onOpenChange={(open) => { if (!open) setSelectedIpv6(null) }}
       />
     </DetailDialog>
+  )
+}
+
+// ─── Extracted sub-components (reduce duplication) ───────────────────────────
+
+/** IPv6 address table — used in both full and simple modes */
+function Ipv6AddressTable({
+  addresses,
+  onSelect,
+  showSendRa = false,
+}: {
+  addresses: PanwIpv6Entry[]
+  onSelect: (entry: PanwIpv6Entry) => void
+  showSendRa?: boolean
+}) {
+  if (addresses.length === 0) {
+    return <p className="py-4 text-center text-muted-foreground">No IPv6 addresses configured.</p>
+  }
+  return (
+    <div className="rounded-lg border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-[11px]">ADDRESS</TableHead>
+            <TableHead className="text-[11px]">INTERFACE IP</TableHead>
+            <TableHead className="text-[11px]">PREFIX</TableHead>
+            <TableHead className="text-[11px]">ANYCAST</TableHead>
+            {showSendRa && <TableHead className="text-[11px]">SEND RA</TableHead>}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {addresses.map((ip) => (
+            <TableRow key={ip.address} className="cursor-pointer hover:bg-muted/50" onClick={() => onSelect(ip)}>
+              <TableCell><MonoValue className="text-xs text-foreground hover:underline">{ip.address}</MonoValue></TableCell>
+              <TableCell><Checkbox checked={ip.enabled} disabled /></TableCell>
+              <TableCell><Checkbox checked={ip.prefix} disabled /></TableCell>
+              <TableCell><Checkbox checked={ip.anycast} disabled /></TableCell>
+              {showSendRa && <TableCell><Checkbox checked={ip.sendRa} disabled /></TableCell>}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+/** Other Info content — used in Advanced tab (sub-tab for ethernet/ae/vlan, inline for loopback) */
+function OtherInfoContent({
+  item,
+  isParent,
+  onMgmtProfileClick,
+}: {
+  item: DialogItem
+  isParent: boolean
+  onMgmtProfileClick?: (name: string) => void
+}) {
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <span className="w-40 shrink-0 font-medium text-foreground">Management Profile</span>
+        <MgmtProfileCell name={item.managementProfile} onClick={onMgmtProfileClick} />
+      </div>
+      <DisplayField labelWidth="w-40" label="MTU" value={item.mtu !== null ? String(item.mtu) : "None"} />
+      <Label className="flex items-center gap-2 pl-1">
+        <Checkbox checked={item.networkPacketBroker} disabled />
+        <span>Network Packet Broker</span>
+      </Label>
+      <Fieldset>
+        <FieldsetLegend>
+          <Label className="flex items-center gap-2"><Checkbox checked={item.adjustTcpMss} disabled />Adjust TCP MSS</Label>
+        </FieldsetLegend>
+        {item.adjustTcpMss && (
+          <FieldsetContent>
+            <DisplayField label="IPv4 MSS Adjustment" value={item.ipv4MssAdjustment !== null ? String(item.ipv4MssAdjustment) : "40"} />
+            <DisplayField label="IPv6 MSS Adjustment" value={item.ipv6MssAdjustment !== null ? String(item.ipv6MssAdjustment) : "60"} />
+          </FieldsetContent>
+        )}
+      </Fieldset>
+      {isParent && isParentInterface(item) && (
+        <Label className="flex items-center gap-2 pl-1">
+          <Checkbox checked={item.untaggedSubInterface} disabled />
+          <span>Untagged Subinterface</span>
+        </Label>
+      )}
+    </>
+  )
+}
+
+/** ARP entries table */
+function ArpEntriesTable({ entries }: { entries: { ip: string; mac: string }[] }) {
+  return (
+    <div className="rounded-lg border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-[11px]">IP ADDRESS</TableHead>
+            <TableHead className="text-[11px]">MAC ADDRESS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {entries.length === 0 ? (
+            <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No ARP entries configured.</TableCell></TableRow>
+          ) : entries.map((e) => (
+            <TableRow key={e.ip}>
+              <TableCell><MonoValue className="text-xs">{e.ip}</MonoValue></TableCell>
+              <TableCell><MonoValue className="text-xs">{e.mac}</MonoValue></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+/** ND entries table */
+function NdEntriesTable({ entries }: { entries: { ipv6: string; mac: string }[] }) {
+  return (
+    <div className="rounded-lg border overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-[11px]">IPV6 ADDRESS</TableHead>
+            <TableHead className="text-[11px]">MAC ADDRESS</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {entries.length === 0 ? (
+            <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No ND entries configured.</TableCell></TableRow>
+          ) : entries.map((e) => (
+            <TableRow key={e.ipv6}>
+              <TableCell><MonoValue className="text-xs">{e.ipv6}</MonoValue></TableCell>
+              <TableCell><MonoValue className="text-xs">{e.mac}</MonoValue></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+/** NDP Proxy content */
+function NdpProxyContent({ item }: { item: DialogItem }) {
+  return (
+    <Fieldset>
+      <FieldsetLegend>
+        <Label className="flex items-center gap-2"><Checkbox checked={item.ndpProxy} disabled />Enable NDP Proxy</Label>
+      </FieldsetLegend>
+      {item.ndpProxy && (
+        <FieldsetContent>
+          <div className="rounded-lg border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-[11px]">ADDRESS</TableHead>
+                  <TableHead className="text-[11px]">NEGATE</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {item.ndpProxyAddresses.length === 0 ? (
+                  <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No proxy addresses configured.</TableCell></TableRow>
+                ) : item.ndpProxyAddresses.map((e) => (
+                  <TableRow key={e.address}>
+                    <TableCell><MonoValue className="text-xs">{e.address}</MonoValue></TableCell>
+                    <TableCell><Checkbox checked={e.negate} disabled /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </FieldsetContent>
+      )}
+    </Fieldset>
+  )
+}
+
+/** DDNS content */
+function DdnsContent({ item }: { item: DialogItem }) {
+  return (
+    <Fieldset disabled={!item.ddnsEnabled}>
+      <FieldsetLegend>
+        <Label className="flex items-center gap-2"><Checkbox checked={item.ddnsEnabled} disabled />Settings</Label>
+      </FieldsetLegend>
+      {item.ddnsEnabled ? (
+        <FieldsetContent>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <Label className="flex items-center gap-2 pl-1"><Checkbox checked={item.ddnsEnabled} disabled /><span>Enable</span></Label>
+              <DisplayField label="Update Interval (days)" value={String(item.ddnsUpdateInterval ?? 1)} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <DisplayField label="Certificate Profile" value={item.ddnsCertProfile ?? "None"} />
+              <DisplayField label="Hostname" value={item.ddnsHostname ?? "None"} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div />
+              <DisplayField label="Vendor" value={item.ddnsVendor ? (DDNS_VENDOR_LABELS[item.ddnsVendor] ?? item.ddnsVendor) : "None"} />
+            </div>
+
+            <Tabs defaultValue="ddns-ipv4" className="flex flex-col">
+              <div className="shrink-0 border-b">
+                <TabsList variant="line">
+                  <TabsTrigger value="ddns-ipv4">IPv4</TabsTrigger>
+                  <TabsTrigger value="ddns-ipv6">IPv6</TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="ddns-ipv4" className="pt-3">
+                <DdnsIpTable ips={item.ddnsIpv4} vendorConfig={item.ddnsVendorConfig} label="IP" />
+              </TabsContent>
+              <TabsContent value="ddns-ipv6" className="pt-3">
+                <DdnsIpTable ips={item.ddnsIpv6} vendorConfig={item.ddnsVendorConfig} label="IPV6" />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </FieldsetContent>
+      ) : (
+        <FieldsetContent>
+          <p className="py-2 text-center text-muted-foreground">DDNS is not enabled on this interface.</p>
+        </FieldsetContent>
+      )}
+    </Fieldset>
+  )
+}
+
+/** DDNS IPv4/IPv6 sub-tab content (IP table + vendor config table side by side) */
+function DdnsIpTable({
+  ips,
+  vendorConfig,
+  label,
+}: {
+  ips: string[]
+  vendorConfig: { name: string; value: string }[]
+  label: string
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="rounded-lg border overflow-hidden">
+        <Table>
+          <TableHeader><TableRow><TableHead className="text-[11px]">{label}</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {ips.length === 0 ? (
+              <TableRow><TableCell className="py-4 text-center text-muted-foreground">No {label.toLowerCase()} addresses configured.</TableCell></TableRow>
+            ) : ips.map((ip) => (
+              <TableRow key={ip}><TableCell><MonoValue className="text-xs">{ip}</MonoValue></TableCell></TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="rounded-lg border overflow-hidden">
+        <Table>
+          <TableHeader><TableRow><TableHead className="text-[11px]">NAME</TableHead><TableHead className="text-[11px]">VALUE</TableHead></TableRow></TableHeader>
+          <TableBody>
+            {vendorConfig.length === 0 ? (
+              <TableRow><TableCell colSpan={2} className="py-4 text-center text-muted-foreground">No vendor config.</TableCell></TableRow>
+            ) : vendorConfig.map((vc) => (
+              <TableRow key={vc.name}>
+                <TableCell className="font-medium">{DDNS_CONFIG_LABELS[vc.name] ?? vc.name}</TableCell>
+                <TableCell className="tabular-nums">{vc.value}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   )
 }

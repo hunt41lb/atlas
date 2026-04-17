@@ -23,6 +23,7 @@ import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { ZONE_TYPE_COLORS } from "@/lib/colors"
+import { ZonesDialog } from "./zones-dialog"
 import type { PanwZone } from "@/lib/panw-parser/network/zones"
 
 const ZONE_TYPE_LABELS: Record<string, string> = {
@@ -37,12 +38,20 @@ const ZONE_TYPE_LABELS: Record<string, string> = {
 
 const columnHelper = createColumnHelper<PanwZone>()
 
-function buildColumns(): ColumnDef<PanwZone, unknown>[] {
+function buildColumns(onNameClick: (zone: PanwZone) => void): ColumnDef<PanwZone, unknown>[] {
   return [
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
-      cell: ({ row }) => <ZoneBadge name={row.original.name} color={row.original.color} />,
+      cell: ({ row }) => (
+        <button
+          type="button"
+          className="cursor-pointer hover:opacity-80"
+          onClick={() => onNameClick(row.original)}
+        >
+          <ZoneBadge name={row.original.name} color={row.original.color} />
+        </button>
+      ),
     }) as ColumnDef<PanwZone, unknown>,
 
     {
@@ -183,13 +192,21 @@ export function ZonesView() {
   const { selectedScope } = useScope()
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
+  const [selected, setSelected] = React.useState<PanwZone | null>(null)
 
-  const data = React.useMemo(() => {
-    if (!activeConfig) return []
-    return resolveNetworkData(activeConfig.parsedConfig, selectedScope).zones
+  const networkData = React.useMemo(() => {
+    if (!activeConfig) return null
+    return resolveNetworkData(activeConfig.parsedConfig, selectedScope)
   }, [activeConfig, selectedScope])
 
-  const columns = React.useMemo(() => buildColumns(), [])
+  const data = networkData?.zones ?? []
+
+  const zoneProtectionProfileNames = React.useMemo(
+    () => (networkData?.zoneProtectionProfiles ?? []).map((p) => p.name),
+    [networkData?.zoneProtectionProfiles]
+  )
+
+  const columns = React.useMemo(() => buildColumns(setSelected), [])
 
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     userAclExclude: false,
@@ -215,12 +232,19 @@ export function ZonesView() {
   })
 
   return (
-    <DataTable
-      table={table}
-      title="Zones"
-      search={search}
-      onSearch={setSearch}
-    />
+    <>
+      <DataTable
+        table={table}
+        title="Zones"
+        search={search}
+        onSearch={setSearch}
+      />
+      <ZonesDialog
+        zone={selected}
+        open={selected !== null}
+        onOpenChange={(open) => { if (!open) setSelected(null) }}
+        zoneProtectionProfileNames={zoneProtectionProfileNames}
+      />
+    </>
   )
 }
-

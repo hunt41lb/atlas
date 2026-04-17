@@ -44,6 +44,7 @@ function buildColumns(
   onNameClick: (item: PanwCellularInterface) => void,
   onMgmtProfileClick?: (name: string) => void,
   onRouterClick?: (name: string) => void,
+  onZoneClick?: (name: string) => void,
 ): ColumnDef<PanwCellularInterface, unknown>[] {
   return [
     col.accessor("name", {
@@ -52,7 +53,7 @@ function buildColumns(
       cell: (info) => (
         <button
           type="button"
-          className="font-medium text-foreground hover:underline cursor-pointer"
+          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
@@ -106,7 +107,7 @@ function buildColumns(
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
       cell: ({ row }) => {
         const zoneName = ifaceToZone.get(row.original.name)
-        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} />
+        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} onClick={onZoneClick} />
       },
     },
 
@@ -474,6 +475,7 @@ export function CellularTab({
   zoneColorMap,
   onMgmtProfileClick,
   onRouterClick,
+  onZoneClick,
 }: {
   data: PanwCellularInterface[]
   isPanorama: boolean
@@ -485,6 +487,7 @@ export function CellularTab({
   zoneColorMap: Map<string, string>
   onMgmtProfileClick?: (name: string) => void
   onRouterClick?: (name: string) => void
+  onZoneClick?: (name: string) => void
 }) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
@@ -495,8 +498,8 @@ export function CellularTab({
   })
 
   const columns = React.useMemo(
-    () => buildColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, setSelected, onMgmtProfileClick, onRouterClick),
-    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, onMgmtProfileClick, onRouterClick],
+    () => buildColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, setSelected, onMgmtProfileClick, onRouterClick, onZoneClick),
+    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, onMgmtProfileClick, onRouterClick, onZoneClick],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library

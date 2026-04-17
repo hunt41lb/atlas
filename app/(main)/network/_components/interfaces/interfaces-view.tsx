@@ -11,6 +11,7 @@ import { useScope } from "@/app/(main)/_context/scope-context"
 import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import { InterfaceMgmtDialog } from "../network-profiles/interface-mgmt/interface-mgmt-dialog"
 import { RouterDialog } from "../routers/_shared/router-dialog"
+import { ZonesDialog } from "../zones/zones-dialog"
 import { EthernetTab } from "./ethernet-tab"
 import { AggregateEthernetTab } from "./aggregate-ethernet-tab"
 import { InterfaceTable } from "./interface-table"
@@ -20,9 +21,10 @@ import { CellularTab } from "./cellular-tab"
 import { FailOpenTab } from "./fail-open-tab"
 
 import type { ParsedPanoramaConfig  } from "@/lib/panw-parser/general/config"
-import type { PanwInterfaceMgmtProfile } from "@/lib/panw-parser/network/network-profiles"
+import type { PanwInterfaceMgmtProfile, PanwZoneProtectionProfile } from "@/lib/panw-parser/network/network-profiles"
 import type { PanwVirtualRouter } from "@/lib/panw-parser/network/routers"
 import type { PanwZone } from "@/lib/panw-parser/network/zones"
+import type { PanwVlan } from "@/lib/panw-parser/network/vlans"
 import type { VariableMap } from "@/app/(main)/_components/ui/ip-address-cell"
 
 // ─── Tab definitions ─────────────────────────────────────────────────────────
@@ -71,20 +73,22 @@ export function InterfacesView() {
 
   const isPanorama = activeConfig?.parsedConfig.deviceType === "panorama"
 
-  const { interfaces, zones, virtualRouters, logicalRouters, dhcpRelays, dhcpServers, interfaceMgmtProfiles, sdwanInterfaces, cellularInterfaces, failOpen } = React.useMemo(() => {
-    if (!activeConfig) return { interfaces: [], zones: [], virtualRouters: [], logicalRouters: [], dhcpRelays: [], dhcpServers: [], interfaceMgmtProfiles: [], sdwanInterfaces: [], cellularInterfaces: [], failOpen: [] }
+  const { interfaces, zones, zoneProtectionProfiles, virtualRouters, logicalRouters, dhcpRelays, dhcpServers, interfaceMgmtProfiles, sdwanInterfaces, cellularInterfaces, failOpen, vlans } = React.useMemo(() => {
+    if (!activeConfig) return { interfaces: [], zones: [], zoneProtectionProfiles: [] as PanwZoneProtectionProfile[], virtualRouters: [], logicalRouters: [], dhcpRelays: [], dhcpServers: [], interfaceMgmtProfiles: [], sdwanInterfaces: [], cellularInterfaces: [], failOpen: [], vlans: [] as PanwVlan[] }
     const data = resolveNetworkData(activeConfig.parsedConfig, selectedScope)
     return {
-      interfaces:            data.interfaces            ?? [],
-      zones:                 data.zones                 ?? [],
-      virtualRouters:        data.virtualRouters        ?? [],
-      logicalRouters:        data.logicalRouters        ?? [],
-      dhcpRelays:            data.dhcpRelays             ?? [],
-      dhcpServers:           data.dhcpServers            ?? [],
-      interfaceMgmtProfiles: data.interfaceMgmtProfiles ?? [],
-      sdwanInterfaces:       data.sdwanInterfaces       ?? [],
-      cellularInterfaces:    data.cellularInterfaces    ?? [],
-      failOpen:              data.failOpen              ?? [],
+      interfaces:             data.interfaces             ?? [],
+      zones:                  data.zones                  ?? [],
+      zoneProtectionProfiles: data.zoneProtectionProfiles ?? [],
+      virtualRouters:         data.virtualRouters         ?? [],
+      logicalRouters:         data.logicalRouters         ?? [],
+      dhcpRelays:             data.dhcpRelays             ?? [],
+      dhcpServers:            data.dhcpServers            ?? [],
+      interfaceMgmtProfiles:  data.interfaceMgmtProfiles  ?? [],
+      sdwanInterfaces:        data.sdwanInterfaces        ?? [],
+      cellularInterfaces:     data.cellularInterfaces     ?? [],
+      failOpen:               data.failOpen               ?? [],
+      vlans:                  data.vlans                  ?? [],
     }
   }, [activeConfig, selectedScope])
 
@@ -163,7 +167,32 @@ export function InterfacesView() {
     [routerMap]
   )
 
-  const sharedProps = { interfaces, isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, hasVirtualRouters, hasLogicalRouters, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick: handleMgmtProfileClick, onRouterClick: handleRouterClick }
+  const zoneMap = React.useMemo(() => {
+    const map = new Map<string, PanwZone>()
+    for (const z of zones) map.set(z.name, z)
+    return map
+  }, [zones])
+
+  const zoneProtectionProfileNames = React.useMemo(
+    () => zoneProtectionProfiles.map((p) => p.name),
+    [zoneProtectionProfiles]
+  )
+
+  const [selectedZone, setSelectedZone] = React.useState<PanwZone | null>(null)
+  const handleZoneClick = React.useCallback(
+    (name: string) => setSelectedZone(zoneMap.get(name) ?? null),
+    [zoneMap]
+  )
+
+  const ifaceToVlan = React.useMemo(() => {
+  const map = new Map<string, string>()
+  for (const vlan of vlans) {
+    if (vlan.virtualInterface) map.set(vlan.virtualInterface, vlan.name)
+  }
+  return map
+}, [vlans])
+
+  const sharedProps = { interfaces, isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, hasVirtualRouters, hasLogicalRouters, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, variableMap, onMgmtProfileClick: handleMgmtProfileClick, onRouterClick: handleRouterClick, onZoneClick: handleZoneClick, ifaceToVlan }
 
   return (
     <Tabs defaultValue="ethernet" className="flex h-full flex-col min-h-0">
@@ -208,6 +237,7 @@ export function InterfacesView() {
           ifaceToZone={ifaceToZone}
           zoneColorMap={zoneColorMap}
           onRouterClick={handleRouterClick}
+          onZoneClick={handleZoneClick}
         />
       </TabsContent>
 
@@ -227,6 +257,7 @@ export function InterfacesView() {
           zoneColorMap={zoneColorMap}
           onMgmtProfileClick={handleMgmtProfileClick}
           onRouterClick={handleRouterClick}
+          onZoneClick={handleZoneClick}
         />
       </TabsContent>
 
@@ -245,6 +276,12 @@ export function InterfacesView() {
         open={selectedRouter !== null}
         onOpenChange={(open) => { if (!open) setSelectedRouter(null) }}
         routerLabel={selectedRouter && logicalRouters.some(r => r.name === selectedRouter.name) ? "Logical Router" : "Virtual Router"}
+      />
+      <ZonesDialog
+        zone={selectedZone}
+        open={selectedZone !== null}
+        onOpenChange={(open) => { if (!open) setSelectedZone(null) }}
+        zoneProtectionProfileNames={zoneProtectionProfileNames}
       />
     </Tabs>
   )

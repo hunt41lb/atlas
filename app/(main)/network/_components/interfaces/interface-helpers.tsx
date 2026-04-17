@@ -31,6 +31,8 @@ export interface SharedInterfaceTabProps {
   variableMap?: VariableMap
   onMgmtProfileClick?: (name: string) => void
   onRouterClick?: (name: string) => void
+  onZoneClick?: (name: string) => void
+  ifaceToVlan?: Map<string, string>
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -97,9 +99,26 @@ export function RouterCell({ name, onClick }: { name: string | undefined; onClic
   )
 }
 
-/** Displays zone name or "none" */
-export function ZoneCell({ name, color }: { name?: string; color?: string }) {
-  return <ZoneBadge name={name} color={color} />
+/** Displays zone name or "none", optionally clickable */
+export function ZoneCell({
+  name,
+  color,
+  onClick,
+}: {
+  name?: string
+  color?: string
+  onClick?: (name: string) => void
+}) {
+  if (!name || !onClick) return <ZoneBadge name={name} color={color} />
+  return (
+    <button
+      type="button"
+      className="cursor-pointer hover:opacity-80"
+      onClick={() => onClick(name)}
+    >
+      <ZoneBadge name={name} color={color} />
+    </button>
+  )
 }
 
 /** Clickable management profile name, or dash if unset */
@@ -148,6 +167,7 @@ export function SubInterfaceRows({
   onMgmtProfileClick,
   onSubInterfaceClick,
   onRouterClick,
+  onZoneClick,
 }: {
   subs: PanwSubInterface[]
   isPanorama: boolean
@@ -164,6 +184,7 @@ export function SubInterfaceRows({
   onMgmtProfileClick?: (name: string) => void
   onSubInterfaceClick?: (sub: PanwSubInterface) => void
   onRouterClick?: (name: string) => void
+  onZoneClick?: (name: string) => void
 }) {
   const show = (colId: string) => !visibleColumns || visibleColumns.has(colId)
 
@@ -224,6 +245,7 @@ export function SubInterfaceRows({
               <ZoneCell
                 name={ifaceToZone.get(sub.name)}
                 color={zoneColorMap?.get(ifaceToZone.get(sub.name) ?? "")}
+                onClick={onZoneClick}
               />
             </TableCell>
           )}

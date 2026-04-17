@@ -1,4 +1,4 @@
-// @/src/lib/panw-parser/network/zones/zones.ts
+// @/lib/panw-parser/network/zones/zones.ts
 //
 // Zone types and extractor.
 // Path: vsys > entry > zone > entry[]
@@ -18,6 +18,7 @@ export interface PanwZone {
   color: ResolvedColor
   zoneProtectionProfile: string | null
   logSetting: string | null
+  packetBufferProtection: boolean
   netInspection: boolean
   enableUserIdentification: boolean
   enableDeviceIdentification: boolean
@@ -77,6 +78,12 @@ export function extractZones(
       ? tagColor
       : resolveFirstTagColor([entryName(entry)], tagColorMap)
 
+    // PAN-OS defaults packet buffer protection to enabled when a zone
+    // protection profile is assigned.  The XML element only appears
+    // when explicitly set; absence → default-on when ZPP is present.
+    const pbpEl = dig(networkEl, "enable-packet-buffer-protection")
+    const hasZpp = str(dig(networkEl, "zone-protection-profile")) != null
+
     return {
       name: entryName(entry),
       type,
@@ -85,6 +92,7 @@ export function extractZones(
       color,
       zoneProtectionProfile: str(dig(networkEl, "zone-protection-profile")) ?? null,
       logSetting: str(dig(networkEl, "log-setting")) ?? null,
+      packetBufferProtection: pbpEl !== undefined ? str(pbpEl) !== "no" : hasZpp,
       netInspection: str(dig(networkEl, "net-inspection")) === "yes",
       enableUserIdentification: str(entry["enable-user-identification"]) === "yes",
       enableDeviceIdentification: str(entry["enable-device-identification"]) === "yes",

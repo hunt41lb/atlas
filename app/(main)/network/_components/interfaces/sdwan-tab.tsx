@@ -38,6 +38,7 @@ function buildColumns(
   zoneColorMap: Map<string, string>,
   onNameClick: (item: PanwSdwanInterface) => void,
   onRouterClick?: (name: string) => void,
+  onZoneClick?: (name: string) => void,
 ): ColumnDef<PanwSdwanInterface, unknown>[] {
   return [
     col.accessor("name", {
@@ -46,7 +47,7 @@ function buildColumns(
       cell: (info) => (
         <button
           type="button"
-          className="font-medium text-foreground hover:underline cursor-pointer"
+          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
@@ -84,7 +85,7 @@ function buildColumns(
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
       cell: ({ row }) => {
         const zoneName = ifaceToZone.get(row.original.name)
-        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} />
+        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} onClick={onZoneClick} />
       },
     },
 
@@ -220,6 +221,7 @@ export function SdwanTab({
   ifaceToZone,
   zoneColorMap,
   onRouterClick,
+  onZoneClick,
 }: {
   data: PanwSdwanInterface[]
   isPanorama: boolean
@@ -230,6 +232,7 @@ export function SdwanTab({
   ifaceToZone: Map<string, string>
   zoneColorMap: Map<string, string>
   onRouterClick?: (name: string) => void
+  onZoneClick?: (name: string) => void
 }) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
@@ -240,8 +243,8 @@ export function SdwanTab({
   })
 
   const columns = React.useMemo(
-    () => buildColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, setSelected, onRouterClick),
-    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, onRouterClick],
+    () => buildColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, setSelected, onRouterClick, onZoneClick),
+    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, onRouterClick, onZoneClick],
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library

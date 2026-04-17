@@ -24,6 +24,7 @@ import {
 import { DataTable } from "@/components/ui/data-table"
 import { IpAddressCell } from "@/app/(main)/_components/ui/ip-address-cell"
 import { RouterCell, ZoneCell, MgmtProfileCell, FeaturesList, type SharedInterfaceTabProps } from "./interface-helpers"
+import { InterfaceDialog } from "./interface-dialog"
 import type { PanwInterface, InterfaceType } from "@/lib/panw-parser/network/interfaces"
 
 // ─── Column builder ──────────────────────────────────────────────────────────
@@ -39,12 +40,24 @@ function buildColumns(
   dhcpRelaySet: Set<string>,
   variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
+  onZoneClick?: (name: string) => void,
+  onNameClick?: (item: PanwInterface) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      cell: (info) => onNameClick ? (
+        <button
+          type="button"
+          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+          onClick={() => onNameClick(info.row.original)}
+        >
+          {info.getValue()}
+        </button>
+      ) : (
+        <span className="font-medium">{info.getValue()}</span>
+      ),
     }) as ColumnDef<PanwInterface, unknown>,
 
     columnHelper.accessor("managementProfile", {
@@ -99,7 +112,7 @@ function buildColumns(
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
       cell: ({ row }) => {
         const zoneName = ifaceToZone.get(row.original.name)
-        return <ZoneCell name={zoneName} color={zoneColorMap?.get(zoneName ?? "")} />
+        return <ZoneCell name={zoneName} color={zoneColorMap?.get(zoneName ?? "")} onClick={onZoneClick} />
       },
     },
 
@@ -157,12 +170,16 @@ export function InterfaceTable({
   dhcpRelaySet,
   variableMap,
   onMgmtProfileClick,
+  onZoneClick,
+  onRouterClick,
+  ifaceToVlan,
 }: SharedInterfaceTabProps & {
   type: InterfaceType
   title: string
 }) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
+  const [selected, setSelected] = React.useState<PanwInterface | null>(null)
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
     mtu: false,
     virtualRouter: hasVirtualRouters,
@@ -175,8 +192,8 @@ export function InterfaceTable({
   )
 
   const columns = React.useMemo(
-    () => buildColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick),
-    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick]
+    () => buildColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick, onZoneClick, setSelected),
+    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, variableMap, onMgmtProfileClick, onZoneClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -194,11 +211,26 @@ export function InterfaceTable({
   })
 
   return (
-    <DataTable
-      table={table}
-      title={title}
-      search={search}
-      onSearch={setSearch}
-    />
+    <>
+      <DataTable
+        table={table}
+        title={title}
+        search={search}
+        onSearch={setSearch}
+      />
+      <InterfaceDialog
+        item={selected}
+        open={selected !== null}
+        onOpenChange={(open) => { if (!open) setSelected(null) }}
+        ifaceToVirtualRouter={ifaceToVirtualRouter}
+        ifaceToLogicalRouter={ifaceToLogicalRouter}
+        ifaceToZone={ifaceToZone}
+        zoneColorMap={zoneColorMap}
+        ifaceToVlan={ifaceToVlan}
+        onRouterClick={onRouterClick}
+        onMgmtProfileClick={onMgmtProfileClick}
+        onZoneClick={onZoneClick}
+      />
+    </>
   )
 }

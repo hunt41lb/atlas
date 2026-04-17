@@ -51,6 +51,7 @@ function buildAeColumns(
   variableMap?: SharedInterfaceTabProps["variableMap"],
   onMgmtProfileClick?: (name: string) => void,
   onRouterClick?: (name: string) => void,
+  onZoneClick?: (name: string) => void,
   onNameClick?: (item: PanwInterface) => void,
 ): ColumnDef<PanwInterface, unknown>[] {
   return [
@@ -152,7 +153,7 @@ function buildAeColumns(
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
       cell: ({ row }) => {
         const zoneName = ifaceToZone.get(row.original.name)
-        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} />
+        return <ZoneCell name={zoneName} color={zoneColorMap.get(zoneName ?? "")} onClick={onZoneClick} />
       },
     },
 
@@ -214,6 +215,7 @@ export function AggregateEthernetTab({
   variableMap,
   onMgmtProfileClick,
   onRouterClick,
+  onZoneClick,
 }: SharedInterfaceTabProps) {
   const [search, setSearch] = React.useState("")
   const [sorting, setSorting] = React.useState<SortingState>([{ id: "name", desc: false }])
@@ -254,8 +256,8 @@ export function AggregateEthernetTab({
   })
 
   const columns = React.useMemo(
-    () => buildAeColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick, setSelected),
-    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick]
+    () => buildAeColumns(isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick, onZoneClick, setSelected),
+    [isPanorama, ifaceToVirtualRouter, ifaceToLogicalRouter, ifaceToZone, zoneColorMap, dhcpRelaySet, dhcpServerSet, memberMap, variableMap, onMgmtProfileClick, onRouterClick, onZoneClick]
   )
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -313,6 +315,7 @@ export function AggregateEthernetTab({
                 zoneColorMap={zoneColorMap}
                 onMgmtProfileClick={onMgmtProfileClick}
                 onRouterClick={onRouterClick}
+                onZoneClick={onZoneClick}
                 onSubInterfaceClick={setSelected}
               />
             )}
