@@ -7,6 +7,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -66,13 +67,14 @@ export function buildAuthColumns(
     authHelper.accessor("name", {
       header: "Name",
       cell: (info) => (
-        <button
-          type="button"
-          className="font-medium text-primary hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwBgpAuthProfile, unknown>,
 
@@ -87,4 +89,3 @@ export function buildAuthColumns(
     } as ColumnDef<PanwBgpAuthProfile, unknown>] : []),
   ]
 }
-

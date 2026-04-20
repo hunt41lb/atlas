@@ -328,13 +328,14 @@ export function buildAfColumns(
     afHelper.accessor("name", {
       header: "Name",
       cell: (info) => (
-        <button
-          type="button"
-          className="font-medium text-primary hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original.profile)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<BgpAfTableRow, unknown>,
 
@@ -359,4 +360,3 @@ export function buildAfColumns(
     } as ColumnDef<BgpAfTableRow, unknown>] : []),
   ]
 }
-

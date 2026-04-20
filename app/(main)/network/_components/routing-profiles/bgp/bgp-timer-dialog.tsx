@@ -7,6 +7,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -74,13 +75,14 @@ export function buildTimerColumns(
     timerHelper.accessor("name", {
       header: "Name",
       cell: (info) => (
-        <button
-          type="button"
-          className="font-medium text-primary hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwBgpTimerProfile, unknown>,
 
@@ -88,6 +90,7 @@ export function buildTimerColumns(
       id: "keepAlive",
       header: "Keep Alive (s)",
       enableSorting: true,
+      meta: { hidePriority: 3 },
       accessorFn: (row) => row.keepAliveInterval,
       cell: ({ row }) => <DefaultCell value={row.original.keepAliveInterval} defaultValue={BGP_TIMER_DEFAULTS.keepAliveInterval} />,
     },
@@ -96,6 +99,7 @@ export function buildTimerColumns(
       id: "holdTime",
       header: "Hold Time (s)",
       enableSorting: true,
+      meta: { hidePriority: 1 },
       accessorFn: (row) => row.holdTime,
       cell: ({ row }) => <DefaultCell value={row.original.holdTime} defaultValue={BGP_TIMER_DEFAULTS.holdTime} />,
     },
@@ -104,6 +108,7 @@ export function buildTimerColumns(
       id: "minRouteAdv",
       header: "MRAI (s)",
       enableSorting: true,
+      meta: { hidePriority: 2 },
       accessorFn: (row) => row.minRouteAdvInterval,
       cell: ({ row }) => <DefaultCell value={row.original.minRouteAdvInterval} defaultValue={BGP_TIMER_DEFAULTS.minRouteAdvInterval} />,
     },
@@ -112,6 +117,7 @@ export function buildTimerColumns(
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 4 },
       accessorFn: (row: PanwBgpTimerProfile) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwBgpTimerProfile } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -119,4 +125,3 @@ export function buildTimerColumns(
     } as ColumnDef<PanwBgpTimerProfile, unknown>] : []),
   ]
 }
-

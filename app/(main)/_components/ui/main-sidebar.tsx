@@ -49,11 +49,13 @@ const staticData = {
         {
           title: "Routing",
           url: "/network/routing",
+          groupOnly: true,
           items: [
             { title: "Logical Routers",  url: "/network/logical-routers" },
             {
               title: "Routing Profiles",
               url: "/network/routing-profiles",
+              groupOnly: true,
               items: [
                 { title: "BGP",        url: "/network/routing-profiles-bgp" },
                 { title: "BFD",        url: "/network/routing-profiles-bfd" },
@@ -74,6 +76,7 @@ const staticData = {
         {
           title: "GlobalProtect",
           url: "/network/global-protect",
+          groupOnly: true,
           items: [
             { title: "Portals",               url: "/network/global-protect-portals" },
             { title: "Gateways",              url: "/network/global-protect-gateways" },
@@ -88,6 +91,7 @@ const staticData = {
         {
           title: "Network Profiles",
           url: "/network/network-profiles",
+          groupOnly: true,
           items: [
             { title: "GlobalProtect IPSec Crypto", url: "/network/network-profiles-gp-ipsec-crypto" },
             { title: "IKE Gateways",               url: "/network/network-profiles-ike-gateways" },

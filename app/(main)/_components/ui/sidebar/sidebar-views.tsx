@@ -29,6 +29,8 @@ export interface SidebarNavItem {
   title: string
   url: string
   items?: SidebarNavItem[]
+  /** When true, this item is a non-navigable grouping — clicking toggles the collapsible instead of navigating. */
+  groupOnly?: boolean
 }
 
 export interface SidebarNavGroup {
@@ -73,19 +75,34 @@ function SubItemRenderer({
   return (
     <SidebarMenuSubItem>
       <Collapsible defaultOpen={isActive || isChildActive}>
-        <div className="flex items-center">
-          <SidebarMenuSubButton
-            isActive={isActive}
-            render={<Link href={item.url} />}
-            className="flex-1"
-            size="sm"
+        {item.groupOnly ? (
+          <CollapsibleTrigger
+            render={
+              <SidebarMenuSubButton
+                isActive={isChildActive}
+                size="sm"
+                className="w-full cursor-pointer [&>svg:last-child]:transition-transform data-[panel-open]:[&>svg:last-child]:rotate-90"
+              />
+            }
           >
             <span>{item.title}</span>
-          </SidebarMenuSubButton>
-          <CollapsibleTrigger className="ml-auto flex size-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-transform aria-expanded:rotate-90">
-            <ChevronRight className="size-3.5" />
+            <ChevronRight className="ml-auto size-3.5" />
           </CollapsibleTrigger>
-        </div>
+        ) : (
+          <div className="flex items-center">
+            <SidebarMenuSubButton
+              isActive={isActive}
+              render={<Link href={item.url} />}
+              className="flex-1"
+              size="sm"
+            >
+              <span>{item.title}</span>
+            </SidebarMenuSubButton>
+            <CollapsibleTrigger className="ml-auto flex size-5 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&>svg]:transition-transform data-[panel-open]:[&>svg]:rotate-90">
+              <ChevronRight className="size-3.5 transition-transform" />
+            </CollapsibleTrigger>
+          </div>
+        )}
         <CollapsibleContent>
           <SidebarMenuSub>
             {item.items!.map((child) => (
@@ -129,7 +146,7 @@ export function SidebarViews({ items }: { items: SidebarNavGroup[] }) {
                 {item.items?.length ? (
                   <>
                     <SidebarMenuAction
-                      className="aria-expanded:rotate-90"
+                      className="[&>svg]:transition-transform data-[panel-open]:[&>svg]:rotate-90"
                       render={<CollapsibleTrigger />}
                     >
                       <ChevronRight />
