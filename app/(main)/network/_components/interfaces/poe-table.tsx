@@ -49,6 +49,7 @@ function buildColumns(
       id: "poeEnabled",
       header: "PoE",
       enableSorting: true,
+      meta: { freezeColumn: true },
       accessorFn: (row) => row.poeEnabled ? "enabled" : "disabled",
       cell: ({ row }) => row.original.poeEnabled
         ? <Badge variant="green" size="sm">Enabled</Badge>
@@ -59,6 +60,7 @@ function buildColumns(
       id: "poeReservedPower",
       header: "Reserved Power",
       enableSorting: true,
+      meta: { freezeColumn: true },
       accessorFn: (row) => row.poeReservedPower ?? 0,
       cell: ({ row }) => row.original.poeReservedPower
         ? <span className="tabular-nums text-xs font-medium">{row.original.poeReservedPower}W</span>
@@ -69,6 +71,7 @@ function buildColumns(
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 2 },
       accessorFn: (row: PanwInterface) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwInterface } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -77,6 +80,7 @@ function buildColumns(
 
     columnHelper.accessor("comment", {
       header: "Comment",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-xs text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground text-xs">—</span>,

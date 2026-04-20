@@ -82,6 +82,7 @@ function buildColumns(onNameClick: (zone: PanwZone) => void): ColumnDef<PanwZone
 
     columnHelper.accessor("logSetting", {
       header: "Log Setting",
+      meta: { hidePriority: 7 },
       cell: (info) => info.getValue()
         ? <span className="text-xs">{info.getValue()}</span>
         : <span className="text-muted-foreground text-xs">—</span>,
@@ -91,6 +92,7 @@ function buildColumns(onNameClick: (zone: PanwZone) => void): ColumnDef<PanwZone
       id: "netInspection",
       header: "Net Inspection",
       enableSorting: true,
+      meta: { hidePriority: 8 },
       accessorFn: (row) => row.netInspection ? "yes" : "no",
       cell: ({ row }) => row.original.netInspection
         ? <Badge variant="green" size="sm">Yes</Badge>
@@ -101,18 +103,9 @@ function buildColumns(onNameClick: (zone: PanwZone) => void): ColumnDef<PanwZone
       id: "userId",
       header: "User-ID",
       enableSorting: true,
+      meta: { hidePriority: 4 },
       accessorFn: (row) => row.enableUserIdentification ? "yes" : "no",
       cell: ({ row }) => row.original.enableUserIdentification
-        ? <Badge variant="blue" size="sm">Enabled</Badge>
-        : <span className="text-muted-foreground text-xs">—</span>,
-    },
-
-    {
-      id: "deviceId",
-      header: "Device-ID",
-      enableSorting: true,
-      accessorFn: (row) => row.enableDeviceIdentification ? "yes" : "no",
-      cell: ({ row }) => row.original.enableDeviceIdentification
         ? <Badge variant="blue" size="sm">Enabled</Badge>
         : <span className="text-muted-foreground text-xs">—</span>,
     },
@@ -121,6 +114,7 @@ function buildColumns(onNameClick: (zone: PanwZone) => void): ColumnDef<PanwZone
       id: "userAcl",
       header: "User ACL Include",
       enableSorting: false,
+      meta: { hidePriority: 5 },
       cell: ({ row }) => <MembersList members={row.original.userAclInclude} max={3} />,
     },
 
@@ -128,13 +122,26 @@ function buildColumns(onNameClick: (zone: PanwZone) => void): ColumnDef<PanwZone
       id: "userAclExclude",
       header: "User ACL Exclude",
       enableSorting: false,
+      meta: { hidePriority: 6 },
       cell: ({ row }) => <MembersList members={row.original.userAclExclude} max={3} />,
+    },
+
+    {
+      id: "deviceId",
+      header: "Device-ID",
+      enableSorting: true,
+      meta: { hidePriority: 1 },
+      accessorFn: (row) => row.enableDeviceIdentification ? "yes" : "no",
+      cell: ({ row }) => row.original.enableDeviceIdentification
+        ? <Badge variant="blue" size="sm">Enabled</Badge>
+        : <span className="text-muted-foreground text-xs">—</span>,
     },
 
     {
       id: "deviceAcl",
       header: "Device ACL Include",
       enableSorting: false,
+      meta: { hidePriority: 2 },
       cell: ({ row }) => <MembersList members={row.original.deviceAclInclude} max={3} />,
     },
 
@@ -142,6 +149,7 @@ function buildColumns(onNameClick: (zone: PanwZone) => void): ColumnDef<PanwZone
       id: "deviceAclExclude",
       header: "Device ACL Exclude",
       enableSorting: false,
+      meta: { hidePriority: 3 },
       cell: ({ row }) => <MembersList members={row.original.deviceAclExclude} max={3} />,
     },
 

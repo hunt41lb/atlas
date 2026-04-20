@@ -47,6 +47,7 @@ function buildColumns(
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
+      meta: { freezeColumn: true },
       cell: (info) => onNameClick ? (
         <button
           type="button"
@@ -63,6 +64,7 @@ function buildColumns(
     columnHelper.accessor("managementProfile", {
       header: "Mgmt Profile",
       cell: (info) => <MgmtProfileCell name={info.getValue()} onClick={onMgmtProfileClick} />,
+      meta: { hidePriority: 4 },
     }) as ColumnDef<PanwInterface, unknown>,
 
     {
@@ -83,6 +85,7 @@ function buildColumns(
       id: "mtu",
       header: "MTU",
       enableSorting: true,
+      meta: { hidePriority: 3 },
       accessorFn: (row) => row.mtu ?? 0,
       cell: ({ row }) => row.original.mtu
         ? <span className="tabular-nums text-xs font-medium">{row.original.mtu}</span>
@@ -109,6 +112,7 @@ function buildColumns(
       id: "securityZone",
       header: "Security Zone",
       enableSorting: true,
+      meta: { freezeColumn: true },
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
       cell: ({ row }) => {
         const zoneName = ifaceToZone.get(row.original.name)
@@ -120,6 +124,7 @@ function buildColumns(
       id: "features",
       header: "Features",
       enableSorting: false,
+      meta: { hidePriority: 2 },
       cell: ({ row }) => {
         const iface = row.original
         const features: string[] = []
@@ -139,6 +144,7 @@ function buildColumns(
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 5 },
       accessorFn: (row: PanwInterface) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwInterface } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -147,6 +153,7 @@ function buildColumns(
 
     columnHelper.accessor("comment", {
       header: "Comment",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-xs text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground text-xs">—</span>,

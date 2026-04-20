@@ -3,8 +3,11 @@
 "use client"
 
 import * as React from "react"
-import { Search, Construction } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Construction } from "lucide-react"
+import {
+  useRegisterHeaderCount,
+  useRegisterHeaderSearch,
+} from "@/app/(main)/_context/header-toolbar-context"
 import { cn } from "@/lib/utils"
 
 // ─── Tag pill ────────────────────────────────────────────────────────────────
@@ -208,24 +211,20 @@ interface CategoryShellProps {
 }
 
 export function CategoryShell({ title, count, search, onSearch, actions, children }: CategoryShellProps) {
+  useRegisterHeaderSearch({
+    value: search,
+    onChange: onSearch,
+    placeholder: `Search ${title.toLowerCase()}…`,
+  })
+  useRegisterHeaderCount(count)
+
   return (
     <div className="flex h-full flex-col min-h-0">
-      {/* Toolbar */}
-      <div className="flex shrink-0 items-center gap-3 border-b px-4 py-2">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            value={search}
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder={`Search ${title.toLowerCase()}…`}
-            className="pl-8 h-7 text-sm"
-          />
+      {actions && (
+        <div className="flex shrink-0 items-center gap-3 px-4 py-2">
+          {actions}
         </div>
-        {actions}
-        <span className="text-xs text-muted-foreground tabular-nums shrink-0">
-          {count.toLocaleString()} {count === 1 ? "entry" : "entries"}
-        </span>
-      </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-auto min-h-0">

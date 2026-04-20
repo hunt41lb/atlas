@@ -3,7 +3,7 @@
 "use client"
 
 import * as React from "react"
-import { ArchiveX, MoreHorizontal, Trash2, ChevronRight } from "lucide-react"
+import { ArchiveX, ChevronRight, Import, MoreHorizontal, Trash2 } from "lucide-react"
 
 import {
   AlertDialog,
@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/collapsible"
 
 import { useConfig } from "@/app/(main)/_context/config-context"
+import { useUploadDialog } from "@/app/(main)/_context/upload-dialog-context"
 import {
   archiveConfiguration,
   deleteConfiguration,
@@ -73,6 +74,7 @@ export function SidebarConfigurations({
 }) {
   const { isMobile } = useSidebar()
   const { removeConfig } = useConfig()
+  const { openDialog } = useUploadDialog()
 
   // Dialog state — set via dropdown, cleared on close/confirm
   const [pendingAction, setPendingAction] = React.useState<PendingAction | null>(null)
@@ -199,6 +201,18 @@ export function SidebarConfigurations({
                   </SidebarMenuItem>
                 ))
               )}
+
+              {/* Import configuration — always available */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={openDialog}
+                  className="text-xs cursor-pointer text-sidebar-foreground/80 hover:text-sidebar-foreground"
+                  size="sm"
+                >
+                  <Import />
+                  <span>Import Configuration</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </CollapsibleContent>
         </Collapsible>

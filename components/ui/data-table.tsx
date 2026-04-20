@@ -1,7 +1,6 @@
 // @/components/ui/data-table.tsx
 //
 // Batteries-included TanStack Table wrapper that composes:
-//   - CategoryShell (search bar, entry count, toolbar actions)
 //   - ColumnVisibilityToggle (popover with checkbox per column)
 //   - SortHeader (sortable column headers with directional icons)
 //   - Standard row/cell rendering with empty state
@@ -51,7 +50,7 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { SortHeader } from "@/components/ui/sort-header"
-import { ColumnVisibilityToggle } from "@/components/ui/column-visibility"
+import { useRegisterHeaderColumns } from "@/app/(main)/_context/header-toolbar-context"
 import { CategoryShell } from "@/app/(main)/_components/ui/category-shell"
 import { cn } from "@/lib/utils"
 
@@ -92,6 +91,99 @@ export function DataTable<TData>({
   actions,
   renderRow,
 }: DataTableProps<TData>) {
+  useRegisterHeaderColumns(table, columnLabels)
+
+// Responsive column auto-hide based on column.meta.hidePriority.
+  // Columns with a lower hidePriority are hidden first when the container
+  // is too narrow, and restored when sufficient space becomes available.
+  const wrapperRef = React.useRef<HTMLDivElement>(null)
+  // Tracks the wrapper width required to restore each auto-hidden column,
+  // recorded at the moment of hiding.
+  const hideThresholdRef = React.useRef<Map<string, number>>(new Map())
+
+  React.useEffect(() => {
+    const wrapper = wrapperRef.current
+    if (!wrapper) return
+
+    const getPriority = (col: { columnDef: { meta?: unknown } }) =>
+      (col.columnDef.meta as { hidePriority?: number } | undefined)?.hidePriority
+    const isFrozen = (col: { columnDef: { meta?: unknown } }) =>
+      !!(col.columnDef.meta as { freezeColumn?: boolean } | undefined)?.freezeColumn
+
+    const GROW_BACK_MARGIN_PX = 32
+    const MAX_ADJUSTMENTS_PER_CYCLE = 10
+
+    let rafId: number | null = null
+    let attempts = 0
+
+    const adjust = () => {
+      rafId = null
+      if (attempts++ >= MAX_ADJUSTMENTS_PER_CYCLE) return
+
+      const tableEl = wrapper.querySelector("table") as HTMLTableElement | null
+      if (!tableEl) return
+
+      const available = wrapper.clientWidth
+      const needed = tableEl.scrollWidth
+
+      // Clear thresholds for columns that are now visible (auto- or user-shown)
+      for (const colId of Array.from(hideThresholdRef.current.keys())) {
+        if (table.getColumn(colId)?.getIsVisible()) {
+          hideThresholdRef.current.delete(colId)
+        }
+      }
+
+      if (needed > available) {
+        // Overflowing — hide next-lowest-priority visible column
+        const candidates = table
+          .getAllColumns()
+          .filter((c) =>
+            c.getCanHide() &&
+            c.getIsVisible() &&
+            getPriority(c) !== undefined &&
+            !isFrozen(c)
+          )
+          .sort((a, b) => (getPriority(a) ?? 0) - (getPriority(b) ?? 0))
+        if (candidates.length > 0) {
+          const col = candidates[0]
+          hideThresholdRef.current.set(col.id, needed)
+          col.toggleVisibility(false)
+          rafId = requestAnimationFrame(adjust)
+        }
+        return
+      }
+
+      // Not overflowing — see if any hidden column's threshold has been cleared
+      const restorable = table
+        .getAllColumns()
+        .filter((c) => c.getCanHide() && !c.getIsVisible() && getPriority(c) !== undefined)
+        .sort((a, b) => (getPriority(b) ?? 0) - (getPriority(a) ?? 0))
+
+      for (const col of restorable) {
+        const threshold = hideThresholdRef.current.get(col.id)
+        if (threshold !== undefined && available >= threshold + GROW_BACK_MARGIN_PX) {
+          hideThresholdRef.current.delete(col.id)
+          col.toggleVisibility(true)
+          rafId = requestAnimationFrame(adjust)
+          return
+        }
+      }
+    }
+
+    const observer = new ResizeObserver(() => {
+      attempts = 0
+      if (rafId !== null) cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(adjust)
+    })
+    observer.observe(wrapper)
+    rafId = requestAnimationFrame(adjust)
+
+    return () => {
+      observer.disconnect()
+      if (rafId !== null) cancelAnimationFrame(rafId)
+    }
+  }, [table])
+
   const rows = table.getRowModel().rows
   const columns = table.getAllColumns()
 
@@ -103,64 +195,65 @@ export function DataTable<TData>({
       onSearch={onSearch}
       actions={
         <>
-          <ColumnVisibilityToggle table={table} columnLabels={columnLabels} />
           {actions}
         </>
       }
     >
-      <TableRoot>
-        <TableHeader>
-          {table.getHeaderGroups().map((hg) => (
-            <TableRow key={hg.id} className="hover:bg-transparent border-b border-border">
-              {hg.headers.map((header) => {
-                const meta = header.column.columnDef.meta as { headerClassName?: string } | undefined
-                return (
-                <TableHead
-                  key={header.id}
-                  colSpan={header.colSpan}
-                  className={cn("text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9", meta?.headerClassName)}
-                  style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : header.column.getCanSort()
-                      ? <SortHeader label={String(header.column.columnDef.header ?? "")} column={header.column} />
-                      : flexRender(header.column.columnDef.header, header.getContext())
-                  }
-                </TableHead>
-              )})}
-            </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {rows.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="py-16 text-center text-sm text-muted-foreground"
-              >
-                {search
-                  ? `No results matching "${search}"`
-                  : emptyMessage ?? `No ${title.toLowerCase()} found in this configuration.`
-                }
-              </TableCell>
-            </TableRow>
-          ) : renderRow ? (
-            rows.map(renderRow)
-          ) : (
-            rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} className="px-3 py-2 align-middle">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+      <div ref={wrapperRef} className="flex-1 min-w-0 min-h-0 overflow-hidden">
+        <TableRoot>
+          <TableHeader className="[&_tr]:border-b-2">
+            {table.getHeaderGroups().map((hg) => (
+              <TableRow key={hg.id} className="hover:bg-transparent">
+                {hg.headers.map((header) => {
+                  const meta = header.column.columnDef.meta as { headerClassName?: string } | undefined
+                  return (
+                  <TableHead
+                    key={header.id}
+                    colSpan={header.colSpan}
+                    className={cn("text-[11px] font-semibold tracking-wider text-muted-foreground whitespace-nowrap px-3 h-9", meta?.headerClassName)}
+                    style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : header.column.getCanSort()
+                        ? <SortHeader label={String(header.column.columnDef.header ?? "")} column={header.column} />
+                        : flexRender(header.column.columnDef.header, header.getContext())
+                    }
+                  </TableHead>
+                )})}
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </TableRoot>
+            ))}
+          </TableHeader>
+
+          <TableBody>
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="py-16 text-center text-sm text-muted-foreground"
+                >
+                  {search
+                    ? `No results matching "${search}"`
+                    : emptyMessage ?? `No ${title.toLowerCase()} found in this configuration.`
+                  }
+                </TableCell>
+              </TableRow>
+            ) : renderRow ? (
+              rows.map(renderRow)
+            ) : (
+              rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="px-3 py-2 align-middle">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </TableRoot>
+      </div>
     </CategoryShell>
   )
 }

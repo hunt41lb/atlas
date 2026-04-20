@@ -59,6 +59,7 @@ function buildEthernetColumns(
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
+      meta: { freezeColumn: true },
       cell: (info) => onNameClick ? (
         <button
           type="button"
@@ -76,6 +77,7 @@ function buildEthernetColumns(
       id: "interfaceType",
       header: "Interface Type",
       enableSorting: true,
+      meta: { freezeColumn: true },
       accessorFn: (row) => row.aggregateGroup
         ? `Aggregate (${row.aggregateGroup})`
         : row.mode !== "none"
@@ -153,6 +155,7 @@ function buildEthernetColumns(
       id: "securityZone",
       header: "Security Zone",
       enableSorting: true,
+      meta: { freezeColumn: true },
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
       cell: ({ row }) => {
         const zoneName = ifaceToZone.get(row.original.name)
@@ -164,6 +167,7 @@ function buildEthernetColumns(
       id: "features",
       header: "Features",
       enableSorting: false,
+      meta: { hidePriority: 2 },
       cell: ({ row }) => {
         const iface = row.original
         const features: string[] = []
@@ -186,6 +190,7 @@ function buildEthernetColumns(
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 3 },
       accessorFn: (row: PanwInterface) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwInterface } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -194,6 +199,7 @@ function buildEthernetColumns(
 
     columnHelper.accessor("comment", {
       header: "Comment",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-xs text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground text-xs">—</span>,

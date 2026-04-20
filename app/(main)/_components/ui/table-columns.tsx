@@ -10,13 +10,15 @@ import type { ColumnDef } from "@tanstack/react-table"
  * Works with any type that has `templateName: string | null`.
  */
 export function templateColumn<T extends { templateName: string | null }>(
-  isPanorama: boolean
+  isPanorama: boolean,
+  meta?: { hidePriority?: number; freezeColumn?: boolean },
 ): ColumnDef<T, unknown>[] {
   if (!isPanorama) return []
   return [{
     id: "template",
     header: "Template",
     enableSorting: true,
+    meta: { hidePriority: 3, ...meta },
     accessorFn: (row: T) => row.templateName ?? "",
     cell: ({ row }: { row: { original: T } }) => row.original.templateName
       ? <span className="text-xs">{row.original.templateName}</span>

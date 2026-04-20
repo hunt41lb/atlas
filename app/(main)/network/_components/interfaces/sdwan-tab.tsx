@@ -44,6 +44,7 @@ function buildColumns(
     col.accessor("name", {
       header: "Interface",
       enableHiding: false,
+      meta: { freezeColumn: true },
       cell: (info) => (
         <button
           type="button"
@@ -82,6 +83,7 @@ function buildColumns(
       id: "securityZone",
       header: "Security Zone",
       enableSorting: true,
+      meta: { freezeColumn: true },
       accessorFn: (row) => ifaceToZone.get(row.name) ?? "",
       cell: ({ row }) => {
         const zoneName = ifaceToZone.get(row.original.name)
@@ -111,12 +113,13 @@ function buildColumns(
 
     col.accessor("comment", {
       header: "Comment",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground">—</span>,
     }) as ColumnDef<PanwSdwanInterface, unknown>,
 
-    ...templateColumn<PanwSdwanInterface>(isPanorama),
+    ...templateColumn<PanwSdwanInterface>(isPanorama, { hidePriority: 2 })
   ]
 }
 

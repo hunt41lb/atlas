@@ -4,10 +4,11 @@
 
 import dynamic from "next/dynamic"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { MainBreadcrumb } from "./_components/ui/main-breadcrumb"
+import { MainHeader } from "./_components/ui/main-header"
 import { ConfigProvider } from "./_context/config-context"
 import { ScopeProvider } from "./_context/scope-context"
 import { UploadDialogProvider, useUploadDialog } from "./_context/upload-dialog-context"
+import { HeaderToolbarProvider } from "./_context/header-toolbar-context"
 import { UploadConfigDialog } from "./_components/ui/upload-config-dialog"
 
 // Skip SSR for the sidebar — Base UI generates aria/tooltip IDs using an
@@ -30,9 +31,9 @@ function MainLayoutInner({ children }: MainLayoutProps) {
     <>
       <SidebarProvider className="size-full">
         <MainSidebar />
-        <SidebarInset>
-          <MainBreadcrumb onUpload={openDialog} />
-          <div className="flex flex-1 flex-col min-h-0">
+        <SidebarInset className="min-w-0">
+          <MainHeader />
+          <div className="flex flex-1 flex-col min-h-0 min-w-0">
             {children}
           </div>
         </SidebarInset>
@@ -51,7 +52,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
     <ConfigProvider>
       <ScopeProvider>
         <UploadDialogProvider>
-          <MainLayoutInner>{children}</MainLayoutInner>
+          <HeaderToolbarProvider>
+            <MainLayoutInner>{children}</MainLayoutInner>
+          </HeaderToolbarProvider>
         </UploadDialogProvider>
       </ScopeProvider>
     </ConfigProvider>

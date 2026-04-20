@@ -164,6 +164,7 @@ function buildColumns(
           id: "virtualSystem",
           header: "Virtual System",
           enableSorting: false,
+          meta: { hidePriority: 1 },
           cell: () => <span className="text-xs">vsys1</span>,
         },
         {
@@ -183,6 +184,7 @@ function buildColumns(
     {
       id: "comment",
       header: "Comment",
+      meta: { hidePriority: 2 },
       accessorFn: (row) => row.comment ?? "",
       cell: ({ row }) => row.original.comment
         ? <span className="text-xs text-muted-foreground">{row.original.comment}</span>
@@ -272,4 +274,3 @@ export function IpsecTunnelsView() {
     </>
   )
 }
-

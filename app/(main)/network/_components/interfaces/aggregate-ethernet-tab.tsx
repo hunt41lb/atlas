@@ -60,6 +60,7 @@ function buildAeColumns(
     columnHelper.accessor("name", {
       header: "Name",
       enableHiding: false,
+      meta: { freezeColumn: true },
       cell: (info) => onNameClick ? (
         <button
           type="button"
@@ -161,6 +162,7 @@ function buildAeColumns(
       id: "features",
       header: "Features",
       enableSorting: false,
+      meta: { hidePriority: 2 },
       cell: ({ row }) => {
         const iface = row.original
         const features: string[] = []
@@ -184,6 +186,7 @@ function buildAeColumns(
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 3 },
       accessorFn: (row: PanwInterface) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwInterface } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -192,6 +195,7 @@ function buildAeColumns(
 
     columnHelper.accessor("comment", {
       header: "Comment",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-xs text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground text-xs">—</span>,

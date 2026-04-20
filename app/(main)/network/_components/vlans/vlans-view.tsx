@@ -74,6 +74,7 @@ function buildColumns(isPanorama: boolean): ColumnDef<PanwVlan, unknown>[] {
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 1 },
       accessorFn: (row: PanwVlan) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwVlan } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -122,4 +123,3 @@ export function VlansView() {
     />
   )
 }
-

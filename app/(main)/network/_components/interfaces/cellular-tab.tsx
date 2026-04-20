@@ -70,6 +70,7 @@ function buildColumns(
 
     col.accessor("managementProfile", {
       header: "Management Profile",
+      meta: { hidePriority: 4 },
       cell: (info) => <MgmtProfileCell name={info.getValue()} onClick={onMgmtProfileClick} />,
     }) as ColumnDef<PanwCellularInterface, unknown>,
 
@@ -115,6 +116,7 @@ function buildColumns(
       id: "features",
       header: "Features",
       enableSorting: false,
+      meta: { hidePriority: 2 },
       cell: ({ row }) => {
         const c = row.original
         const features: string[] = []
@@ -128,6 +130,7 @@ function buildColumns(
 
     col.accessor("comment", {
       header: "Comment",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground">—</span>,

@@ -78,6 +78,7 @@ function buildColumns(isPanorama: boolean): ColumnDef<PanwVirtualWire, unknown>[
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 1 },
       accessorFn: (row: PanwVirtualWire) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwVirtualWire } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -126,4 +127,3 @@ export function VirtualWiresView() {
     />
   )
 }
-
