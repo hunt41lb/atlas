@@ -39,7 +39,7 @@ function buildColumns(
               variant="link"
               size="sm"
               onClick={() => onRouterClick(router)}
-              className="text-foreground h-auto p-0 font-medium"
+              className="text-foreground h-auto p-0 font-medium cursor-pointer"
             >
               {info.getValue()}
             </Button>
