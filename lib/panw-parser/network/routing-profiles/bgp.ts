@@ -1,4 +1,4 @@
-// @/src/lib/panw-parser/network/routing-profiles/bgp.ts
+// @/lib/panw-parser/network/routing-profiles/bgp.ts
 //
 // BGP routing profile types and extractors for Logical Routers.
 // XML path: <network><routing-profile><bgp>
@@ -83,6 +83,7 @@ export const BGP_DAMPENING_DEFAULTS = {
 export interface PanwBgpRedistEntry {
   enabled: boolean
   metric: number | null
+  routeMap: string | null
 }
 
 export interface PanwBgpRedistSubConfig {
@@ -279,6 +280,7 @@ function extractRedistEntry(el: unknown): PanwBgpRedistEntry | null {
   return {
     enabled: str(e["enable"]) === "yes",
     metric: e["metric"] !== undefined ? Number(e["metric"]) : null,
+    routeMap: str(e["route-map"]) ?? null,
   }
 }
 

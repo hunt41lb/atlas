@@ -7,6 +7,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 import type { PanwBgpRedistributionProfile } from "@/lib/panw-parser/network/routing-profiles"
@@ -41,11 +42,23 @@ function RedistSummary({ sub }: { sub: PanwBgpRedistributionProfile["ipv4Unicast
 
 const redistHelper = createColumnHelper<PanwBgpRedistributionProfile>()
 
-export function buildRedistColumns(isPanorama: boolean): ColumnDef<PanwBgpRedistributionProfile, unknown>[] {
+export function buildRedistColumns(
+  isPanorama: boolean,
+  onNameClick: (profile: PanwBgpRedistributionProfile) => void,
+): ColumnDef<PanwBgpRedistributionProfile, unknown>[] {
   return [
     redistHelper.accessor("name", {
       header: "Name",
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      cell: (info) => (
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
+          onClick={() => onNameClick(info.row.original)}
+        >
+          {info.getValue()}
+        </Button>
+      ),
     }) as ColumnDef<PanwBgpRedistributionProfile, unknown>,
 
     {
@@ -66,6 +79,7 @@ export function buildRedistColumns(isPanorama: boolean): ColumnDef<PanwBgpRedist
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 1 },
       accessorFn: (row: PanwBgpRedistributionProfile) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwBgpRedistributionProfile } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -73,4 +87,3 @@ export function buildRedistColumns(isPanorama: boolean): ColumnDef<PanwBgpRedist
     } as ColumnDef<PanwBgpRedistributionProfile, unknown>] : []),
   ]
 }
-

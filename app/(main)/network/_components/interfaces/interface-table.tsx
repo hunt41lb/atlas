@@ -21,6 +21,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { IpAddressCell } from "@/app/(main)/_components/ui/ip-address-cell"
 import { RouterCell, ZoneCell, MgmtProfileCell, FeaturesList, type SharedInterfaceTabProps } from "./interface-helpers"
@@ -49,13 +50,14 @@ function buildColumns(
       enableHiding: false,
       meta: { freezeColumn: true },
       cell: (info) => onNameClick ? (
-        <button
-          type="button"
-          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ) : (
         <span className="font-medium">{info.getValue()}</span>
       ),

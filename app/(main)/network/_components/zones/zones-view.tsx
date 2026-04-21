@@ -16,6 +16,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DataTable } from "@/components/ui/data-table"
 import { MembersList, ZoneBadge } from "@/app/(main)/_components/ui/category-shell"
@@ -44,13 +45,14 @@ function buildColumns(onNameClick: (zone: PanwZone) => void): ColumnDef<PanwZone
       header: "Name",
       enableHiding: false,
       cell: ({ row }) => (
-        <button
-          type="button"
-          className="cursor-pointer hover:opacity-80"
+        <Button
+          variant="link"
+          size="sm"
+          className="font-medium cursor-pointer hover:no-underline hover:opacity-80 text-inherit"
           onClick={() => onNameClick(row.original)}
         >
           <ZoneBadge name={row.original.name} color={row.original.color} />
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwZone, unknown>,
 

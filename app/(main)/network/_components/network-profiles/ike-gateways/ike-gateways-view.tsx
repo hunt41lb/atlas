@@ -13,6 +13,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTable } from "@/components/ui/data-table"
 import { useConfig } from "@/app/(main)/_context/config-context"
@@ -36,13 +37,14 @@ function buildColumns(
       header: "Name",
       enableHiding: false,
       cell: (info) => (
-        <button
-          type="button"
-          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwIkeGateway, unknown>,
 
@@ -150,6 +152,8 @@ function buildColumns(
           id: "passiveMode",
           header: "Passive Mode",
           enableSorting: false,
+          enableHiding: true,
+          meta: { hidePriority: 5 },
           cell: ({ row }: { row: { original: PanwIkeGateway } }) => (
             <Checkbox checked={row.original.passiveMode} disabled />
           ),
@@ -158,6 +162,8 @@ function buildColumns(
           id: "natTraversal",
           header: "NAT Traversal",
           enableSorting: false,
+          enableHiding: true,
+          meta: { hidePriority: 4 },
           cell: ({ row }: { row: { original: PanwIkeGateway } }) => (
             <Checkbox checked={row.original.natTraversal} disabled />
           ),
@@ -174,6 +180,8 @@ function buildColumns(
           id: "dpd",
           header: "DPD",
           enableSorting: false,
+          enableHiding: true,
+          meta: { hidePriority: 3 },
           cell: ({ row }: { row: { original: PanwIkeGateway } }) => (
             <Checkbox checked={row.original.ikev2DpdEnabled || row.original.ikev1DpdEnabled} disabled />
           ),
@@ -182,6 +190,8 @@ function buildColumns(
           id: "liveness",
           header: "Liveness",
           enableSorting: false,
+          enableHiding: true,
+          meta: { hidePriority: 2 },
           cell: () => <span className="text-xs">default</span>,
         },
       ],
@@ -190,6 +200,8 @@ function buildColumns(
     {
       id: "comment",
       header: "Comment",
+      enableHiding: true,
+      meta: { hidePriority: 1 },
       accessorFn: (row) => row.comment ?? "",
       cell: ({ row }) => row.original.comment
         ? <span className="text-xs text-muted-foreground">{row.original.comment}</span>
@@ -247,4 +259,3 @@ export function IkeGatewaysView() {
     </>
   )
 }
-

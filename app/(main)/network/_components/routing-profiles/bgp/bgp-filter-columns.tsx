@@ -7,6 +7,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 import type { PanwBgpFilteringProfile } from "@/lib/panw-parser/network/routing-profiles"
@@ -47,15 +48,28 @@ function FilterSummary({ sub }: { sub: PanwBgpFilteringProfile["ipv4Unicast"] })
 
 const filterHelper = createColumnHelper<PanwBgpFilteringProfile>()
 
-export function buildFilterColumns(isPanorama: boolean): ColumnDef<PanwBgpFilteringProfile, unknown>[] {
+export function buildFilterColumns(
+  isPanorama: boolean,
+  onNameClick: (profile: PanwBgpFilteringProfile) => void,
+): ColumnDef<PanwBgpFilteringProfile, unknown>[] {
   return [
     filterHelper.accessor("name", {
       header: "Name",
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      cell: (info) => (
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
+          onClick={() => onNameClick(info.row.original)}
+        >
+          {info.getValue()}
+        </Button>
+      ),
     }) as ColumnDef<PanwBgpFilteringProfile, unknown>,
 
     filterHelper.accessor("description", {
       header: "Description",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-xs text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground text-xs">—</span>,
@@ -86,6 +100,7 @@ export function buildFilterColumns(isPanorama: boolean): ColumnDef<PanwBgpFilter
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 2 },
       accessorFn: (row: PanwBgpFilteringProfile) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwBgpFilteringProfile } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -93,4 +108,3 @@ export function buildFilterColumns(isPanorama: boolean): ColumnDef<PanwBgpFilter
     } as ColumnDef<PanwBgpFilteringProfile, unknown>] : []),
   ]
 }
-

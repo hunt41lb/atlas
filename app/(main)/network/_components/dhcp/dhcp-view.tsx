@@ -12,6 +12,8 @@ import {
   type ColumnDef,
   type SortingState,
 } from "@tanstack/react-table"
+
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTable } from "@/components/ui/data-table"
@@ -53,13 +55,14 @@ function buildServerColumns(
       header: "Interface",
       enableHiding: false,
       cell: (info) => (
-        <button
-          type="button"
-          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwDhcpServer, unknown>,
 
@@ -138,13 +141,14 @@ function buildRelayColumns(
       header: "Interface",
       enableHiding: false,
       cell: (info) => (
-        <button
-          type="button"
-          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwDhcpRelay, unknown>,
 
@@ -287,4 +291,3 @@ export function DhcpView() {
     </Tabs>
   )
 }
-

@@ -7,6 +7,8 @@ import {
   useReactTable, getCoreRowModel, getFilteredRowModel, getSortedRowModel,
   createColumnHelper, type ColumnDef, type SortingState,
 } from "@tanstack/react-table"
+
+import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { DetailDialog } from "@/components/ui/detail-dialog"
 import { DisplayField } from "@/components/ui/display-field"
@@ -27,9 +29,13 @@ function buildColumns(
       header: "Name",
       enableHiding: false,
       cell: (info) => (
-        <button type="button" className="text-xs font-medium text-foreground hover:underline cursor-pointer" onClick={() => onNameClick(info.row.original)}>
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
+          onClick={() => onNameClick(info.row.original)}>
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwGpClientlessApp, unknown>,
     col.accessor("applicationHomeUrl", {

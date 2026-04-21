@@ -136,7 +136,7 @@ export function DataTable<TData>({
       if (needed > available) {
         // Overflowing — hide next-lowest-priority visible column
         const candidates = table
-          .getAllColumns()
+          .getAllLeafColumns()
           .filter((c) =>
             c.getCanHide() &&
             c.getIsVisible() &&
@@ -155,7 +155,7 @@ export function DataTable<TData>({
 
       // Not overflowing — see if any hidden column's threshold has been cleared
       const restorable = table
-        .getAllColumns()
+        .getAllLeafColumns()
         .filter((c) => c.getCanHide() && !c.getIsVisible() && getPriority(c) !== undefined)
         .sort((a, b) => (getPriority(b) ?? 0) - (getPriority(a) ?? 0))
 

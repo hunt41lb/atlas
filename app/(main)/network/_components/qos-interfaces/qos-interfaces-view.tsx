@@ -3,6 +3,8 @@
 "use client"
 
 import * as React from "react"
+
+import { Button } from "@/components/ui/button"
 import {
   Table as TableRoot,
   TableHeader,
@@ -130,13 +132,14 @@ function QosInterfaceRow({ qosIface, onNameClick }: { qosIface: PanwQosInterface
       {/* Interface header row */}
       <TableRow className="bg-muted/30">
         <TableCell>
-          <button
-            type="button"
-            className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+          <Button
+            variant="link"
+            size="sm"
+            className="text-foreground font-medium cursor-pointer"
             onClick={() => onNameClick(qosIface)}
           >
             {qosIface.interface}
-          </button>
+          </Button>
         </TableCell>
         <TableCell />
         <TableCell />
@@ -253,4 +256,3 @@ export function QosInterfacesView() {
     </>
   )
 }
-

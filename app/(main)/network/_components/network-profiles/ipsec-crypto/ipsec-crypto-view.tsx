@@ -13,6 +13,7 @@ import {
   type SortingState,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { useConfig } from "@/app/(main)/_context/config-context"
 import { useScope } from "@/app/(main)/_context/scope-context"
@@ -34,13 +35,14 @@ function buildColumns(
       header: "Name",
       enableHiding: false,
       cell: (info) => (
-        <button
-          type="button"
-          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwIpsecCryptoProfile, unknown>,
 
@@ -160,4 +162,3 @@ export function IpsecCryptoView() {
     </>
   )
 }
-

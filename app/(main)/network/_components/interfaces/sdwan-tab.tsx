@@ -14,6 +14,7 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { DataTable } from "@/components/ui/data-table"
 import { DetailDialog } from "@/components/ui/detail-dialog"
 import { DisplayField } from "@/components/ui/display-field"
@@ -46,13 +47,14 @@ function buildColumns(
       enableHiding: false,
       meta: { freezeColumn: true },
       cell: (info) => (
-        <button
-          type="button"
-          className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
           onClick={() => onNameClick(info.row.original)}
         >
           {info.getValue()}
-        </button>
+        </Button>
       ),
     }) as ColumnDef<PanwSdwanInterface, unknown>,
 

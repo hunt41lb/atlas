@@ -5,6 +5,7 @@
 import * as React from "react"
 import { type ColumnDef } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import { Badge, type BadgeVariant } from "@/components/ui/badge"
 import { Accordion } from "@/components/ui/accordion"
 
@@ -47,13 +48,14 @@ const COMMUNITY_TYPE_COLORS: Record<string, BadgeVariant> = {
 
 function NameButton<T>({ value, row, onClick }: { value: string; row: T; onClick: (row: T) => void }) {
   return (
-    <button
-      type="button"
-      className="font-medium text-foreground hover:underline cursor-pointer"
+    <Button
+      variant="link"
+      size="sm"
+      className="text-foreground font-medium cursor-pointer"
       onClick={() => onClick(row)}
     >
       {value}
-    </button>
+    </Button>
   )
 }
 
@@ -357,4 +359,3 @@ export function FiltersView() {
     </div>
   )
 }
-

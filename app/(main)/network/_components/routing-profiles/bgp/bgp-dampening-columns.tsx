@@ -7,6 +7,7 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table"
 
+import { Button } from "@/components/ui/button"
 import type { PanwBgpDampeningProfile } from "@/lib/panw-parser/network/routing-profiles"
 import { BGP_DAMPENING_DEFAULTS } from "@/lib/panw-parser/network/routing-profiles"
 import { DefaultCell } from "../_shared"
@@ -15,15 +16,28 @@ import { DefaultCell } from "../_shared"
 
 const dampHelper = createColumnHelper<PanwBgpDampeningProfile>()
 
-export function buildDampeningColumns(isPanorama: boolean): ColumnDef<PanwBgpDampeningProfile, unknown>[] {
+export function buildDampeningColumns(
+  isPanorama: boolean,
+  onNameClick: (profile: PanwBgpDampeningProfile) => void,
+  ): ColumnDef<PanwBgpDampeningProfile, unknown>[] {
   return [
     dampHelper.accessor("name", {
       header: "Name",
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>,
+      cell: (info) => (
+        <Button
+          variant="link"
+          size="sm"
+          className="text-foreground font-medium cursor-pointer"
+          onClick={() => onNameClick(info.row.original)}
+        >
+          {info.getValue()}
+        </Button>
+      )
     }) as ColumnDef<PanwBgpDampeningProfile, unknown>,
 
     dampHelper.accessor("description", {
       header: "Description",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-xs text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground text-xs">—</span>,
@@ -65,6 +79,7 @@ export function buildDampeningColumns(isPanorama: boolean): ColumnDef<PanwBgpDam
       id: "template",
       header: "Template",
       enableSorting: true,
+      meta: { hidePriority: 2 },
       accessorFn: (row: PanwBgpDampeningProfile) => row.templateName ?? "",
       cell: ({ row }: { row: { original: PanwBgpDampeningProfile } }) => row.original.templateName
         ? <span className="text-xs">{row.original.templateName}</span>
@@ -72,4 +87,3 @@ export function buildDampeningColumns(isPanorama: boolean): ColumnDef<PanwBgpDam
     } as ColumnDef<PanwBgpDampeningProfile, unknown>] : []),
   ]
 }
-

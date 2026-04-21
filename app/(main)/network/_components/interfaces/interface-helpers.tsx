@@ -14,6 +14,7 @@ import { IpAddressCell, type VariableMap } from "@/app/(main)/_components/ui/ip-
 import { INTERFACE_MODE_COLORS } from "@/lib/colors"
 import { ZoneBadge } from "@/app/(main)/_components/ui/category-shell"
 import type { PanwInterface, PanwSubInterface } from "@/lib/panw-parser/network/interfaces"
+import { Button } from "@/components/ui/button"
 
 // ─── Shared tab props type ────────────────────────────────────────────────────
 
@@ -89,13 +90,14 @@ export function RouterCell({ name, onClick }: { name: string | undefined; onClic
   if (!name) return <span className="text-muted-foreground text-xs">—</span>
   if (!onClick) return <span className="text-xs font-medium">{name}</span>
   return (
-    <button
-      type="button"
-      className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+    <Button
+      variant="link"
+      size="xs"
+      className="text-foreground font-medium cursor-pointer"
       onClick={() => onClick(name)}
     >
       {name}
-    </button>
+    </Button>
   )
 }
 
@@ -111,13 +113,14 @@ export function ZoneCell({
 }) {
   if (!name || !onClick) return <ZoneBadge name={name} color={color} />
   return (
-    <button
-      type="button"
-      className="cursor-pointer hover:opacity-80"
+    <Button
+      variant="link"
+      size="xs"
+      className="cursor-pointer hover:no-underline hover:opacity-80 text-inherit"
       onClick={() => onClick(name)}
     >
       <ZoneBadge name={name} color={color} />
-    </button>
+    </Button>
   )
 }
 
@@ -126,13 +129,14 @@ export function MgmtProfileCell({ name, onClick }: { name: string | null; onClic
   if (!name) return <span className="text-muted-foreground text-xs">—</span>
   if (!onClick) return <span className="text-xs">{name}</span>
   return (
-    <button
-      type="button"
-      className="text-xs text-foreground hover:underline cursor-pointer"
+    <Button
+      variant="link"
+      size="xs"
+      className="text-foreground font-medium cursor-pointer"
       onClick={() => onClick(name)}
     >
       {name}
-    </button>
+    </Button>
   )
 }
 
@@ -197,13 +201,14 @@ export function SubInterfaceRows({
             <TableCell className="pl-2">
               <span className="text-muted-foreground mr-1 text-xs">↳</span>
               {onSubInterfaceClick ? (
-                <button
-                  type="button"
-                  className="text-xs font-medium text-foreground hover:underline cursor-pointer"
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="text-foreground font-medium cursor-pointer"
                   onClick={() => onSubInterfaceClick(sub)}
                 >
                   {sub.name}
-                </button>
+                </Button>
               ) : (
                 <span className="font-medium text-xs">{sub.name}</span>
               )}

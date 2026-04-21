@@ -17,15 +17,21 @@ import { resolveNetworkData } from "@/app/(main)/_lib/resolve-config-data"
 import type {
   PanwBgpAuthProfile,
   PanwBgpTimerProfile,
+  PanwBgpDampeningProfile,
+  PanwBgpRedistributionProfile,
   PanwBgpAddressFamilyProfile,
+  PanwBgpFilteringProfile,
 } from "@/lib/panw-parser/network/routing-profiles"
 
 import { ProfileSection, useSectionTable } from "../_shared"
 import { AuthProfileDialog, buildAuthColumns } from "./bgp-auth-dialog"
 import { TimerProfileDialog, buildTimerColumns } from "./bgp-timer-dialog"
 import { buildDampeningColumns } from "./bgp-dampening-columns"
+import { DampeningProfileDialog } from "./bgp-dampening-dialog"
+import { RedistProfileDialog } from "./bgp-redist-dialog"
 import { buildRedistColumns } from "./bgp-redist-columns"
 import { AfProfileDialog, buildAfColumns, flattenAfProfiles } from "./bgp-af-dialog"
+import { FilteringProfileDialog } from "./bgp-filter-dialog"
 import { buildFilterColumns } from "./bgp-filter-columns"
 
 // ─── Section keys ─────────────────────────────────────────────────────────────
@@ -52,7 +58,10 @@ export function BgpProfilesView() {
   // Dialog state
   const [authDialogProfile, setAuthDialogProfile] = React.useState<PanwBgpAuthProfile | null>(null)
   const [timerDialogProfile, setTimerDialogProfile] = React.useState<PanwBgpTimerProfile | null>(null)
+  const [dampDialogProfile, setDampDialogProfile] = React.useState<PanwBgpDampeningProfile | null>(null)
   const [afDialogProfile, setAfDialogProfile] = React.useState<PanwBgpAddressFamilyProfile | null>(null)
+  const [redistDialogProfile, setRedistDialogProfile] = React.useState<PanwBgpRedistributionProfile | null>(null)
+  const [filterDialogProfile, setFilterDialogProfile] = React.useState<PanwBgpFilteringProfile | null>(null)
 
   // Resolve data
   const bgp = React.useMemo(() => {
@@ -63,10 +72,10 @@ export function BgpProfilesView() {
   // Build columns
   const authCols = React.useMemo(() => buildAuthColumns(isPanorama, setAuthDialogProfile), [isPanorama])
   const timerCols = React.useMemo(() => buildTimerColumns(isPanorama, setTimerDialogProfile), [isPanorama])
-  const dampCols = React.useMemo(() => buildDampeningColumns(isPanorama), [isPanorama])
-  const redistCols = React.useMemo(() => buildRedistColumns(isPanorama), [isPanorama])
+  const dampCols = React.useMemo(() => buildDampeningColumns(isPanorama, setDampDialogProfile), [isPanorama])
+  const redistCols = React.useMemo(() => buildRedistColumns(isPanorama, setRedistDialogProfile), [isPanorama])
   const afCols = React.useMemo(() => buildAfColumns(isPanorama, setAfDialogProfile), [isPanorama])
-  const filterCols = React.useMemo(() => buildFilterColumns(isPanorama), [isPanorama])
+  const filterCols = React.useMemo(() => buildFilterColumns(isPanorama, setFilterDialogProfile), [isPanorama])
 
   // Create tables
   const authTable = useSectionTable(bgp?.authProfiles ?? [], authCols)
@@ -129,7 +138,21 @@ export function BgpProfilesView() {
         open={afDialogProfile !== null}
         onOpenChange={(open) => { if (!open) setAfDialogProfile(null) }}
       />
+      <DampeningProfileDialog
+        profile={dampDialogProfile}
+        open={dampDialogProfile !== null}
+        onOpenChange={(open) => { if (!open) setDampDialogProfile(null) }}
+      />
+      <RedistProfileDialog
+        profile={redistDialogProfile}
+        open={redistDialogProfile !== null}
+        onOpenChange={(open) => { if (!open) setRedistDialogProfile(null) }}
+      />
+      <FilteringProfileDialog
+        profile={filterDialogProfile}
+        open={filterDialogProfile !== null}
+        onOpenChange={(open) => { if (!open) setFilterDialogProfile(null) }}
+      />
     </div>
   )
 }
-
