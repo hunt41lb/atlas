@@ -84,6 +84,7 @@ function buildColumns(
       id: "vpnDataTunnelSupport",
       header: "VPN Data Tunnel Support",
       enableSorting: true,
+      meta: { hidePriority: 7 },
       accessorFn: (row) => row.vpnDataTunnelSupport ?? true,
       cell: ({ row }) => <span className="text-xs">{(row.original.vpnDataTunnelSupport ?? true) ? "Enable" : "Disable"}</span>,
     },
@@ -92,12 +93,14 @@ function buildColumns(
       id: "vpnFailoverMetric",
       header: "VPN Failover Metric",
       enableSorting: true,
+      meta: { hidePriority: 6 },
       accessorFn: (row) => row.vpnFailoverMetric ?? 10,
       cell: ({ row }) => <span className="text-xs tabular-nums">{row.original.vpnFailoverMetric ?? 10}</span>,
     },
 
     col.accessor("pathMonitoring", {
       header: "Path Monitoring",
+      meta: { hidePriority: 5 },
       cell: (info) => <span className="text-xs">{info.getValue() ?? "Aggressive"}</span>,
     }) as ColumnDef<PanwSdwanInterfaceProfile, unknown>,
 
@@ -105,6 +108,7 @@ function buildColumns(
       id: "probeFrequency",
       header: "Probe Frequency (Per Second)",
       enableSorting: true,
+      meta: { hidePriority: 4 },
       accessorFn: (row) => row.probeFrequency,
       cell: ({ row }) => <span className="text-xs tabular-nums">{row.original.probeFrequency ?? "—"}</span>,
     },
@@ -113,6 +117,7 @@ function buildColumns(
       id: "probeIdleTime",
       header: "Probe Idle Time (Seconds)",
       enableSorting: true,
+      meta: { hidePriority: 3 },
       accessorFn: (row) => row.probeIdleTime,
       cell: ({ row }) => <span className="text-xs tabular-nums">{row.original.probeIdleTime ?? "—"}</span>,
     },
@@ -121,12 +126,14 @@ function buildColumns(
       id: "failbackHoldTime",
       header: "Failback Hold Time (Seconds)",
       enableSorting: true,
+      meta: { hidePriority: 2 },
       accessorFn: (row) => row.failbackHoldTime,
       cell: ({ row }) => <span className="text-xs tabular-nums">{row.original.failbackHoldTime ?? "—"}</span>,
     },
 
     col.accessor("comment", {
       header: "Description",
+      meta: { hidePriority: 1 },
       cell: (info) => info.getValue()
         ? <span className="text-xs text-muted-foreground">{info.getValue()}</span>
         : <span className="text-muted-foreground text-xs">—</span>,
