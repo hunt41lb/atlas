@@ -15,6 +15,13 @@ import { extractServices, extractServiceGroups } from "./objects/services"
 import { extractApplicationGroups, extractApplicationFilters } from "./objects/applications"
 import { extractProfileGroups } from "./objects/profile-groups"
 
+// ─── Policies ─────────────────────────────────────────────────────────────────
+import { extractSecurityRules } from "./policies/security-rules"
+import { extractNatRules } from "./policies/nat-rules"
+
+// ─── Device ───────────────────────────────────────────────────────────────────
+import { extractSetupManagement } from "./device/setup/management"
+
 // ─── Network ──────────────────────────────────────────────────────────────────
 import { extractInterfaces, extractSdwanInterfaces, extractCellularInterfaces, extractFailOpen } from "./network/interfaces"
 import { extractZones } from "./network/zones"
@@ -55,10 +62,6 @@ import {
   extractQosProfiles,
 } from "./network/network-profiles"
 import { extractSdwanInterfaceProfiles } from "./network/sd-wan-interface-profile"
-
-// ─── Policies ─────────────────────────────────────────────────────────────────
-import { extractSecurityRules } from "./policies/security-rules"
-import { extractNatRules } from "./policies/nat-rules"
 
 // ─── XML Parser config ───────────────────────────────────────────────────────
 
@@ -229,6 +232,11 @@ function parseFirewall(
     serialNumber: sys.serialNumber,
     ipAddress: sys.ipAddress,
     platformModel: sys.platformModel,
+    // Device
+    setupManagement: extractSetupManagement(
+      deviceEntry["deviceconfig"] as Record<string, unknown> | undefined,
+      config["mgt-config"] as Record<string, unknown> | undefined,
+    ),
     // Objects
     tags: allTags,
     addresses,
@@ -365,6 +373,11 @@ function parsePanorama(
       name: tmplName,
       description:              str(tmplEntry["description"]),
       variables:                extractTemplateVariables(tmplEntry["variable"]),
+      // Device
+      setupManagement:          extractSetupManagement(
+        tmplDeviceEntry["deviceconfig"] as Record<string, unknown> | undefined,
+        tmplConfig?.["mgt-config"] as Record<string, unknown> | undefined,
+      ),
       interfaces:               extractInterfaces(networkEl, tmplName),
       virtualRouters:           extractVirtualRouters(networkEl, tmplName),
       logicalRouters:           extractLogicalRouters(networkEl, tmplName),

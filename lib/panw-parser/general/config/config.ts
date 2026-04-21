@@ -5,6 +5,9 @@
 
 import { entries, entryName, str } from "../../xml-helpers"
 
+// Device Imports
+import type { SetupManagement } from "../../device/setup/management"
+
 // ─── Network imports ──────────────────────────────────────────────────────────
 import type { PanwInterface, PanwSdwanInterface, PanwCellularInterface, PanwFailOpen } from "../../network/interfaces"
 import type { PanwZone } from "../../network/zones"
@@ -87,6 +90,7 @@ export interface PanwTemplate {
   zones: PanwZone[]
   dhcpServers: PanwDhcpServer[]
   dhcpRelays: PanwDhcpRelay[]
+  setupManagement: SetupManagement
   variables: PanwTemplateVariable[]
   vlans: PanwVlan[]
   virtualWires: PanwVirtualWire[]
@@ -176,6 +180,7 @@ export interface ParsedFirewallConfig {
   serialNumber: string | null
   ipAddress: string | null
   platformModel: string | null
+  setupManagement: SetupManagement
   tags: PanwTag[]
   addresses: PanwAddress[]
   addressGroups: PanwAddressGroup[]
