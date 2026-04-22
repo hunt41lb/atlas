@@ -26,6 +26,19 @@ export const TAB_GROUPS = {
     { label: "Filters",   href: "/network/routing-profiles-filters" },
     { label: "Multicast", href: "/network/routing-profiles-multicast" },
   ],
+  "setup": [
+    { label: "Management",    href: "/device/setup-management" },
+    { label: "Operations",    href: "/device/setup-operations" },
+    { label: "Services",      href: "/device/setup-services" },
+    { label: "Interfaces",    href: "/device/setup-interfaces" },
+    { label: "Content-ID",    href: "/device/setup-content-id" },
+    { label: "WildFire",      href: "/device/setup-wildfire" },
+    { label: "Session",       href: "/device/setup-session" },
+    { label: "HSM",           href: "/device/setup-hsm" },
+    { label: "ACE",           href: "/device/setup-ace" },
+    { label: "Quantum",       href: "/device/setup-quantum" },
+    { label: "PAN-OS Security", href: "/device/setup-pan-os-security" },
+  ],
 } satisfies Record<string, HeaderTab[]>
 
 // ─── Route → header config ───────────────────────────────────────────────────
@@ -79,6 +92,36 @@ export const HEADER_ROUTES: Record<string, HeaderRoute> = {
   // Policies — fill in as routes come online
   "/policies/security":                  { kicker: "Policies", title: "Security" },
   "/policies/nat":                       { kicker: "Policies", title: "NAT" },
+
+  // Device
+  "/device/setup-management":                      { kicker: "Device", title: "Management",       tabGroup: "setup" },
+  "/device/setup-operations":                      { kicker: "Device", title: "Operations",       tabGroup: "setup" },
+  "/device/setup-services":                        { kicker: "Device", title: "Services",         tabGroup: "setup" },
+  "/device/setup-interfaces":                      { kicker: "Device", title: "Interfaces",       tabGroup: "setup" },
+  "/device/setup-content-id":                      { kicker: "Device", title: "Content-ID",       tabGroup: "setup" },
+  "/device/setup-wildfire":                        { kicker: "Device", title: "WildFire",         tabGroup: "setup" },
+  "/device/setup-session":                         { kicker: "Device", title: "Session",          tabGroup: "setup" },
+  "/device/setup-hsm":                             { kicker: "Device", title: "HSM",              tabGroup: "setup" },
+  "/device/setup-ace":                             { kicker: "Device", title: "ACE",              tabGroup: "setup" },
+  "/device/setup-quantum":                         { kicker: "Device", title: "Quantum",          tabGroup: "setup" },
+  "/device/setup-pan-os-security":                 { kicker: "Device", title: "PAN-OS Security",  tabGroup: "setup" },
+  "/device/high-availability":                     { kicker: "Device", title: "High Availability" },
+  "/device/log-forwarding-card":                   { kicker: "Device", title: "Log Forwarding Card" },
+  "/device/password-profiles":                     { kicker: "Device", title: "Password Profiles" },
+  "/device/administrators":                        { kicker: "Device", title: "Administrators" },
+  "/device/admin-roles":                           { kicker: "Device", title: "Admin Roles" },
+  "/device/authentication-profiles":               { kicker: "Device", title: "Authentication Profiles" },
+  "/device/authentication-sequence":               { kicker: "Device", title: "Authentication Sequence" },
+  "/device/delegation-profile":                    { kicker: "Device", title: "Delegation Profile" },
+  "/device/user-identification":                   { kicker: "Device", title: "User Identification" },
+  "/device/data-redistribution":                   { kicker: "Device", title: "Data Redistribution" },
+  "/device/cloud-redistribution":                  { kicker: "Device", title: "Cloud Redistribution" },
+  "/device/vm-information-sources":                { kicker: "Device", title: "VM Information Sources" },
+  "/device/response-pages":                        { kicker: "Device", title: "Response Pages" },
+  "/device/log-settings":                          { kicker: "Device", title: "Log Settings" },
+  "/device/dynamic-updates":                       { kicker: "Device", title: "Dynamic Updates" },
+  "/device/vm-series":                             { kicker: "Device", title: "VM-Series" },
+  "/device/master-key-and-diagnostics":            { kicker: "Device", title: "Master Key and Diagnostics" },
 }
 
 // ─── Resolver ────────────────────────────────────────────────────────────────

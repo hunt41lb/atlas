@@ -3,6 +3,9 @@
 // General Imports
 import type { ParsedConfig, ParsedPanoramaConfig, } from "@/lib/panw-parser/general/config"
 
+// Device Imports
+import type { SetupManagement } from "@/lib/panw-parser/device/setup/management"
+
 // Network Imports
 import type { PanwInterface, PanwSdwanInterface, PanwCellularInterface, PanwFailOpen } from "@/lib/panw-parser/network/interfaces"
 import type { PanwZone } from "@/lib/panw-parser/network/zones"
@@ -398,4 +401,118 @@ function mergeZoneOverrides(templateZones: PanwZone[], overrides: PanwZone[]): P
   }
 
   return merged
+}
+
+// ─── Device ──────────────────────────────────────────────────────────────────
+
+export interface ResolvedDeviceData {
+  setupManagement: SetupManagement
+}
+
+const EMPTY_SETUP_MANAGEMENT: SetupManagement = {
+  generalSettings: {
+    hostname: null, domain: null, acceptDhcpHostname: false, acceptDhcpDomain: false,
+    loginBanner: null, forceAckLoginBanner: false, sslTlsServiceProfile: null,
+    timezone: null, locale: null, latitude: null, longitude: null,
+    automaticallyAcquireCommitLock: false, certificateExpirationCheck: false,
+    useHypervisorAssignedMacAddresses: true, duplicateIpAddressSupport: false,
+    tunnelAcceleration: true,
+  },
+  authenticationSettings: {
+    authenticationProfile: null, nonUiAuthenticationProfile: null, certificateProfile: null,
+    idleTimeoutMin: null, apiKeyLifetimeMin: null, apiKeyCertificate: null,
+    failedAttempts: null, lockoutTimeMin: null, maxSessionCount: null, maxSessionTimeMin: null,
+  },
+  logInterface: {
+    ipAddress: null, netmask: null, defaultGateway: null,
+    ipv6Address: null, ipv6DefaultGateway: null,
+    linkSpeed: null, linkDuplex: null, linkState: null,
+  },
+  panoramaSettings: {
+    managedBy: null, panoramaServer: null, panoramaServer2: null,
+    enablePushingDeviceMonitoringData: true, receiveTimeoutSec: null,
+    sendTimeoutSec: null, retryCountSslSend: null,
+    enableAutomatedCommitRecovery: true, commitRecoveryRetry: null,
+    commitRecoveryTimeoutSec: null,
+  },
+  secureCommunicationSettings: {
+    client: {
+      certificateType: null, certificate: null, certificateProfile: null,
+      panDbCommunication: false, wildFireCommunication: false,
+      logCollectorCommunication: false, userIdCommunication: false,
+      dataRedistribution: false, checkServerIdentity: false,
+    },
+    server: {
+      enabled: false, sslTlsServiceProfile: null, certificateProfile: null,
+      userIdCommunication: false, dataRedistribution: false,
+    },
+  },
+  loggingAndReportingSettings: {
+    singleDiskStorage: { enabled: false, entries: {} },
+    multiDiskStorage: {
+      sessionLogStorage: { enabled: false, entries: {} },
+      managementLogStorage: { enabled: false, entries: {} },
+    },
+    logExportAndReporting: {
+      numberOfVersionsForConfigAudit: null, maxRowsInCsvExport: null,
+      maxRowsInUserActivityReport: null, averageBrowseTimeSec: null,
+      pageLoadThresholdSec: null, syslogHostnameFormat: null,
+      reportRuntime: null, reportExpirationPeriodDays: null,
+      stopTrafficWhenLogDbFull: false, enableConfigurationLogsForRevertOperations: false,
+      enableThreatVaultAccess: false, enableLogOnHighDpLoad: false,
+      enableHighSpeedLogForwarding: false, supportUtf8ForLogOutput: false,
+      improvedDnsSecurityLogging: false,
+      logAdminActivity: { debugAndOperationalCommands: false, uiActions: false, syslogServer: null },
+    },
+    preDefinedReports: { configured: false, disabledMembers: [] },
+  },
+  autoFocus: { enabled: false, autoFocusUrl: null, queryTimeoutSec: null },
+  cloudLogging: {
+    enableCloudLogging: false, enableDuplicateLogging: false,
+    enableEnhancedApplicationLogging: false, region: null,
+    connectionCountStrataLoggingService: null,
+  },
+  accountingServerSettings: { accountingServerProfile: null },
+  sshManagementProfileSetting: { serverProfile: null },
+  advancedDnsSecurity: { dnsSecurityServer: null },
+  panOsEdgeServiceSettings: {
+    enableThirdPartyDeviceVerdicts: false, enableUserContextCloudService: false,
+    deviceIdOperationMode: null, enableCloudHostComplianceService: false,
+  },
+  bannersAndMessages: {
+    messageOfTheDay: {
+      enabled: false, message: null, allowDoNotDisplayAgain: false,
+      title: null, backgroundColor: null, icon: null,
+    },
+    banners: {
+      headerBanner: null, headerColor: null, headerTextColor: null,
+      sameBannerForHeaderAndFooter: false,
+      footerBanner: null, footerColor: null, footerTextColor: null,
+    },
+  },
+  minimumPasswordComplexity: {
+    enabled: false,
+    format: {
+      minimumLength: null, minimumUppercaseLetters: null, minimumLowercaseLetters: null,
+      minimumNumericLetters: null, minimumSpecialCharacters: null,
+      blockRepeatedCharacters: null, blockUsernameInclusion: false,
+    },
+    functionality: {
+      newPasswordDiffersByCharacters: null, requirePasswordChangeOnFirstLogin: false,
+      preventPasswordReuseLimit: null, blockPasswordChangePeriodDays: null,
+      requiredPasswordChangePeriodDays: null, expirationWarningPeriodDays: null,
+      postExpirationAdminLoginCount: null, postExpirationGracePeriodDays: null,
+    },
+  },
+}
+
+export function resolveDeviceData(config: ParsedConfig, scope: string | null): ResolvedDeviceData {
+  if (config.deviceType === "firewall") {
+    return { setupManagement: config.setupManagement }
+  }
+
+  const templates = resolveTemplates(config, scope)
+  return {
+    setupManagement: templates[0]?.setupManagement ?? EMPTY_SETUP_MANAGEMENT,
+  }
 }

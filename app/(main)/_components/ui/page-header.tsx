@@ -149,7 +149,7 @@ export function PageHeader({ className, actions, onUpload, ...props }: PageHeade
 
   let scopeMode: ScopeSelectorMode | null = null
   if (panorama) {
-    if (pathname.startsWith("/network")) scopeMode = "template"
+    if (pathname.startsWith("/network") || pathname.startsWith("/device")) scopeMode = "template"
     else if (pathname.startsWith("/objects") || pathname.startsWith("/policies")) scopeMode = "device-group"
   }
 

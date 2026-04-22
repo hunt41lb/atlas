@@ -1,5 +1,7 @@
 // @/lib/panw-parser/device/setup/management/management.ts
 
+import { str, yesNo, members } from '../../../xml-helpers'
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -251,7 +253,7 @@ export interface MinimumPasswordComplexity {
   functionality: PasswordFunctionalityRequirements
 }
 
-// --- Combined top-level type --------------------------------------------------
+// --- Composite ---------------------------------------------------------------
 
 export interface SetupManagement {
   generalSettings: GeneralSettings
@@ -271,39 +273,19 @@ export interface SetupManagement {
 }
 
 // ============================================================================
-// Helpers
+// Local Helpers (no xml-helpers equivalent)
 // ============================================================================
 
-const isPresent = (value: unknown): boolean => value !== undefined && value !== null
-
-const yesNo = (value: unknown): boolean => value === 'yes' || value === true
-
-const yesNoOrDefault = (value: unknown, defaultValue: boolean): boolean =>
-  isPresent(value) && value !== '' ? yesNo(value) : defaultValue
-
-const toStr = (value: unknown): string | null => {
-  if (!isPresent(value)) return null
-  const s = String(value)
-  return s === '' ? null : s
-}
-
+/** Safe number coercion — returns null for missing, empty, or non-finite values */
 const toNum = (value: unknown): number | null => {
-  if (!isPresent(value) || value === '') return null
+  if (value == null || value === '') return null
   const n = Number(value)
   return Number.isFinite(n) ? n : null
 }
 
-const toMembers = (value: unknown): string[] => {
-  if (!isPresent(value)) return []
-  if (Array.isArray(value)) return value.map((v) => String(v))
-  return [String(value)]
-}
-
-const extractMemberList = (container: unknown): string[] => {
-  if (!isPresent(container)) return []
-  const obj = container as { member?: unknown }
-  return toMembers(obj.member)
-}
+/** Like yesNo but returns a default when the field is absent from XML */
+const yesNoOrDefault = (value: unknown, defaultValue: boolean): boolean =>
+  value != null && value !== '' ? yesNo(value) : defaultValue
 
 // Zip two parallel XML trees (e.g. <disk-quota> and <log-expiration-period>)
 // into a unified quota set. Iterates keys actually present in the XML so the
@@ -312,19 +294,19 @@ const buildQuotaSet = (
   quotaEl: Record<string, unknown> | undefined,
   maxDaysEl: Record<string, unknown> | undefined,
 ): LogQuotaSet => {
-  const enabled = isPresent(quotaEl) || isPresent(maxDaysEl)
-  const entries: Record<string, LogQuotaEntry> = {}
+  const enabled = quotaEl != null || maxDaysEl != null
+  const quotaEntries: Record<string, LogQuotaEntry> = {}
   const keys = new Set<string>([
     ...Object.keys(quotaEl ?? {}),
     ...Object.keys(maxDaysEl ?? {}),
   ])
   for (const key of keys) {
-    entries[key] = {
+    quotaEntries[key] = {
       quotaPercent: toNum(quotaEl?.[key]),
       maxDays: toNum(maxDaysEl?.[key]),
     }
   }
-  return { enabled, entries }
+  return { enabled, entries: quotaEntries }
 }
 
 // ============================================================================
@@ -337,15 +319,15 @@ const extractGeneralSettings = (
 ): GeneralSettings => {
   const geo = (sEl['geo-location'] ?? {}) as Record<string, unknown>
   return {
-    hostname: toStr(sEl.hostname),
-    domain: toStr(sEl.domain),
+    hostname: str(sEl.hostname),
+    domain: str(sEl.domain),
     acceptDhcpHostname: yesNo(sEl['accept-dhcp-hostname']),
     acceptDhcpDomain: yesNo(sEl['accept-dhcp-domain']),
-    loginBanner: toStr(sEl['login-banner']),
+    loginBanner: str(sEl['login-banner']),
     forceAckLoginBanner: yesNo(sEl['ack-login-banner']),
-    sslTlsServiceProfile: toStr(sEl['ssl-tls-service-profile']),
-    timezone: toStr(sEl.timezone),
-    locale: toStr(sEl.locale),
+    sslTlsServiceProfile: str(sEl['ssl-tls-service-profile']),
+    timezone: str(sEl.timezone),
+    locale: str(sEl.locale),
     latitude: toNum(geo.latitude),
     longitude: toNum(geo.longitude),
     automaticallyAcquireCommitLock: yesNo(mgmtEl['auto-acquire-commit-lock']),
@@ -364,12 +346,12 @@ const extractAuthenticationSettings = (
   const session = (mgmtEl['admin-session'] ?? {}) as Record<string, unknown>
   const apiKey = (((mgmtEl.api ?? {}) as Record<string, unknown>).key ?? {}) as Record<string, unknown>
   return {
-    authenticationProfile: toStr(sEl['authentication-profile']),
-    nonUiAuthenticationProfile: toStr(sEl['non-ui-authentication-profile']),
-    certificateProfile: toStr(sEl['certificate-profile']),
+    authenticationProfile: str(sEl['authentication-profile']),
+    nonUiAuthenticationProfile: str(sEl['non-ui-authentication-profile']),
+    certificateProfile: str(sEl['certificate-profile']),
     idleTimeoutMin: toNum(mgmtEl['idle-timeout']),
     apiKeyLifetimeMin: toNum(apiKey.lifetime),
-    apiKeyCertificate: toStr(apiKey.certificate),
+    apiKeyCertificate: str(apiKey.certificate),
     failedAttempts: toNum(lockout['failed-attempts']),
     lockoutTimeMin: toNum(lockout['lockout-time']),
     maxSessionCount: toNum(session['max-session-count']),
@@ -380,14 +362,14 @@ const extractAuthenticationSettings = (
 const extractLogInterface = (sEl: Record<string, unknown>): LogInterface => {
   const li = (sEl['log-interface'] ?? {}) as Record<string, unknown>
   return {
-    ipAddress: toStr(li['ip-address']),
-    netmask: toStr(li.netmask),
-    defaultGateway: toStr(li['default-gateway']),
-    ipv6Address: toStr(li['ipv6-address']),
-    ipv6DefaultGateway: toStr(li['ipv6-default-gateway']),
-    linkSpeed: toStr(li['link-speed']),
-    linkDuplex: toStr(li['link-duplex']),
-    linkState: toStr(li['link-state']),
+    ipAddress: str(li['ip-address']),
+    netmask: str(li.netmask),
+    defaultGateway: str(li['default-gateway']),
+    ipv6Address: str(li['ipv6-address']),
+    ipv6DefaultGateway: str(li['ipv6-default-gateway']),
+    linkSpeed: str(li['link-speed']),
+    linkDuplex: str(li['link-duplex']),
+    linkState: str(li['link-state']),
   }
 }
 
@@ -401,8 +383,8 @@ const extractPanoramaSettings = (
   const managedBy: 'local' | 'cloud' | null = local ? 'local' : cloud ? 'cloud' : null
   return {
     managedBy,
-    panoramaServer: toStr(local?.['panorama-server']),
-    panoramaServer2: toStr(local?.['panorama-server-2']),
+    panoramaServer: str(local?.['panorama-server']),
+    panoramaServer2: str(local?.['panorama-server-2']),
     enablePushingDeviceMonitoringData: yesNoOrDefault(mgmtEl['enable-device-monitoring-data'], true),
     receiveTimeoutSec: toNum(mgmtEl['panorama-tcp-receive-timeout']),
     sendTimeoutSec: toNum(mgmtEl['panorama-tcp-send-timeout']),
@@ -428,8 +410,8 @@ const extractSecureCommunicationSettings = (
   return {
     client: {
       certificateType,
-      certificate: toStr(activeCert?.certificate),
-      certificateProfile: toStr(activeCert?.['certificate-profile']),
+      certificate: str(activeCert?.certificate),
+      certificateProfile: str(activeCert?.['certificate-profile']),
       panDbCommunication: yesNo(client['enable-secure-pandb-communication']),
       wildFireCommunication: yesNo(client['enable-secure-wildfire-communication']),
       logCollectorCommunication: yesNo(client['enable-secure-lc-communication']),
@@ -438,9 +420,9 @@ const extractSecureCommunicationSettings = (
       checkServerIdentity: yesNo(client['check-server-identity']),
     },
     server: {
-      enabled: isPresent(server),
-      sslTlsServiceProfile: toStr(server?.['ssl-tls-service-profile']),
-      certificateProfile: toStr(server?.['certificate-profile']),
+      enabled: server != null,
+      sslTlsServiceProfile: str(server?.['ssl-tls-service-profile']),
+      certificateProfile: str(server?.['certificate-profile']),
       userIdCommunication: yesNo(server?.['enable-secure-user-id-communication']),
       dataRedistribution: yesNo(server?.['enable-secure-panorama-communication']),
     },
@@ -481,8 +463,8 @@ const extractLoggingAndReportingSettings = (
       maxRowsInUserActivityReport: toNum(mgmtEl['max-rows-in-pdf-report']),
       averageBrowseTimeSec: toNum(browse['average-browse-time']),
       pageLoadThresholdSec: toNum(browse['page-load-threshold']),
-      syslogHostnameFormat: toStr(mgmtEl['hostname-type-in-syslog']),
-      reportRuntime: toStr(mgmtEl['report-run-time']),
+      syslogHostnameFormat: str(mgmtEl['hostname-type-in-syslog']),
+      reportRuntime: str(mgmtEl['report-run-time']),
       reportExpirationPeriodDays: toNum(mgmtEl['report-expiration-period']),
       stopTrafficWhenLogDbFull: yesNo(mgmtEl['traffic-stop-on-logdb-full']),
       enableConfigurationLogsForRevertOperations: yesNo(mgmtEl['log-revert-operations']),
@@ -494,12 +476,12 @@ const extractLoggingAndReportingSettings = (
       logAdminActivity: {
         debugAndOperationalCommands: yesNo(auditTracking['op-commands']),
         uiActions: yesNo(auditTracking['ui-actions']),
-        syslogServer: toStr(auditTracking['syslog-server']),
+        syslogServer: str(auditTracking['syslog-server']),
       },
     },
     preDefinedReports: {
-      configured: isPresent(preDefinedEl),
-      disabledMembers: extractMemberList(preDefinedEl),
+      configured: preDefinedEl != null,
+      disabledMembers: members(preDefinedEl),
     },
   }
 }
@@ -508,7 +490,7 @@ const extractAutoFocus = (settingEl: Record<string, unknown>): AutoFocusSettings
   const af = settingEl.autofocus as Record<string, unknown> | undefined
   return {
     enabled: yesNo(af?.enabled),
-    autoFocusUrl: toStr(af?.['autofocus-url']),
+    autoFocusUrl: str(af?.['autofocus-url']),
     queryTimeoutSec: toNum(af?.['query-timeout']),
   }
 }
@@ -516,10 +498,10 @@ const extractAutoFocus = (settingEl: Record<string, unknown>): AutoFocusSettings
 const extractCloudLogging = (settingEl: Record<string, unknown>): CloudLoggingSettings => {
   const cloudapp = (settingEl.cloudapp ?? {}) as Record<string, unknown>
   return {
-    enableCloudLogging: isPresent(cloudapp.disable) ? !yesNo(cloudapp.disable) : false,
+    enableCloudLogging: cloudapp.disable != null ? !yesNo(cloudapp.disable) : false,
     enableDuplicateLogging: yesNo(cloudapp['duplicate-logging']),
     enableEnhancedApplicationLogging: yesNo(cloudapp['enhanced-application-logging']),
-    region: toStr(cloudapp.region),
+    region: str(cloudapp.region),
     connectionCountStrataLoggingService: toNum(cloudapp['connection-count']),
   }
 }
@@ -527,7 +509,7 @@ const extractCloudLogging = (settingEl: Record<string, unknown>): CloudLoggingSe
 const extractAccountingServerSettings = (
   sEl: Record<string, unknown>,
 ): AccountingServerSettings => ({
-  accountingServerProfile: toStr(sEl['accounting-server-profile']),
+  accountingServerProfile: str(sEl['accounting-server-profile']),
 })
 
 const extractSshManagementProfileSetting = (
@@ -535,12 +517,12 @@ const extractSshManagementProfileSetting = (
 ): SshManagementProfileSetting => {
   const ssh = (sEl.ssh ?? {}) as Record<string, unknown>
   const mgmt = (ssh.mgmt ?? {}) as Record<string, unknown>
-  return { serverProfile: toStr(mgmt['server-profile']) }
+  return { serverProfile: str(mgmt['server-profile']) }
 }
 
 const extractAdvancedDnsSecurity = (settingEl: Record<string, unknown>): AdvancedDnsSecurity => {
   const dns = (settingEl.dns ?? {}) as Record<string, unknown>
-  return { dnsSecurityServer: toStr(dns['dns-cloud-server']) }
+  return { dnsSecurityServer: str(dns['dns-cloud-server']) }
 }
 
 const extractPanOsEdgeServiceSettings = (
@@ -551,42 +533,42 @@ const extractPanOsEdgeServiceSettings = (
   const cloudUserid = settingEl['cloud-userid'] as Record<string, unknown> | undefined
   const cloudCompliance = settingEl['cloud-host-compliance'] as Record<string, unknown> | undefined
 
-  const mode = toStr(iot['device-id-operational-mode'])
+  const mode = str(iot['device-id-operational-mode'])
   const deviceIdOperationMode =
     mode === 'legacy-mode' || mode === 'hybrid-mode' || mode === 'advanced-mode' ? mode : null
 
   return {
     enableThirdPartyDeviceVerdicts: yesNo(edge['enable-3rd-party']),
-    enableUserContextCloudService: isPresent(cloudUserid?.disabled)
-      ? !yesNo(cloudUserid?.disabled)
+    enableUserContextCloudService: cloudUserid?.disabled != null
+      ? !yesNo(cloudUserid.disabled)
       : false,
     deviceIdOperationMode,
-    enableCloudHostComplianceService: isPresent(cloudCompliance?.disabled)
-      ? !yesNo(cloudCompliance?.disabled)
+    enableCloudHostComplianceService: cloudCompliance?.disabled != null
+      ? !yesNo(cloudCompliance.disabled)
       : false,
   }
 }
 
 const extractBannersAndMessages = (sEl: Record<string, unknown>): BannersAndMessages => {
   const mb = (sEl['motd-and-banner'] ?? {}) as Record<string, unknown>
-  const icon = toStr(mb.severity)
+  const icon = str(mb.severity)
   return {
     messageOfTheDay: {
       enabled: yesNo(mb['motd-enable']),
-      message: toStr(mb.message),
+      message: str(mb.message),
       allowDoNotDisplayAgain: yesNo(mb['motd-do-not-display-again']),
-      title: toStr(mb['motd-title']),
-      backgroundColor: toStr(mb['motd-color']),
+      title: str(mb['motd-title']),
+      backgroundColor: str(mb['motd-color']),
       icon: icon === 'info' || icon === 'warning' || icon === 'critical' ? icon : null,
     },
     banners: {
-      headerBanner: toStr(mb['banner-header']),
-      headerColor: toStr(mb['banner-header-color']),
-      headerTextColor: toStr(mb['banner-header-text-color']),
+      headerBanner: str(mb['banner-header']),
+      headerColor: str(mb['banner-header-color']),
+      headerTextColor: str(mb['banner-header-text-color']),
       sameBannerForHeaderAndFooter: yesNo(mb['banner-header-footer-match']),
-      footerBanner: toStr(mb['banner-footer']),
-      footerColor: toStr(mb['banner-footer-color']),
-      footerTextColor: toStr(mb['banner-footer-text-color']),
+      footerBanner: str(mb['banner-footer']),
+      footerColor: str(mb['banner-footer-color']),
+      footerTextColor: str(mb['banner-footer-text-color']),
     },
   }
 }
@@ -628,7 +610,7 @@ const extractMinimumPasswordComplexity = (
  * Extract the full Device > Setup > Management configuration from a template's
  * <deviceconfig> and <mgt-config> elements.
  *
- * @param deviceconfig - Parsed <deviceconfig> element (contains <setting> and <s>)
+ * @param deviceconfig - Parsed <deviceconfig> element (contains <setting> and <system>)
  * @param mgtConfig    - Parsed <mgt-config> element (contains <password-complexity>)
  */
 export const extractSetupManagement = (
@@ -637,7 +619,7 @@ export const extractSetupManagement = (
 ): SetupManagement => {
   const dc = deviceconfig ?? {}
   const mc = mgtConfig ?? {}
-  const sEl = (dc.system ?? {}) as Record<string, unknown>
+  const sEl = (dc.system ?? dc.s ?? {}) as Record<string, unknown>
   const settingEl = (dc.setting ?? {}) as Record<string, unknown>
   const mgmtEl = (settingEl.management ?? {}) as Record<string, unknown>
 

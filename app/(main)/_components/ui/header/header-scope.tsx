@@ -23,7 +23,7 @@ import type { ParsedPanoramaConfig } from "@/lib/panw-parser/general/config"
 type ScopeMode = "template" | "device-group"
 
 function resolveScopeMode(pathname: string): ScopeMode | null {
-  if (pathname.startsWith("/network")) return "template"
+  if (pathname.startsWith("/network") || pathname.startsWith("/device")) return "template"
   if (pathname.startsWith("/objects") || pathname.startsWith("/policies")) return "device-group"
   return null
 }

@@ -3,14 +3,9 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Checkbox } from "@/components/ui/checkbox"
-import { DisplayField } from "@/components/ui/display-field"
-import { Label } from "@/components/ui/label"
 import type { GeneralSettings } from "@/lib/panw-parser/device/setup/management"
+import { SettingsCard, Field, BoolField } from "./_shared"
 import { GeneralSettingsDialog } from "./general-settings-dialog"
-
-const LW = "w-72"
 
 interface GeneralSettingsCardProps {
   generalSettings: GeneralSettings
@@ -21,56 +16,37 @@ export function GeneralSettingsCard({ generalSettings: gs }: GeneralSettingsCard
 
   const geoLocation = gs.latitude !== null && gs.longitude !== null
     ? `Latitude: ${gs.latitude}, Longitude: ${gs.longitude}`
-    : "None"
+    : null
 
   return (
     <>
-      <Card>
-        <CardHeader
-          role="button"
-          tabIndex={0}
-          onClick={() => setOpen(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault()
-              setOpen(true)
-            }
-          }}
-          className="cursor-pointer hover:bg-accent/50 transition-colors"
-        >
-          <CardTitle>General Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <DisplayField label="Hostname" value={gs.hostname ?? "None"} labelWidth={LW} />
-          <DisplayField label="Domain" value={gs.domain ?? "None"} labelWidth={LW} />
-          <DisplayField label="Login Banner" value={gs.loginBanner ?? "None"} labelWidth={LW} />
-          <Label className="flex items-center gap-2 py-1 pl-1">
-            <Checkbox checked={gs.forceAckLoginBanner} disabled />
-            <span className="text-xs">Force Admins to Acknowledge Login Banner</span>
-          </Label>
-          <DisplayField label="SSL/TLS Service Profile" value={gs.sslTlsServiceProfile ?? "None"} labelWidth={LW} />
-          <DisplayField label="Time Zone" value={gs.timezone ?? "None"} labelWidth={LW} />
-          <DisplayField label="Locale" value={gs.locale ?? "None"} labelWidth={LW} />
-          <DisplayField label="Geo Location" value={geoLocation} labelWidth={LW} />
-          <Label className="flex items-center gap-2 py-1 pl-1">
-            <Checkbox checked={gs.automaticallyAcquireCommitLock} disabled />
-            <span className="text-xs">Automatically Acquire Commit Lock</span>
-          </Label>
-          <Label className="flex items-center gap-2 py-1 pl-1">
-            <Checkbox checked={gs.certificateExpirationCheck} disabled />
-            <span className="text-xs">Certificate Expiration Check</span>
-          </Label>
-          <Label className="flex items-center gap-2 py-1 pl-1">
-            <Checkbox checked={gs.useHypervisorAssignedMacAddresses} disabled />
-            <span className="text-xs">Use Hypervisor Assigned MAC Addresses</span>
-          </Label>
-          <Label className="flex items-center gap-2 py-1 pl-1">
-            <Checkbox checked={gs.tunnelAcceleration} disabled />
-            <span className="text-xs">Tunnel Acceleration</span>
-          </Label>
-        </CardContent>
-      </Card>
-
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setOpen(true)
+          }
+        }}
+        className="cursor-pointer [&>div]:hover:bg-accent/50 [&>div]:transition-colors"
+      >
+        <SettingsCard title="General Settings">
+          <Field label="Hostname" value={gs.hostname} />
+          <Field label="Domain" value={gs.domain} />
+          <Field label="Login Banner" value={gs.loginBanner} />
+          <BoolField label="Force Admins to Acknowledge Login Banner" checked={gs.forceAckLoginBanner} />
+          <Field label="SSL/TLS Service Profile" value={gs.sslTlsServiceProfile} />
+          <Field label="Time Zone" value={gs.timezone} />
+          <Field label="Locale" value={gs.locale} />
+          <Field label="Geo Location" value={geoLocation} />
+          <BoolField label="Automatically Acquire Commit Lock" checked={gs.automaticallyAcquireCommitLock} />
+          <BoolField label="Certificate Expiration Check" checked={gs.certificateExpirationCheck} />
+          <BoolField label="Use Hypervisor Assigned MAC Addresses" checked={gs.useHypervisorAssignedMacAddresses} />
+          <BoolField label="Tunnel Acceleration" checked={gs.tunnelAcceleration} />
+        </SettingsCard>
+      </div>
       <GeneralSettingsDialog
         generalSettings={gs}
         open={open}
