@@ -3,24 +3,22 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Fieldset, FieldsetLegend, FieldsetContent } from "@/components/ui/fieldset"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DisplayField } from "@/components/ui/display-field"
 
-/** Consistent label width across all management cards */
+/** Consistent label width across all management sections */
 export const LW = "w-72"
 
-/** Reusable card shell — matches PAN-OS section cards */
-export function SettingsCard({ title, children }: { title: string; children: React.ReactNode }) {
+/** Reusable section shell — matches Network section styling */
+export function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
+    <Fieldset>
+      <FieldsetLegend>{title}</FieldsetLegend>
+      <FieldsetContent>
         {children}
-      </CardContent>
-    </Card>
+      </FieldsetContent>
+    </Fieldset>
   )
 }
 
